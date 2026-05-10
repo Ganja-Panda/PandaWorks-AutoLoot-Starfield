@@ -21,7 +21,7 @@ This repository reflects ongoing work on the framework and is not a final releas
 ## Expected Release
 
 Target release window:
-**Mid to Late April**
+**Mid to Late May**
 
 This timeline is aligned with the upcoming Starfield update and platform release window.  
 (Life is hectic at the moment so I'm working as fast as I can. I meant to have it ready on April 7th.) 
