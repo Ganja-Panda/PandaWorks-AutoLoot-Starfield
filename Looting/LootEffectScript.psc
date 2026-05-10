@@ -64,20 +64,21 @@ EndGroup
 Group WorldState_References
 	ObjectReference Property PlayerRef Auto Const Mandatory
 	ObjectReference Property LodgeSafeRef Auto Const Mandatory
-	ObjectReference Property PWAL_CONT_Inventory_Reference Auto Const Mandatory
+	ObjectReference Property PWAL_INV_REF Auto Const Mandatory
 	ReferenceAlias Property PlayerHomeShip Auto Const Mandatory
 EndGroup
 
 Group Settings_Looting_AutoFill
-	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_HomeShip Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_Lodge Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_Outposts Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_PlayerHomes Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_Ships Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_Container_TakeAll Auto Const
-	GlobalVariable Property PWAL_GLOB_Settings_Corpses_Remove Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_Corpses_TakeAll Auto Const
-	GlobalVariable Property PWAL_GLOB_Settings_SearchRadius Auto Const
+	GlobalVariable Property PWAL_GLOB_Settings_Corpses_Remove Auto Const
+	GlobalVariable Property PWAL_GLOB_Settings_Radius_City Auto Const
+	GlobalVariable Property PWAL_GLOB_Settings_Radius_Internal Auto Const
+	GlobalVariable Property PWAL_GLOB_Settings_Radius_Wilderness Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_Stealing_Allowed Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_Stealing_IsHostile Auto Const
 EndGroup
@@ -92,9 +93,9 @@ Group Settings_Unlocking_AutoFill
 	GlobalVariable Property LockLevel_Novice Auto Const
 	GlobalVariable Property LockLevel_RequiresKey Auto Const
 	Faction Property PlayerFaction Auto Const
-	ConditionForm Property PWAL_CNDF_LockCheck_Advanced Auto Const
-	ConditionForm Property PWAL_CNDF_LockCheck_Expert Auto Const
-	ConditionForm Property PWAL_CNDF_LockCheck_Master Auto Const
+	ConditionForm Property PWAL_PERK_CND_LockCheck_Advanced Auto Const
+	ConditionForm Property PWAL_PERK_CND_LockCheck_Expert Auto Const
+	ConditionForm Property PWAL_PERK_CND_LockCheck_Master Auto Const
 	MiscObject Property Digipick Auto Const
 EndGroup
 
@@ -104,14 +105,15 @@ Group System_Lists_AutoFill
 EndGroup
 
 Group WorldState_Tracking_AutoFill
-	Keyword Property PWAL_KYWD_Container_Looted Auto Const Mandatory
 	Keyword Property PWAL_KYWD_Corpse_Looted Auto Const Mandatory
 EndGroup
 
 Group WorldState_Forms_AutoFill
 	Keyword Property SpaceshipInventoryContainer Auto Const
 	Armor Property PWAL_ARMO_Skin_NOTPLAYABLE Auto Const Mandatory
-	FormList Property PWAL_FLST_Script_HumanCorpseRaces Auto Const Mandatory
+	Armor Property PWAL_ARMO_Skin_Dusty_NOTPLAYABLE Auto Const Mandatory
+	Armor Property PWAL_ARMO_Skin_Frozen_NOTPLAYABLE Auto Const Mandatory
+	FormList Property PWAL_FLST_Script_HumanRaces Auto Const Mandatory
 	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto Const Mandatory
 EndGroup
 
@@ -121,8 +123,8 @@ Group RuntimeState
 	Bool Property bIsLooting = false Auto Hidden
 	Bool Property bAllowStealing = false Auto
 	Bool Property bStealingIsHostile = false Auto
-	Bool Property bTakeAllContainer = false Auto
-	Bool Property bTakeAllCorpse = false Auto
+	Bool Property bTakeAll = false Auto
+	Float Property initialTimerJitter = 4.0 Auto
 	ObjectReference Property theLooterRef Auto 
 EndGroup
 
@@ -304,12 +306,12 @@ Float Function GetRadius()
 		Return Game.GetGameSettingFloat("fMaxShipTransferDistance")
 	EndIf
 
-	If PWAL_GLOB_Settings_SearchRadius == None
-		LogWarn("LootEffect", "GetRadius fallback: PWAL_GLOB_Settings_SearchRadius is not filled.")
+	If PWAL_GLOB_Settings_Radius_Internal == None
+		LogWarn("LootEffect", "GetRadius fallback: PWAL_GLOB_Settings_Radius_Internal is not filled.")
 		Return 0.0
 	EndIf
 
-	Return PWAL_GLOB_Settings_SearchRadius.GetValue()
+	Return PWAL_GLOB_Settings_Radius_Internal.GetValue()
 EndFunction
 
 ObjectReference Function ResolveLooterRef()
@@ -338,15 +340,11 @@ ObjectReference Function GetPlayerHomeShipRef()
 EndFunction
 
 ObjectReference Function GetPWALInventoryContainerRef()
-	Return PWAL_CONT_Inventory_Reference
+	Return PWAL_INV_REF
 EndFunction
 
 ObjectReference Function GetLodgeSafeRef()
 	Return LodgeSafeRef
-EndFunction
-
-Keyword Function GetContainerLootedKeyword()
-	Return PWAL_KYWD_Container_Looted
 EndFunction
 
 Keyword Function GetCorpseLootedKeyword()
@@ -358,7 +356,7 @@ Bool Function IsHumanRace(Actor akActor)
 		Return false
 	EndIf
 
-	If PWAL_FLST_Script_HumanCorpseRaces == None
+	If PWAL_FLST_Script_HumanRaces == None
 		LogWarn("LootEffect", "IsHumanRace fallback: PWAL_FLST_Script_HumanCorpseRaces is not filled.")
 		Return false
 	EndIf
@@ -368,7 +366,7 @@ Bool Function IsHumanRace(Actor akActor)
 		Return false
 	EndIf
 	
-	Return PWAL_FLST_Script_HumanCorpseRaces.HasForm(akRace)
+	Return PWAL_FLST_Script_HumanRaces.HasForm(akRace)
 EndFunction
 
 ; ==============================================================
