@@ -114,6 +114,7 @@ Group WorldState_Forms_AutoFill
 	Armor Property PWAL_ARMO_Skin_Dusty_NOTPLAYABLE Auto Const Mandatory
 	Armor Property PWAL_ARMO_Skin_Frozen_NOTPLAYABLE Auto Const Mandatory
 	FormList Property PWAL_FLST_Script_Races_Human Auto Const Mandatory
+	FormList Property PWAL_FLST_Script_Locations_Cities Auto Const Mandatory
 	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto Const Mandatory
 EndGroup
 
@@ -305,21 +306,67 @@ EndFunction
 
 Float Function GetRadius()
 	If bIsContainerSpace
-		Return Game.GetGameSettingFloat("fMaxShipTransferDistance")
+		Float fShipDistance = Game.GetGameSettingFloat("fMaxShipTransferDistance")
+
+		If fShipDistance > 0.0
+			Return fShipDistance
+		EndIf
+
+		LogWarn("LootEffect", "GetRadius fallback: fMaxShipTransferDistance returned invalid value.")
+		Return 0.0
 	EndIf
 
 	If PWAL_GLOB_Settings_Radius_Internal == None
 		LogWarn("LootEffect", "GetRadius fallback: PWAL_GLOB_Settings_Radius_Internal is not filled.")
 		Return 0.0
-	ElseIf PWAL_GLOB_Settings_Radius_City == None
+	EndIf
+
+	If PWAL_GLOB_Settings_Radius_City == None
 		LogWarn("LootEffect", "GetRadius fallback: PWAL_GLOB_Settings_Radius_City is not filled.")
 		Return 0.0
-	ElseIf PWAL_GLOB_Settings_Radius_Wilderness == None
+	EndIf
+
+	If PWAL_GLOB_Settings_Radius_Wilderness == None
 		LogWarn("LootEffect", "GetRadius fallback: PWAL_GLOB_Settings_Radius_Wilderness is not filled.")
 		Return 0.0
 	EndIf
 
-	Return PWAL_GLOB_Settings_Radius_Internal.GetValue()
+	ObjectReference akRef = theLooterRef
+
+	If akRef == None
+		akRef = GetPlayerRef()
+	EndIf
+
+	If akRef == None
+		LogWarn("LootEffect", "GetRadius fallback: no looter/player ref available. Using internal radius.")
+		Return PWAL_GLOB_Settings_Radius_Internal.GetValue()
+	EndIf
+
+	If akRef.IsInInterior()
+		Return PWAL_GLOB_Settings_Radius_Internal.GetValue()
+	EndIf
+
+	Location akLocation = akRef.GetCurrentLocation()
+
+	If IsCityLocation(akLocation)
+		Return PWAL_GLOB_Settings_Radius_City.GetValue()
+	EndIf
+
+	Return PWAL_GLOB_Settings_Radius_Wilderness.GetValue()
+EndFunction
+
+
+Bool Function IsCityLocation(Location akLocation)
+	If akLocation == None
+		Return false
+	EndIf
+
+	If PWAL_FLST_Script_Locations_Cities == None
+		LogDebug("LootEffect", "IsCityLocation fallback: PWAL_FLST_Script_Locations_Cities is not filled.")
+		Return false
+	EndIf
+
+	Return PWAL_FLST_Script_Locations_Cities.HasForm(akLocation)
 EndFunction
 
 ObjectReference Function ResolveLooterRef()
