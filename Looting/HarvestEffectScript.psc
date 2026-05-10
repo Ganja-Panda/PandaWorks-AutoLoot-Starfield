@@ -1,0 +1,1 @@
+ScriptName PWAL:Looting:HarvestEffectScript
