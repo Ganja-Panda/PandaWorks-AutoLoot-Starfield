@@ -350,7 +350,7 @@ ObjectReference Function GetLodgeSafeRef()
 EndFunction
 
 Keyword Function GetCorpseLootedKeyword()
-	Return PWAL_KYWD_Corpse_Looted
+	Return PWAL_KYWD_CorpseLooted
 EndFunction
 
 Bool Function IsHumanRace(Actor akActor)
