@@ -105,7 +105,7 @@ Group System_Lists_AutoFill
 EndGroup
 
 Group WorldState_Tracking_AutoFill
-	Keyword Property PWAL_KYWD_Corpse_Looted Auto Const Mandatory
+	Keyword Property PWAL_KYWD_CorpseLooted Auto Const Mandatory
 EndGroup
 
 Group WorldState_Forms_AutoFill
