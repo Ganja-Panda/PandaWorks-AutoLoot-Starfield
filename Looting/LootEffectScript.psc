@@ -113,7 +113,7 @@ Group WorldState_Forms_AutoFill
 	Armor Property PWAL_ARMO_Skin_NOTPLAYABLE Auto Const Mandatory
 	Armor Property PWAL_ARMO_Skin_Dusty_NOTPLAYABLE Auto Const Mandatory
 	Armor Property PWAL_ARMO_Skin_Frozen_NOTPLAYABLE Auto Const Mandatory
-	FormList Property PWAL_FLST_Script_HumanRaces Auto Const Mandatory
+	FormList Property PWAL_FLST_Script_Races_Human Auto Const Mandatory
 	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto Const Mandatory
 EndGroup
 
@@ -364,8 +364,8 @@ Bool Function IsHumanRace(Actor akActor)
 		Return false
 	EndIf
 
-	If PWAL_FLST_Script_HumanRaces == None
-		LogWarn("LootEffect", "IsHumanRace fallback: PWAL_FLST_Script_HumanRaces is not filled.")
+	If PWAL_FLST_Script_Races_Human == None
+		LogWarn("LootEffect", "IsHumanRace fallback: PWAL_FLST_Script_Races_Human is not filled.")
 		Return false
 	EndIf
 
@@ -374,7 +374,7 @@ Bool Function IsHumanRace(Actor akActor)
 		Return false
 	EndIf
 	
-	Return PWAL_FLST_Script_HumanRaces.HasForm(akRace)
+	Return PWAL_FLST_Script_Races_Human.HasForm(akRace)
 EndFunction
 
 ; ==============================================================
