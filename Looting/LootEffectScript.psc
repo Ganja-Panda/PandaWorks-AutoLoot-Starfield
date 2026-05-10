@@ -33,6 +33,7 @@ ScriptName PWAL:Looting:LootEffectScript Extends ActiveMagicEffect Hidden
 ; Properties
 ; ==============================================================
 Group FrameworkServices
+	{ Set to PWAL_QUST_Deamon. }
 	PWAL:Core:LoggerScript Property Logger Auto Const Mandatory
 	PWAL:Core:RuntimeManagerScript Property RuntimeManager Auto Const Mandatory
 	PWAL:Looting:LootScannerScript Property LootScanner Auto Const Mandatory
@@ -49,6 +50,7 @@ Group EffectProfile_Optional
 EndGroup
 
 Group EffectBehavior_Method
+	{ Only 1 item in this group can be set to true. }
 	Bool Property bIsActivator = false Auto
 	Bool Property bIsContainer = false Auto
 	Bool Property bLootDeadActor = false Auto
@@ -57,6 +59,7 @@ Group EffectBehavior_Method
 EndGroup
 
 Group EffectBehavior_FormFilter
+	{ Only 1 item in this group can be set to true. }
 	Bool Property bIsKeyword = false Auto
 	Bool Property bIsMultipleKeyword = false Auto
 EndGroup
