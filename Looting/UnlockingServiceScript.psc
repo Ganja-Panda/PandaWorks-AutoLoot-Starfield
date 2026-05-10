@@ -275,7 +275,7 @@ Bool Function CanUnlock(ObjectReference akContainer, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	If akEffectContext.PWAL_CNDF_LockCheck_Advanced == None || akEffectContext.PWAL_CNDF_LockCheck_Expert == None || akEffectContext.PWAL_CNDF_LockCheck_Master == None
+	If akEffectContext.PWAL_PERK_CND_LockCheck_Advanced == None || akEffectContext.PWAL_PERK_CND_LockCheck_Expert == None || akEffectContext.PWAL_PERK_CND_LockCheck_Master == None
 		LogWarn("UnlockingService", "CanUnlock aborted: one or more lock condition forms are not filled.")
 		Return false
 	EndIf
@@ -290,9 +290,9 @@ Bool Function CanUnlock(ObjectReference akContainer, PWAL:Looting:LootEffectScri
 
 	abCanUnlock = new Bool[4]
 	abCanUnlock[0] = true
-	abCanUnlock[1] = akEffectContext.PWAL_CNDF_LockCheck_Advanced.Istrue(akPlayerRef, None)
-	abCanUnlock[2] = akEffectContext.PWAL_CNDF_LockCheck_Expert.Istrue(akPlayerRef, None)
-	abCanUnlock[3] = akEffectContext.PWAL_CNDF_LockCheck_Master.Istrue(akPlayerRef, None)
+	abCanUnlock[1] = akEffectContext.PWAL_PERK_CND_LockCheck_Advanced.Istrue(akPlayerRef, None)
+	abCanUnlock[2] = akEffectContext.PWAL_PERK_CND_LockCheck_Expert.Istrue(akPlayerRef, None)
+	abCanUnlock[3] = akEffectContext.PWAL_PERK_CND_LockCheck_Master.Istrue(akPlayerRef, None)
 
 	iIndex = 0
 	While iIndex < aiLockLevels.Length

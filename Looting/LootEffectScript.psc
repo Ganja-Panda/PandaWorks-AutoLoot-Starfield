@@ -124,6 +124,8 @@ Group RuntimeState
 	Bool Property bAllowStealing = false Auto
 	Bool Property bStealingIsHostile = false Auto
 	Bool Property bTakeAll = false Auto
+	Bool Property bTakeAllContainer = false Auto
+	Bool Property bTakeAllCorpse = false Auto
 	Float Property initialTimerJitter = 4.0 Auto
 	ObjectReference Property theLooterRef Auto 
 EndGroup

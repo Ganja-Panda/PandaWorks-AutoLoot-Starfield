@@ -71,7 +71,7 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 	; without causing floating heads.
 	If akEffectContext.IsHumanRace(akCorpseActor)
 		akCorpseActor.UnequipAll()
-		akCorpseActor.EquipItem(akEffectContext.PWAL_ARMO_Skin_Naked_NOTPLAYABLE as Form, false, false)
+		akCorpseActor.EquipItem(akEffectContext.PWAL_ARMO_Skin_NOTPLAYABLE as Form, false, false)
 	EndIf
 
 	Utility.Wait(0.1)

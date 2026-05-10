@@ -175,8 +175,6 @@ Bool Function IsAlreadyLooted(ObjectReference akLoot, PWAL:Looting:LootEffectScr
 	akActor = akLoot as Actor
 	If akActor != None
 		akLootedKeyword = akEffectContext.GetCorpseLootedKeyword()
-	Else
-		akLootedKeyword = akEffectContext.GetContainerLootedKeyword()
 	EndIf
 
 	If akLootedKeyword == None

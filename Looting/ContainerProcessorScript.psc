@@ -60,11 +60,6 @@ Function ProcessContainer(ObjectReference akContainer, PWAL:Looting:LootEffectSc
 		Return
 	EndIf
 
-	If IsContainerAlreadyLooted(akContainer, akEffectContext)
-		LogDebug("ContainerProcessor", "ProcessContainer skipped: container already marked looted.")
-		Return
-	EndIf
-
 	If !LootValidation.CanProcessLoot(akContainer, akEffectContext)
 		LogDebug("ContainerProcessor", "ProcessContainer skipped: LootValidation rejected container.")
 		Return
@@ -88,7 +83,6 @@ Function ProcessContainer(ObjectReference akContainer, PWAL:Looting:LootEffectSc
 		ProcessFilteredContainerItems(akContainer, akDestinationRef, akEffectContext)
 	EndIf
 
-	MarkContainerAsLooted(akContainer, akEffectContext)
 	LogDebug("ContainerProcessor", "ProcessContainer complete: " + akContainer)
 EndFunction
 
@@ -182,42 +176,6 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 	EndWhile
 
 	LogDebug("ContainerProcessor", "ProcessFilteredContainerItems complete.")
-EndFunction
-
-; ==============================================================
-; State Tracking
-; ==============================================================
-
-Bool Function IsContainerAlreadyLooted(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
-	Keyword akLootedKeyword
-
-	If akContainer == None || akEffectContext == None
-		Return false
-	EndIf
-
-	akLootedKeyword = akEffectContext.GetContainerLootedKeyword()
-	If akLootedKeyword == None
-		Return false
-	EndIf
-
-	Return akContainer.HasKeyword(akLootedKeyword)
-EndFunction
-
-Function MarkContainerAsLooted(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
-	Keyword akLootedKeyword
-
-	If akContainer == None || akEffectContext == None
-		Return
-	EndIf
-
-	akLootedKeyword = akEffectContext.GetContainerLootedKeyword()
-	If akLootedKeyword == None
-		Return
-	EndIf
-
-	If !akContainer.HasKeyword(akLootedKeyword)
-		akContainer.AddKeyword(akLootedKeyword)
-	EndIf
 EndFunction
 
 ; ==============================================================
