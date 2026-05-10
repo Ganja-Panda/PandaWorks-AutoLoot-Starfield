@@ -1,4 +1,4 @@
-# PandaWorks Auto Loot (PWAL)
+# PandaWorks AutoLoot (PWAL)
 
 PWAL is a performance-focused auto-looting system for Starfield.
 
