@@ -311,6 +311,12 @@ Float Function GetRadius()
 	If PWAL_GLOB_Settings_Radius_Internal == None
 		LogWarn("LootEffect", "GetRadius fallback: PWAL_GLOB_Settings_Radius_Internal is not filled.")
 		Return 0.0
+	ElseIf PWAL_GLOB_Settings_Radius_City == None
+		LogWarn("LootEffect", "GetRadius fallback: PWAL_GLOB_Settings_Radius_City is not filled.")
+		Return 0.0
+	ElseIf PWAL_GLOB_Settings_Radius_Wilderness == None
+		LogWarn("LootEffect", "GetRadius fallback: PWAL_GLOB_Settings_Radius_Wilderness is not filled.")
+		Return 0.0
 	EndIf
 
 	Return PWAL_GLOB_Settings_Radius_Internal.GetValue()
@@ -359,7 +365,7 @@ Bool Function IsHumanRace(Actor akActor)
 	EndIf
 
 	If PWAL_FLST_Script_HumanRaces == None
-		LogWarn("LootEffect", "IsHumanRace fallback: PWAL_FLST_Script_HumanCorpseRaces is not filled.")
+		LogWarn("LootEffect", "IsHumanRace fallback: PWAL_FLST_Script_HumanRaces is not filled.")
 		Return false
 	EndIf
 
