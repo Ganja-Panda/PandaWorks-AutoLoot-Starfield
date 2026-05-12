@@ -115,6 +115,9 @@ Group WorldState_Forms_AutoFill
 	Armor Property PWAL_ARMO_Skin_Dusty_NOTPLAYABLE Auto Const Mandatory
 	Armor Property PWAL_ARMO_Skin_Frozen_NOTPLAYABLE Auto Const Mandatory
 	FormList Property PWAL_FLST_Script_Races_Human Auto Const Mandatory
+	FormList Property PWAL_FLST_Script_Corpses Auto Const Mandatory
+	FormList Property PWAL_FLST_Script_Corpses_Dusty Auto Const Mandatory
+	FormList Property PWAL_FLST_Script_Corpses_Frozen Auto Const Mandatory
 	FormList Property PWAL_FLST_Script_Locations_Cities Auto Const Mandatory
 	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto Const Mandatory
 	ConditionForm Property Perk_CND_Zoology_NonLethalHarvest_Target Auto Const Mandatory

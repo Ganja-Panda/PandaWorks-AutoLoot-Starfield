@@ -67,11 +67,10 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 
 	; Preserve old LZP behavior:
 	; For human corpses, unequip all worn gear and replace the body
-	; with the non-playable naked skin so armor becomes lootable
-	; without causing floating heads.
+	; with the correct non-playable corpse skin variant so armor becomes
+	; lootable without causing floating heads.
 	If akEffectContext.IsHumanRace(akCorpseActor)
-		akCorpseActor.UnequipAll()
-		akCorpseActor.EquipItem(akEffectContext.PWAL_ARMO_Skin_NOTPLAYABLE as Form, false, false)
+		ApplyHumanCorpseSkin(akCorpseActor, akEffectContext)
 	EndIf
 
 	Utility.Wait(0.1)
@@ -98,6 +97,61 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 	EndIf
 
 	LogDebug("CorpseProcessor", "ProcessCorpse complete: " + akCorpse)
+EndFunction
+
+Function ApplyHumanCorpseSkin(Actor akCorpseActor, PWAL:Looting:LootEffectScript akEffectContext)
+	Armor akCorpseSkin
+
+	If akCorpseActor == None || akEffectContext == None
+		Return
+	EndIf
+
+	akCorpseSkin = ResolveHumanCorpseSkin(akCorpseActor, akEffectContext)
+
+	If akCorpseSkin == None
+		LogWarn("CorpseProcessor", "ApplyHumanCorpseSkin skipped: no corpse skin resolved.")
+		Return
+	EndIf
+
+	akCorpseActor.UnequipAll()
+	akCorpseActor.EquipItem(akCorpseSkin as Form, false, false)
+
+	LogDebug("CorpseProcessor", "Applied human corpse skin: " + akCorpseSkin)
+EndFunction
+
+
+Armor Function ResolveHumanCorpseSkin(Actor akCorpseActor, PWAL:Looting:LootEffectScript akEffectContext)
+	Form akActorBase
+
+	If akCorpseActor == None || akEffectContext == None
+		Return None
+	EndIf
+
+	akActorBase = akCorpseActor.GetBaseObject()
+
+	If akActorBase == None
+		Return akEffectContext.PWAL_ARMO_Skin_NOTPLAYABLE
+	EndIf
+
+	If akEffectContext.PWAL_FLST_Script_Corpses_Dusty != None
+		If akEffectContext.PWAL_FLST_Script_Corpses_Dusty.HasForm(akActorBase)
+			Return akEffectContext.PWAL_ARMO_Skin_Dusty_NOTPLAYABLE
+		EndIf
+	EndIf
+
+	If akEffectContext.PWAL_FLST_Script_Corpses_Frozen != None
+		If akEffectContext.PWAL_FLST_Script_Corpses_Frozen.HasForm(akActorBase)
+			Return akEffectContext.PWAL_ARMO_Skin_Frozen_NOTPLAYABLE
+		EndIf
+	EndIf
+
+	If akEffectContext.PWAL_FLST_Script_Corpses != None
+		If akEffectContext.PWAL_FLST_Script_Corpses.HasForm(akActorBase)
+			Return akEffectContext.PWAL_ARMO_Skin_NOTPLAYABLE
+		EndIf
+	EndIf
+
+	Return akEffectContext.PWAL_ARMO_Skin_NOTPLAYABLE
 EndFunction
 
 ; ==============================================================
