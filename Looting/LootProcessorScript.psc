@@ -111,13 +111,13 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 		Return false
 	EndIf
 
+	If akEffectContext.IsNonLethalHarvestMode()
+		Return RouteNonLethalHarvest(akResolvedLoot, akEffectContext)
+	EndIf
+
 	If !LootValidation.CanProcessLoot(akResolvedLoot, akEffectContext)
 		LogDebug("LootProcessor", "Candidate rejected by LootValidation: " + akResolvedLoot)
 		Return false
-	EndIf
-
-	If akEffectContext.IsNonLethalHarvestMode()
-		Return RouteNonLethalHarvest(akResolvedLoot, akEffectContext)
 	EndIf
 
 	If akEffectContext.IsCorpseMode()
@@ -196,9 +196,15 @@ Bool Function RouteNonLethalHarvest(ObjectReference akTarget, PWAL:Looting:LootE
 		Return false
 	EndIf
 
-	HarvestProcessor.ProcessNonLethalHarvest(akTarget, akEffectContext)
-	LogDebug("LootProcessor", "Nonlethal harvest routed: " + akTarget)
-	Return true
+	Bool bProcessed = HarvestProcessor.ProcessNonLethalHarvest(akTarget, akEffectContext)
+
+	If bProcessed
+		LogDebug("LootProcessor", "Nonlethal harvest routed: " + akTarget)
+	Else
+		LogDebug("LootProcessor", "Nonlethal harvest not processed: " + akTarget)
+	EndIf
+
+	Return bProcessed
 EndFunction
 
 Bool Function RouteActivator(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
