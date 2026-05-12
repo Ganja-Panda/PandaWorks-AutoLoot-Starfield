@@ -36,6 +36,7 @@ This timeline is aligned with the upcoming Starfield update and platform release
 
 PWAL will only be officially available through:
 - Bethesda Creation Club
+- Nexus Mods
 - This GitHub repository
 
 Any other distribution is unauthorized.
