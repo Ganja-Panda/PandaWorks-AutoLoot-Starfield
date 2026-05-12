@@ -38,6 +38,7 @@ Group FrameworkServices_AutoFill
 	PWAL:Looting:DestinationResolverScript Property DestinationResolver Auto Const Mandatory
 	PWAL:Looting:ContainerProcessorScript Property ContainerProcessor Auto Const Mandatory
 	PWAL:Looting:CorpseProcessorScript Property CorpseProcessor Auto Const Mandatory
+	PWAL:Looting:HarvestProcessorScript Property HarvestProcessor Auto Const Mandatory
 EndGroup
 
 ; ==============================================================
@@ -115,6 +116,10 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 		Return false
 	EndIf
 
+	If akEffectContext.IsNonLethalHarvestMode()
+		Return RouteNonLethalHarvest(akResolvedLoot, akEffectContext)
+	EndIf
+
 	If akEffectContext.IsCorpseMode()
 		Return RouteCorpse(akResolvedLoot, akEffectContext)
 	EndIf
@@ -178,6 +183,21 @@ Bool Function RouteCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScrip
 
 	CorpseProcessor.ProcessCorpse(akCorpse, akEffectContext)
 	LogDebug("LootProcessor", "Corpse routed: " + akCorpse)
+	Return true
+EndFunction
+
+Bool Function RouteNonLethalHarvest(ObjectReference akTarget, PWAL:Looting:LootEffectScript akEffectContext)
+	If akTarget == None
+		Return false
+	EndIf
+
+	If HarvestProcessor == None
+		LogWarn("LootProcessor", "RouteNonLethalHarvest failed: HarvestProcessor property is not filled.")
+		Return false
+	EndIf
+
+	HarvestProcessor.ProcessNonLethalHarvest(akTarget, akEffectContext)
+	LogDebug("LootProcessor", "Nonlethal harvest routed: " + akTarget)
 	Return true
 EndFunction
 

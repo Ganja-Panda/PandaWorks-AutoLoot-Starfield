@@ -54,6 +54,7 @@ Group EffectBehavior_Method
 	Bool Property bLootDeadActor = false Auto
 	Bool Property bIsActivatedBySpell = false Auto
 	Bool Property bIsContainerSpace = false Auto
+	Bool Property bIsNonLethalHarvest = false Auto
 EndGroup
 
 Group EffectBehavior_FormFilter
@@ -116,6 +117,7 @@ Group WorldState_Forms_AutoFill
 	FormList Property PWAL_FLST_Script_Races_Human Auto Const Mandatory
 	FormList Property PWAL_FLST_Script_Locations_Cities Auto Const Mandatory
 	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto Const Mandatory
+	ConditionForm Property Perk_CND_Zoology_NonLethalHarvest_Target Auto Const Mandatory
 EndGroup
 
 Group RuntimeState
@@ -247,6 +249,10 @@ EndFunction
 ; ==============================================================
 ; Effect Context Helpers
 ; ==============================================================
+
+Bool Function IsNonLethalHarvestMode()
+	Return bIsNonLethalHarvest
+EndFunction
 
 Bool Function IsContainerMode()
 	Return bIsContainer
