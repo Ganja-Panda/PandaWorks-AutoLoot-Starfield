@@ -158,6 +158,7 @@ Int Property LG_MISC_JUNKITEMS = 405 Auto Const
 Int Property LG_MISC_KEYCARDS = 406 Auto Const
 Int Property LG_MISC_PLUSHIES = 407 Auto Const
 Int Property LG_MISC_SNOWGLOBES = 408 Auto Const
+Int Property LG_MISC_MISCITEMS = 409 Auto Const
 
 ; RES / Inorganic
 Int Property LG_RES_INORGANIC_COMMON = 501 Auto Const
@@ -197,6 +198,11 @@ Int Function ResolveDestinationCode(Int aiLootGroupCode = 0)
 	If IsForcedPlayerLootGroup(aiLootGroupCode)
 		LogDebug("DestinationResolver", "Loot group is hard-routed to player: " + aiLootGroupCode)
 		Return DEST_PLAYER
+	EndIf
+
+	If IsForcedPandaWorksLootGroup(aiLootGroupCode)
+		LogDebug("DestinationResolver", "Loot group is hard-routed to PandaWorks: " + aiLootGroupCode)
+		Return DEST_PANDAWORKS
 	EndIf
 
 	Int iLootGroupCode = ResolveLootGroupDestinationCode(aiLootGroupCode)
@@ -368,6 +374,14 @@ Bool Function IsForcedPlayerLootGroup(Int aiLootGroupCode)
 	Return false
 EndFunction
 
+Bool Function IsForcedPandaWorksLootGroup(Int aiLootGroupCode)
+	If aiLootGroupCode == LG_MISC_CONTRABAND
+		Return true
+	EndIf
+
+	Return false
+EndFunction
+
 
 GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 	; ALCH
@@ -432,6 +446,10 @@ GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 
 	If aiLootGroupCode == LG_MISC_CURRENCY
 		Return PWAL_GLOB_Settings_Dest_MISC_Currency
+	EndIf
+
+	If aiLootGroupCode == LG_MISC_MISCITEMS
+		Return PWAL_GLOB_Settings_Dest_MISC_JunkItems
 	EndIf
 
 	If aiLootGroupCode == LG_MISC_JUNKITEMS
