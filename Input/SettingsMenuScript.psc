@@ -276,7 +276,7 @@ EndFunction
 Function RefreshGeneralTokens(ObjectReference akTerminalRef)
 	RefreshRadiusToken(akTerminalRef, "InternalRadius", PWAL_GLOB_Settings_Radius_Internal)
 	RefreshRadiusToken(akTerminalRef, "CityRadius", PWAL_GLOB_Settings_Radius_City)
-	RefreshRadiusToken(akTerminalRef, "Wilderness", PWAL_GLOB_Settings_Radius_Wilderness)
+	RefreshRadiusToken(akTerminalRef, "WildernessRadius", PWAL_GLOB_Settings_Radius_Wilderness)
 EndFunction
 
 Function RefreshContainersCorpsesTokens(ObjectReference akTerminalRef)
