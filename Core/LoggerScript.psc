@@ -16,6 +16,7 @@ ScriptName PWAL:Core:LoggerScript extends Quest
 ; Responsibilities:
 ;   - Format log messages consistently
 ;   - Respect the existing PWAL logging toggle global
+;   - Write PWAL logs to a dedicated user log file
 ;   - Provide centralized diagnostic trace helpers
 ;   - Normalize log source/message values
 ;   - Support verbose runtime inspection during development/testing
@@ -31,8 +32,12 @@ ScriptName PWAL:Core:LoggerScript extends Quest
 ; Properties
 ; ==============================================================
 
-GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto
-String Property sLogPrefix = "[PWAL]" Auto
+Group LoggingSettings
+	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto
+	String Property sLogPrefix = "[PWAL]" Auto
+	String Property sUserLogName = "PandaWorks AutoLoot" Auto Const
+	Bool Property bMirrorToPapyrusLog = false Auto Const
+EndGroup
 
 ; ==============================================================
 ; Public Logging API
@@ -89,7 +94,7 @@ Function Log(String asLevel, String asSource, String asMessage, Bool abForce)
 		Return
 	EndIf
 
-	WriteTrace(BuildMessage(asLevel, asSource, asMessage))
+	WriteTrace(BuildMessage(asLevel, asSource, asMessage), abForce)
 EndFunction
 
 Bool Function ShouldLog(Bool abForce)
@@ -100,8 +105,13 @@ Bool Function ShouldLog(Bool abForce)
 	Return IsLoggingEnabled()
 EndFunction
 
-Function WriteTrace(String asFinalMessage)
-	Debug.Trace(asFinalMessage)
+Function WriteTrace(String asFinalMessage, Bool abForce)
+	Debug.OpenUserLog(sUserLogName)
+	Debug.TraceUser(sUserLogName, asFinalMessage)
+
+	If bMirrorToPapyrusLog || abForce
+		Debug.Trace(asFinalMessage)
+	EndIf
 EndFunction
 
 String Function BuildMessage(String asLevel, String asSource, String asMessage)
