@@ -86,7 +86,7 @@ EndEvent
 Function RunMoveAllToShip()
 	LogDebug("UtilityTransferMenu", "RunMoveAllToShip triggered.")
 
-	Bool bMovedAnything = CommandServices.MoveAllToShip()
+	Bool bMovedAnything = CommandServices.TransferPandaWorksToShip()
 
 	If bMovedAnything
 		ShowMessage(PWAL_MSG_Utilities_MoveItemsToShip)
@@ -98,7 +98,7 @@ EndFunction
 Function RunMovePandaWorksToLodgeSafe()
 	LogDebug("UtilityTransferMenu", "RunMovePandaWorksToLodgeSafe triggered.")
 
-	Bool bMovedAnything = CommandServices.MovePandaWorksToLodgeSafe()
+	Bool bMovedAnything = CommandServices.TransferPandaWorksToLodgeSafe()
 
 	If bMovedAnything
 		ShowMessage(PWAL_MSG_Utilities_MoveItemsToLodge)
@@ -110,7 +110,7 @@ EndFunction
 Function RunMoveValuablesToPlayer()
 	LogDebug("UtilityTransferMenu", "RunMoveValuablesToPlayer triggered.")
 
-	Bool bMovedAnything = CommandServices.MoveValuablesToPlayer()
+	Bool bMovedAnything = CommandServices.TransferValuablesToPlayer()
 
 	If bMovedAnything
 		ShowMessage(PWAL_MSG_ValuablesToPlayer)
@@ -122,7 +122,7 @@ EndFunction
 Function RunMoveResourcesToShip()
 	LogDebug("UtilityTransferMenu", "RunMoveResourcesToShip triggered.")
 
-	Bool bMovedAnything = CommandServices.MoveResourcesToShip()
+	Bool bMovedAnything = CommandServices.TransferResourcesToShip()
 
 	If bMovedAnything
 		ShowMessage(PWAL_MSG_ResourcesToShip)
