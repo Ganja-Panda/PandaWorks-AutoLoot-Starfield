@@ -38,7 +38,7 @@ GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto
 GlobalVariable Property PWAL_GLOB_System_Installed Auto
 GlobalVariable Property PWAL_GLOB_Settings_Container_TakeAll Auto
 GlobalVariable Property PWAL_GLOB_Settings_Corpses_TakeAll Auto
-GlobalVariable Property PWAL_GLOB_Settings_Destination Auto
+GlobalVariable Property PWAL_GLOB_Settings_Dest Auto
 
 ; ==============================================================
 ; Validation State
@@ -163,8 +163,8 @@ Function ValidateCorpsesTakeAllGlobal()
 EndFunction
 
 Function ValidateDestinationGlobal()
-	If PWAL_GLOB_Settings_Destination == None
-		AddError("PWAL_GLOB_Settings_Destination property is not filled.")
+	If PWAL_GLOB_Settings_Dest == None
+		AddError("PWAL_GLOB_Settings_Dest property is not filled.")
 		Return
 	EndIf
 

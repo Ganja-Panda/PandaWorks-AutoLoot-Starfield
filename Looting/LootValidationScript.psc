@@ -37,8 +37,8 @@ ScriptName PWAL:Looting:LootValidationScript Extends Quest Hidden
 
 PWAL:Core:LoggerScript Property Logger Auto Const
 
-LocationAlias Property LodgeLocation Auto Const
-LocationAlias Property playerShipInterior Auto Const Mandatory
+Location Property CityNewAtlantisLodgeLocation Auto Const
+LocationAlias Property PlayerShipInterior Auto Const Mandatory
 Keyword Property LocTypeOutpost Auto Const
 Keyword Property LocTypePlayerHouse Auto Const
 
@@ -187,7 +187,6 @@ EndFunction
 Bool Function IsInBlockedOwnedArea(PWAL:Looting:LootEffectScript akEffectContext)
 	ObjectReference akPlayerRef
 	Location akPlayerLocation
-	Location akLodgeLocation
 
 	If akEffectContext == None
 		Return true
@@ -220,20 +219,16 @@ Bool Function IsInBlockedOwnedArea(PWAL:Looting:LootEffectScript akEffectContext
 	EndIf
 
 	; Lodge
-	If LodgeLocation != None
-		akLodgeLocation = LodgeLocation.GetLocation()
+	If CityNewAtlantisLodgeLocation != None
+		If akPlayerRef.IsInLocation(CityNewAtlantisLodgeLocation)
+			If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Lodge == None
+				LogDebug("LootValidation", "Blocked: lodge looting global missing.")
+				Return true
+			EndIf
 
-		If akLodgeLocation != None
-			If akPlayerRef.IsInLocation(akLodgeLocation)
-				If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Lodge == None
-					LogDebug("LootValidation", "Blocked: lodge looting global missing.")
-					Return true
-				EndIf
-
-				If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Lodge.GetValueInt() == 0
-					LogDebug("LootValidation", "Blocked: lodge looting is disabled.")
-					Return true
-				EndIf
+			If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Lodge.GetValueInt() == 0
+				LogDebug("LootValidation", "Blocked: lodge looting is disabled.")
+				Return true
 			EndIf
 		EndIf
 	EndIf
