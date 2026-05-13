@@ -45,7 +45,7 @@ Group WorldState_References
 EndGroup
 
 Group Terminal_References
-	ObjectReference Property PWAL_TerminalRef Auto Const
+	ObjectReference Property PWAL_TERM_REF Auto Const
 EndGroup
 
 Group UtilityGlobals_AutoFill
@@ -53,8 +53,8 @@ Group UtilityGlobals_AutoFill
 EndGroup
 
 Group TransferLists_Optional
-	FormList Property PWAL_FLST_Transfer_Resources Auto Const
-	FormList Property PWAL_FLST_Transfer_Valuables Auto Const
+	FormList Property PWAL_FLST_Script_Resources Auto Const
+	FormList Property PWAL_FLST_Script_Valuables Auto Const
 EndGroup
 
 ; ==============================================================
@@ -71,12 +71,12 @@ Bool Function OpenTerminal()
 		Return false
 	EndIf
 
-	If PWAL_TerminalRef == None
-		LogWarn("CommandServices", "OpenTerminal failed: PWAL_TerminalRef property is not filled.")
+	If PWAL_TERM_REF == None
+		LogWarn("CommandServices", "OpenTerminal failed: PWAL_TERM_REF property is not filled.")
 		Return false
 	EndIf
 
-	PWAL_TerminalRef.Activate(akPlayerRef, false)
+	PWAL_TERM_REF.Activate(akPlayerRef, false)
 	Return true
 EndFunction
 
@@ -191,7 +191,7 @@ Bool Function TransferResourcesToShip()
 		Return false
 	EndIf
 
-	Return TransferFormListItems(PWAL_INV_REF, akShipRef, PWAL_FLST_Transfer_Resources, "PandaWorksInventory", "ShipCargo", "Resources")
+	Return TransferFormListItems(PWAL_INV_REF, akShipRef, PWAL_FLST_Script_Resources, "PandaWorksInventory", "ShipCargo", "Resources")
 EndFunction
 
 Bool Function TransferPandaWorksToLodgeSafe()
@@ -212,13 +212,13 @@ Bool Function TransferValuablesToPlayer()
 
 	Bool bMovedAnything = false
 
-	If TransferFormListItems(PWAL_INV_REF, akPlayerRef, PWAL_FLST_Transfer_Valuables, "PandaWorksInventory", "Player", "Valuables")
+	If TransferFormListItems(PWAL_INV_REF, akPlayerRef, PWAL_FLST_Script_Valuables, "PandaWorksInventory", "Player", "Valuables")
 		bMovedAnything = true
 	EndIf
 
 	ObjectReference akShipRef = GetPlayerHomeShipRef()
 
-	If TransferFormListItems(akShipRef, akPlayerRef, PWAL_FLST_Transfer_Valuables, "ShipCargo", "Player", "Valuables")
+	If TransferFormListItems(akShipRef, akPlayerRef, PWAL_FLST_Script_Valuables, "ShipCargo", "Player", "Valuables")
 		bMovedAnything = true
 	EndIf
 
