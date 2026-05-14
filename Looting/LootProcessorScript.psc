@@ -136,6 +136,10 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 		Return RouteSpellActivation(akResolvedLoot, akEffectContext)
 	EndIf
 
+	If !CanRouteAsLooseLoot(akResolvedLoot, akEffectContext)
+		Return false
+	EndIf
+
 	Return RouteLooseLoot(akResolvedLoot, akEffectContext)
 EndFunction
 
@@ -279,7 +283,7 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	akDestinationRef.AddItem(akLootForm, -1, false)
+	akDestinationRef.AddItem(akLootForm, 1, true)
 	LogDebug("LootProcessor", "Loose loot transferred: " + akLoot)
 	Return true
 EndFunction
@@ -287,6 +291,54 @@ EndFunction
 ; ==============================================================
 ; Candidate Helpers
 ; ==============================================================
+
+Bool Function CanRouteAsLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
+	If akLoot == None || akEffectContext == None
+		Return false
+	EndIf
+
+	; Actors/corpses must never fall into loose-loot routing.
+	Actor akActor = akLoot as Actor
+	If akActor != None
+		LogDebug("LootProcessor", "Rejected loose-loot route: candidate is Actor ref: " + akLoot)
+		Return false
+	EndIf
+
+	; Container and corpse effect profiles should route through their processors.
+	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
+		LogDebug("LootProcessor", "Rejected loose-loot route: effect is container mode.")
+		Return false
+	EndIf
+
+	If akEffectContext.IsCorpseMode()
+		LogDebug("LootProcessor", "Rejected loose-loot route: effect is corpse mode.")
+		Return false
+	EndIf
+
+	; Loose loot must not be inside another container/inventory.
+	If akLoot.GetContainer() != None
+		LogDebug("LootProcessor", "Rejected loose-loot route: candidate belongs to container: " + akLoot)
+		Return false
+	EndIf
+
+	; Hard safety guards for framework/player refs.
+	If akLoot == akEffectContext.GetPlayerRef()
+		LogDebug("LootProcessor", "Rejected loose-loot route: candidate is PlayerRef.")
+		Return false
+	EndIf
+
+	If akLoot == akEffectContext.GetPWALInventoryContainerRef()
+		LogDebug("LootProcessor", "Rejected loose-loot route: candidate is PWAL inventory.")
+		Return false
+	EndIf
+
+	If akLoot == akEffectContext.GetLodgeSafeRef()
+		LogDebug("LootProcessor", "Rejected loose-loot route: candidate is Lodge Safe.")
+		Return false
+	EndIf
+
+	Return true
+EndFunction
 
 ObjectReference Function NormalizeCandidateRef(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
 	ObjectReference akShipRef
