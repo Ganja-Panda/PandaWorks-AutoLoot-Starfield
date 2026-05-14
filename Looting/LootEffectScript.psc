@@ -46,6 +46,7 @@ EndGroup
 
 Group EffectProfile_Optional
 	Spell Property ActiveLootSpell Auto Const
+	Int Property iLootGroupCode = 0 Auto Const
 EndGroup
 
 Group EffectBehavior_Method
@@ -146,6 +147,7 @@ EndEvent
 
 Event OnEffectStart(ObjectReference akTarget, Actor akCaster, MagicEffect akBaseEffect, Float afMagnitude, Float afDuration)
 	LogDebug("LootEffect", "OnEffectStart triggered.")
+	LogEffectProfile("OnEffectStart")
 
 	RefreshRuntimeSettings()
 	theLooterRef = ResolveLooterRef()
@@ -234,7 +236,7 @@ Function ExecuteLooting()
 		Return
 	EndIf
 
-	LogDebug("LootEffect", "ExecuteLooting forwarding " + akCandidates.Length + " candidates to LootProcessor.")
+	LogDebug("LootEffect", "ExecuteLooting forwarding " + akCandidates.Length + " candidates to LootProcessor. LootGroupCode=" + (iLootGroupCode as String))
 	LootProcessor.ProcessCandidates(akCandidates, Self)
 EndFunction
 
@@ -252,6 +254,10 @@ EndFunction
 ; ==============================================================
 ; Effect Context Helpers
 ; ==============================================================
+
+Int Function GetLootGroupCode()
+	Return iLootGroupCode
+EndFunction
 
 Bool Function IsNonLethalHarvestMode()
 	Return bIsNonLethalHarvest
@@ -436,6 +442,22 @@ EndFunction
 ; ==============================================================
 ; Utility Helpers
 ; ==============================================================
+
+Function LogEffectProfile(String asReason)
+	LogDebug("LootEffect", "Profile dump requested by " + asReason)
+	LogDebug("LootEffect", "Profile | ActivePerk=" + ActivePerk)
+	LogDebug("LootEffect", "Profile | ActiveLootList=" + ActiveLootList)
+	LogDebug("LootEffect", "Profile | ActiveLootSpell=" + ActiveLootSpell)
+	LogDebug("LootEffect", "Profile | iLootGroupCode=" + (iLootGroupCode as String))
+	LogDebug("LootEffect", "Profile | bIsActivator=" + (bIsActivator as String))
+	LogDebug("LootEffect", "Profile | bIsContainer=" + (bIsContainer as String))
+	LogDebug("LootEffect", "Profile | bLootDeadActor=" + (bLootDeadActor as String))
+	LogDebug("LootEffect", "Profile | bIsActivatedBySpell=" + (bIsActivatedBySpell as String))
+	LogDebug("LootEffect", "Profile | bIsContainerSpace=" + (bIsContainerSpace as String))
+	LogDebug("LootEffect", "Profile | bIsNonLethalHarvest=" + (bIsNonLethalHarvest as String))
+	LogDebug("LootEffect", "Profile | bIsKeyword=" + (bIsKeyword as String))
+	LogDebug("LootEffect", "Profile | bIsMultipleKeyword=" + (bIsMultipleKeyword as String))
+EndFunction
 
 Bool Function GetGlobalBool(GlobalVariable akGlobal)
 	If akGlobal == None
