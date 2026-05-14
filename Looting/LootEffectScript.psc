@@ -224,20 +224,14 @@ Function ExecuteLooting()
 	RefreshRuntimeSettings()
 	theLooterRef = ResolveLooterRef()
 
-	ObjectReference[] akCandidates = LootScanner.Scan(Self)
+	Int iProcessed = LootScanner.Scan(Self)
 
-	If akCandidates == None
-		LogDebug("LootEffect", "ExecuteLooting complete: scanner returned None.")
+	If iProcessed <= 0
+		LogDebug("LootEffect", "ExecuteLooting complete: scanner processed zero candidates.")
 		Return
 	EndIf
 
-	If akCandidates.Length <= 0
-		LogDebug("LootEffect", "ExecuteLooting complete: scanner returned zero candidates.")
-		Return
-	EndIf
-
-	LogDebug("LootEffect", "ExecuteLooting forwarding " + akCandidates.Length + " candidates to LootProcessor. LootGroupCode=" + (iLootGroupCode as String))
-	LootProcessor.ProcessCandidates(akCandidates, Self)
+	LogDebug("LootEffect", "ExecuteLooting complete. Scanner processed " + (iProcessed as String) + " candidate(s). LootGroupCode=" + (iLootGroupCode as String))
 EndFunction
 
 ; ==============================================================

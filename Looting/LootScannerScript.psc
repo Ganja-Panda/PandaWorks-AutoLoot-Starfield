@@ -32,28 +32,35 @@ ScriptName PWAL:Looting:LootScannerScript Extends Quest Hidden
 
 PWAL:Core:LoggerScript Property Logger Auto Const Mandatory
 ObjectReference Property PlayerRef Auto Const Mandatory
+PWAL:Looting:LootProcessorScript Property LootProcessor Auto Const Mandatory
 
 ; ==============================================================
 ; Public API
 ; ==============================================================
 
-ObjectReference[] Function Scan(PWAL:Looting:LootEffectScript akEffectContext)
+Int Function Scan(PWAL:Looting:LootEffectScript akEffectContext)
 	FormList akLootList
+	ObjectReference[] akLootArray
 
 	If akEffectContext == None
 		LogWarn("LootScanner", "Scan aborted: akEffectContext is None.")
-		Return None
+		Return 0
+	EndIf
+
+	If LootProcessor == None
+		LogWarn("LootScanner", "Scan aborted: LootProcessor is None.")
+		Return 0
 	EndIf
 
 	akLootList = akEffectContext.ActiveLootList
 	If akLootList == None
 		LogWarn("LootScanner", "Scan aborted: ActiveLootList is None.")
-		Return None
+		Return 0
 	EndIf
 
 	If akLootList.GetSize() <= 0
 		LogDebug("LootScanner", "Scan skipped: ActiveLootList is empty.")
-		Return None
+		Return 0
 	EndIf
 
 	If akEffectContext.UsesMultipleKeywordScan()
@@ -63,11 +70,13 @@ ObjectReference[] Function Scan(PWAL:Looting:LootEffectScript akEffectContext)
 
 	If akEffectContext.UsesKeywordScan()
 		LogDebug("LootScanner", "Scan mode resolved: single keyword.")
-		Return LocateLootBySingleKeyword(akLootList, akEffectContext)
+		akLootArray = LocateLootBySingleKeyword(akLootList, akEffectContext)
+		Return ProcessLocatedArray(akLootArray, akEffectContext)
 	EndIf
 
 	LogDebug("LootScanner", "Scan mode resolved: form type.")
-	Return LocateLootByFormType(akLootList, akEffectContext)
+	akLootArray = LocateLootByFormType(akLootList, akEffectContext)
+	Return ProcessLocatedArray(akLootArray, akEffectContext)
 EndFunction
 
 ; ==============================================================
@@ -94,43 +103,7 @@ ObjectReference[] Function LocateLootBySingleKeyword(FormList akLootList, PWAL:L
 		LogDebug("LootScanner", "LocateLootBySingleKeyword found " + akLootArray.Length + " candidate(s).")
 	EndIf
 
-	Return FilterBlockedScanCandidates(akLootArray)
-EndFunction
-
-ObjectReference[] Function LocateLootByKeywordList(FormList akLootList, PWAL:Looting:LootEffectScript akEffectContext)
-	ObjectReference[] akAllResults
-	ObjectReference[] akLootArray
-	Keyword akKeyword
-	Int iIndex
-
-	If akLootList == None || akEffectContext == None
-		Return None
-	EndIf
-
-	akAllResults = new ObjectReference[0]
-	iIndex = 0
-
-	While iIndex < akLootList.GetSize()
-		akKeyword = akLootList.GetAt(iIndex) as Keyword
-
-		If akKeyword != None
-			akLootArray = GetPlayerRefSafe().FindAllReferencesWithKeyword(akKeyword, akEffectContext.GetRadius())
-
-			If akLootArray != None && akLootArray.Length > 0
-				akAllResults = AppendUniqueLootArray(akAllResults, akLootArray)
-			EndIf
-		Else
-			LogWarn("LootScanner", "LocateLootByKeywordList skipped invalid keyword at index " + iIndex)
-		EndIf
-
-		iIndex += 1
-	EndWhile
-
-	If akAllResults != None
-		LogDebug("LootScanner", "LocateLootByKeywordList found " + akAllResults.Length + " total candidate(s).")
-	EndIf
-
-	Return akAllResults
+	Return akLootArray
 EndFunction
 
 ObjectReference[] Function LocateLootByFormType(FormList akLootList, PWAL:Looting:LootEffectScript akEffectContext)
@@ -153,149 +126,69 @@ ObjectReference[] Function LocateLootByFormType(FormList akLootList, PWAL:Lootin
 		LogDebug("LootScanner", "LocateLootByFormType found " + akLootArray.Length + " candidate(s).")
 	EndIf
 
-	Return FilterBlockedScanCandidates(akLootArray)
+	Return akLootArray
 EndFunction
 
-; ==============================================================
-; Array Helpers
-; ==============================================================
-
-Bool Function IsBlockedScanCandidate(ObjectReference akCandidate)
-	ObjectReference akPlayerRef
-
-	If akCandidate == None
-		Return true
-	EndIf
-
-	akPlayerRef = GetPlayerRefSafe()
-
-	If akPlayerRef != None
-		If akCandidate == akPlayerRef
-			Return true
-		EndIf
-
-		If akCandidate.GetContainer() == akPlayerRef
-			LogDebug("LootScanner", "Rejected scan candidate: belongs to PlayerRef inventory/container.")
-			Return true
-		EndIf
-	EndIf
-
-	Return false
-EndFunction
-
-ObjectReference[] Function FilterBlockedScanCandidates(ObjectReference[] akInputArray)
-	ObjectReference[] akFiltered
-	ObjectReference akCandidate
+Int Function LocateLootByKeywordList(FormList akLootList, PWAL:Looting:LootEffectScript akEffectContext)
+	ObjectReference[] akLootArray
+	Keyword akKeyword
 	Int iIndex
-	Int iLength
+	Int iProcessedTotal
+	Float fRadius
 
-	If akInputArray == None || akInputArray.Length <= 0
-		Return akInputArray
+	If akLootList == None || akEffectContext == None
+		Return 0
 	EndIf
 
-	akFiltered = new ObjectReference[0]
+	fRadius = akEffectContext.GetRadius()
 	iIndex = 0
+	iProcessedTotal = 0
 
-	While iIndex < akInputArray.Length
-		akCandidate = akInputArray[iIndex]
+	While iIndex < akLootList.GetSize()
+		akKeyword = akLootList.GetAt(iIndex) as Keyword
 
-		If !IsBlockedScanCandidate(akCandidate)
-			iLength = akFiltered.Length
-			akFiltered = ResizeRefArray(akFiltered, iLength + 1)
-			akFiltered[iLength] = akCandidate
-		EndIf
+		If akKeyword != None
+			akLootArray = GetPlayerRefSafe().FindAllReferencesWithKeyword(akKeyword, fRadius)
 
-		iIndex += 1
-	EndWhile
-
-	Return akFiltered
-EndFunction
-
-ObjectReference[] Function AppendUniqueLootArray(ObjectReference[] akBaseArray, ObjectReference[] akAppendArray)
-	ObjectReference[] akMerged
-	ObjectReference akCandidate
-	Int iBaseLength
-	Int iAppendIndex
-	Int iWriteIndex
-
-	If akAppendArray == None || akAppendArray.Length <= 0
-		Return akBaseArray
-	EndIf
-
-	If akBaseArray == None
-		akBaseArray = new ObjectReference[0]
-	EndIf
-
-	akMerged = akBaseArray
-	iAppendIndex = 0
-
-	While iAppendIndex < akAppendArray.Length
-		akCandidate = akAppendArray[iAppendIndex]
-
-		If !IsBlockedScanCandidate(akCandidate)
-			If !ArrayContainsRef(akMerged, akCandidate)
-				iBaseLength = akMerged.Length
-				akMerged = ResizeRefArray(akMerged, iBaseLength + 1)
-				akMerged[iBaseLength] = akCandidate
+			If akLootArray != None
+				LogDebug("LootScanner", "LocateLootByKeywordList found " + akLootArray.Length + " candidate(s) at keyword index " + iIndex)
 			EndIf
+
+			If akLootArray != None && akLootArray.Length > 0
+				If !(akLootArray.Length == 1 && akLootArray[0] == GetPlayerRefSafe())
+					iProcessedTotal += ProcessLocatedArray(akLootArray, akEffectContext)
+				EndIf
+			EndIf
+		Else
+			LogWarn("LootScanner", "LocateLootByKeywordList skipped invalid keyword at index " + iIndex)
 		EndIf
 
-		iAppendIndex += 1
-	EndWhile
-
-	Return akMerged
-EndFunction
-
-Bool Function ArrayContainsRef(ObjectReference[] akArray, ObjectReference akRef)
-	Int iIndex
-
-	If akArray == None || akRef == None
-		Return false
-	EndIf
-
-	iIndex = 0
-	While iIndex < akArray.Length
-		If akArray[iIndex] == akRef
-			Return true
-		EndIf
 		iIndex += 1
 	EndWhile
 
-	Return false
-EndFunction
-
-ObjectReference[] Function ResizeRefArray(ObjectReference[] akArray, Int aiNewSize)
-	ObjectReference[] akNewArray
-	Int iIndex
-	Int iOldSize
-
-	If aiNewSize < 0
-		aiNewSize = 0
-	EndIf
-
-	akNewArray = new ObjectReference[aiNewSize]
-
-	If akArray == None
-		Return akNewArray
-	EndIf
-
-	iOldSize = akArray.Length
-	If iOldSize > aiNewSize
-		iOldSize = aiNewSize
-	EndIf
-
-	iIndex = 0
-	While iIndex < iOldSize
-		akNewArray[iIndex] = akArray[iIndex]
-		iIndex += 1
-	EndWhile
-
-	Return akNewArray
+	Return iProcessedTotal
 EndFunction
 
 ; ==============================================================
 ; Utility Helpers
 ; ==============================================================
+
+Int Function ProcessLocatedArray(ObjectReference[] akLootArray, PWAL:Looting:LootEffectScript akEffectContext)
+	If akLootArray == None
+		Return 0
+	EndIf
+
+	If akLootArray.Length <= 0
+		Return 0
+	EndIf
+
+	If LootProcessor == None
+		LogWarn("LootScanner", "ProcessLocatedArray aborted: LootProcessor is None.")
+		Return 0
+	EndIf
+
+	Return LootProcessor.ProcessCandidates(akLootArray, akEffectContext)
+EndFunction
 
 ObjectReference Function GetPlayerRefSafe()
 	If PlayerRef != None
