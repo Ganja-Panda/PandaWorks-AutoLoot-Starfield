@@ -70,8 +70,8 @@ Function ProcessContainer(ObjectReference akContainer, PWAL:Looting:LootEffectSc
 		Return
 	EndIf
 
-	iDestinationCode = DestinationResolver.ResolveDestinationCode(akEffectContext.GetLootGroupCode())
-	LogDebug("ContainerProcessor", "Resolved destination code " + (iDestinationCode as String) + " for loot group " + (akEffectContext.GetLootGroupCode() as String))
+	iDestinationCode = DestinationResolver.ResolveDestinationCode()
+	LogDebug("ContainerProcessor", "Resolved destination code " + (iDestinationCode as String) + " for container contents.")
 
 	akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
 	If akDestinationRef == None
