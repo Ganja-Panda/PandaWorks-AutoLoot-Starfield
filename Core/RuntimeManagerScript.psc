@@ -73,8 +73,19 @@ Int Property iLoopBudgetZoologyInUse = 0 Auto Hidden
 ; Quest Lifecycle
 ; ==============================================================
 
+Int Property TIMER_STARTUP = 100 Auto Const
+Float Property fStartupDelay = 2.0 Auto Const
+
 Event OnQuestInit()
-	OnFrameworkStart()
+	LogInfo("RuntimeManager", "OnQuestInit received. Deferring framework startup.")
+	StartTimer(fStartupDelay, TIMER_STARTUP)
+EndEvent
+
+Event OnTimer(Int aiTimerID)
+	If aiTimerID == TIMER_STARTUP
+		LogInfo("RuntimeManager", "Deferred startup timer fired.")
+		OnFrameworkStart()
+	EndIf
 EndEvent
 
 ; ==============================================================
