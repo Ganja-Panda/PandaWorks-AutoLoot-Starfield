@@ -115,13 +115,13 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 		Return RouteNonLethalHarvest(akResolvedLoot, akEffectContext)
 	EndIf
 
+	If akEffectContext.IsCorpseMode()
+		Return RouteCorpse(akResolvedLoot, akEffectContext)
+	EndIf
+
 	If !LootValidation.CanProcessLoot(akResolvedLoot, akEffectContext)
 		LogDebug("LootProcessor", "Candidate rejected by LootValidation: " + akResolvedLoot)
 		Return false
-	EndIf
-
-	If akEffectContext.IsCorpseMode()
-		Return RouteCorpse(akResolvedLoot, akEffectContext)
 	EndIf
 
 	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
