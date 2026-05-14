@@ -109,6 +109,7 @@ Function OnFrameworkStart()
 
 	LogInfo("RuntimeManager", "Framework startup beginning.")
 	LogRuntimeSnapshot("StartupBegin")
+	NotifyUser("PandaWorks AutoLoot initializing...")
 
 	If !RunStartupFlow()
 		FailStartup("RunStartupFlow returned false.")
@@ -122,6 +123,7 @@ Function OnFrameworkStart()
 
 	LogInfo("RuntimeManager", "Framework startup complete. Runtime is ready.")
 	LogRuntimeSnapshot("StartupComplete")
+	NotifyUser("PandaWorks AutoLoot initialized successfully.")
 EndFunction
 
 Function ShutdownFramework()
@@ -449,6 +451,7 @@ Function FailStartup(String asReason)
 
 	LogError("RuntimeManager", "Framework startup failed: " + asReason)
 	LogRuntimeSnapshot("StartupFailed")
+	NotifyUser("PandaWorks AutoLoot failed to initialize. Check the log.")
 EndFunction
 
 ; ==============================================================
@@ -483,6 +486,10 @@ EndFunction
 ; ==============================================================
 ; Internal Logging Wrappers
 ; ==============================================================
+
+Function NotifyUser(String asMessage)
+	Debug.Notification(asMessage)
+EndFunction
 
 Function LogInfo(String asSource, String asMessage)
 	If Logger

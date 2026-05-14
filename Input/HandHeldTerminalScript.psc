@@ -43,6 +43,12 @@ Group UtilityItems
 	Weapon Property PWAL_WEAP_Terminal Auto Const Mandatory
 EndGroup
 
+Group RuntimeState
+	Bool Property bTerminalInputReady = false Auto Hidden
+	Int Property TIMER_ENABLE_TERMINAL_INPUT = 101 Auto Const
+	Float Property fTerminalInputDelay = 5.0 Auto Const
+EndGroup
+
 ; ==============================================================
 ; Events
 ; ==============================================================
@@ -50,6 +56,25 @@ EndGroup
 Event OnAliasInit()
 	LogDebug("HandHeldTerminal", "OnAliasInit triggered.")
 	ValidateProperties()
+
+	bTerminalInputReady = false
+	CancelTimer(TIMER_ENABLE_TERMINAL_INPUT)
+	StartTimer(fTerminalInputDelay, TIMER_ENABLE_TERMINAL_INPUT)
+EndEvent
+
+Event OnPlayerLoadGame()
+	LogDebug("HandHeldTerminal", "OnPlayerLoadGame triggered.")
+
+	bTerminalInputReady = false
+	CancelTimer(TIMER_ENABLE_TERMINAL_INPUT)
+	StartTimer(fTerminalInputDelay, TIMER_ENABLE_TERMINAL_INPUT)
+EndEvent
+
+Event OnTimer(Int aiTimerID)
+	If aiTimerID == TIMER_ENABLE_TERMINAL_INPUT
+		bTerminalInputReady = true
+		LogDebug("HandHeldTerminal", "Terminal input is now ready.")
+	EndIf
 EndEvent
 
 Event OnItemEquipped(Form akBaseObject, ObjectReference akReference)
@@ -58,6 +83,16 @@ Event OnItemEquipped(Form akBaseObject, ObjectReference akReference)
 	EndIf
 
 	If akBaseObject != PWAL_WEAP_Terminal as Form
+		Return
+	EndIf
+
+	If !bTerminalInputReady
+		LogDebug("HandHeldTerminal", "Terminal equipped before input ready. Suppressing auto-open.")
+
+		If PlayerRef != None
+			PlayerRef.UnequipItem(PWAL_WEAP_Terminal as Form, false, true)
+		EndIf
+
 		Return
 	EndIf
 
