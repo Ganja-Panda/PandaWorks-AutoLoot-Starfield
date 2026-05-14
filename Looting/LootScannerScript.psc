@@ -94,7 +94,7 @@ ObjectReference[] Function LocateLootBySingleKeyword(FormList akLootList, PWAL:L
 		LogDebug("LootScanner", "LocateLootBySingleKeyword found " + akLootArray.Length + " candidate(s).")
 	EndIf
 
-	Return akLootArray
+	Return FilterBlockedScanCandidates(akLootArray)
 EndFunction
 
 ObjectReference[] Function LocateLootByKeywordList(FormList akLootList, PWAL:Looting:LootEffectScript akEffectContext)
@@ -153,12 +153,63 @@ ObjectReference[] Function LocateLootByFormType(FormList akLootList, PWAL:Lootin
 		LogDebug("LootScanner", "LocateLootByFormType found " + akLootArray.Length + " candidate(s).")
 	EndIf
 
-	Return akLootArray
+	Return FilterBlockedScanCandidates(akLootArray)
 EndFunction
 
 ; ==============================================================
 ; Array Helpers
 ; ==============================================================
+
+Bool Function IsBlockedScanCandidate(ObjectReference akCandidate)
+	ObjectReference akPlayerRef
+
+	If akCandidate == None
+		Return true
+	EndIf
+
+	akPlayerRef = GetPlayerRefSafe()
+
+	If akPlayerRef != None
+		If akCandidate == akPlayerRef
+			Return true
+		EndIf
+
+		If akCandidate.GetContainer() == akPlayerRef
+			LogDebug("LootScanner", "Rejected scan candidate: belongs to PlayerRef inventory/container.")
+			Return true
+		EndIf
+	EndIf
+
+	Return false
+EndFunction
+
+ObjectReference[] Function FilterBlockedScanCandidates(ObjectReference[] akInputArray)
+	ObjectReference[] akFiltered
+	ObjectReference akCandidate
+	Int iIndex
+	Int iLength
+
+	If akInputArray == None || akInputArray.Length <= 0
+		Return akInputArray
+	EndIf
+
+	akFiltered = new ObjectReference[0]
+	iIndex = 0
+
+	While iIndex < akInputArray.Length
+		akCandidate = akInputArray[iIndex]
+
+		If !IsBlockedScanCandidate(akCandidate)
+			iLength = akFiltered.Length
+			akFiltered = ResizeRefArray(akFiltered, iLength + 1)
+			akFiltered[iLength] = akCandidate
+		EndIf
+
+		iIndex += 1
+	EndWhile
+
+	Return akFiltered
+EndFunction
 
 ObjectReference[] Function AppendUniqueLootArray(ObjectReference[] akBaseArray, ObjectReference[] akAppendArray)
 	ObjectReference[] akMerged
@@ -181,13 +232,11 @@ ObjectReference[] Function AppendUniqueLootArray(ObjectReference[] akBaseArray, 
 	While iAppendIndex < akAppendArray.Length
 		akCandidate = akAppendArray[iAppendIndex]
 
-		If akCandidate != None
-			If akCandidate != GetPlayerRefSafe()
-				If !ArrayContainsRef(akMerged, akCandidate)
-					iBaseLength = akMerged.Length
-					akMerged = ResizeRefArray(akMerged, iBaseLength + 1)
-					akMerged[iBaseLength] = akCandidate
-				EndIf
+		If !IsBlockedScanCandidate(akCandidate)
+			If !ArrayContainsRef(akMerged, akCandidate)
+				iBaseLength = akMerged.Length
+				akMerged = ResizeRefArray(akMerged, iBaseLength + 1)
+				akMerged[iBaseLength] = akCandidate
 			EndIf
 		EndIf
 
