@@ -76,7 +76,8 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 	Utility.Wait(0.1)
 
 	Int iDestinationCode
-	iDestinationCode = DestinationResolver.ResolveDestinationCode()
+	iDestinationCode = DestinationResolver.ResolveDestinationCode(akEffectContext.GetLootGroupCode())
+	LogDebug("CorpseProcessor", "Resolved destination code " + (iDestinationCode as String) + " for loot group " + (akEffectContext.GetLootGroupCode() as String))
 	
 	akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
 	If akDestinationRef == None
