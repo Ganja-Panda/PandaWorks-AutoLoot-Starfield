@@ -77,6 +77,16 @@ Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
+	If IsBlockedPlayerInventoryRef(akLoot, akEffectContext)
+		LogDebug("LootValidation", "Rejected: candidate belongs to PlayerRef inventory/container.")
+		Return false
+	EndIf
+
+	If IsActorOutsideCorpseOrHarvestMode(akLoot, akEffectContext)
+		LogDebug("LootValidation", "Rejected: actor candidate outside corpse/harvest mode.")
+		Return false
+	EndIf
+
 	If IsProtectedSourceRef(akLoot, akEffectContext)
 		LogDebug("LootValidation", "Rejected: protected source reference.")
 		Return false
@@ -128,6 +138,56 @@ EndFunction
 ; ==============================================================
 ; Validation Helpers
 ; ==============================================================
+
+Bool Function IsBlockedPlayerInventoryRef(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
+	ObjectReference akPlayerRef
+
+	If akLoot == None || akEffectContext == None
+		Return false
+	EndIf
+
+	akPlayerRef = akEffectContext.GetPlayerRef()
+	If akPlayerRef == None
+		akPlayerRef = Game.GetPlayer()
+	EndIf
+
+	If akPlayerRef == None
+		Return false
+	EndIf
+
+	If akLoot == akPlayerRef
+		Return true
+	EndIf
+
+	If akLoot.GetContainer() == akPlayerRef
+		Return true
+	EndIf
+
+	Return false
+EndFunction
+
+Bool Function IsActorOutsideCorpseOrHarvestMode(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
+	Actor akActor
+
+	If akLoot == None || akEffectContext == None
+		Return false
+	EndIf
+
+	akActor = akLoot as Actor
+	If akActor == None
+		Return false
+	EndIf
+
+	If akEffectContext.IsCorpseMode()
+		Return false
+	EndIf
+
+	If akEffectContext.IsNonLethalHarvestMode()
+		Return false
+	EndIf
+
+	Return true
+EndFunction
 
 Bool Function CanLootShipSpaceContent(PWAL:Looting:LootEffectScript akEffectContext)
 	If akEffectContext == None
