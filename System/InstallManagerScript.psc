@@ -40,7 +40,7 @@ PWAL:System:VersionManagerScript Property VersionManager Auto
 GlobalVariable Property PWAL_GLOB_System_Installed Auto
 GlobalVariable Property PWAL_GLOB_Settings_Container_TakeAll Auto
 GlobalVariable Property PWAL_GLOB_Settings_Corpses_TakeAll Auto
-GlobalVariable Property PWAL_GLOB_Settings_Destination Auto
+GlobalVariable Property PWAL_GLOB_Settings_Dest Auto
 
 ; ==============================================================
 ; Cached State
@@ -175,8 +175,8 @@ Bool Function ApplyInstallDefaults()
 		Return false
 	EndIf
 
-	If PWAL_GLOB_Settings_Destination == None
-		LogError("InstallManager", "ApplyInstallDefaults failed: PWAL_GLOB_Settings_Destination property is not filled.")
+	If PWAL_GLOB_Settings_Dest == None
+		LogError("InstallManager", "ApplyInstallDefaults failed: PWAL_GLOB_Settings_Dest property is not filled.")
 		Return false
 	EndIf
 
@@ -186,7 +186,7 @@ Bool Function ApplyInstallDefaults()
 	PWAL_GLOB_Settings_Corpses_TakeAll.SetValueInt(1)
 	LogDebug("InstallManager", "Default applied: Corpses TakeAll = 1")
 
-	PWAL_GLOB_Settings_Destination.SetValueInt(1)
+	PWAL_GLOB_Settings_Dest.SetValueInt(1)
 	LogDebug("InstallManager", "Default applied: Destination = 1 (Player)")
 
 	Return true
@@ -224,7 +224,7 @@ Bool Function RunPostInstallValidation()
 		Return false
 	EndIf
 
-	If PWAL_GLOB_Settings_Destination == None
+	If PWAL_GLOB_Settings_Dest == None
 		LogError("InstallManager", "RunPostInstallValidation failed: Destination global not filled.")
 		Return false
 	EndIf
@@ -244,7 +244,7 @@ Bool Function RunPostInstallValidation()
 		Return false
 	EndIf
 
-	If PWAL_GLOB_Settings_Destination.GetValueInt() != 1
+	If PWAL_GLOB_Settings_Dest.GetValueInt() != 1
 		LogError("InstallManager", "Post-install validation failed: Destination not set correctly.")
 		Return false
 	EndIf
