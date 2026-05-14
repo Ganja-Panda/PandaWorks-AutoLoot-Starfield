@@ -317,10 +317,14 @@ Bool Function CanRouteAsLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffec
 		Return false
 	EndIf
 
-	; Loose loot must not be inside another container/inventory.
-	If akLoot.GetContainer() != None
-		LogDebug("LootProcessor", "Rejected loose-loot route: candidate belongs to container: " + akLoot)
-		Return false
+	; Loose loot must not process inventory refs belonging to the player.
+	ObjectReference akPlayerContainerRef = akEffectContext.GetPlayerRef()
+
+	If akPlayerContainerRef != None
+		If akLoot.GetContainer() == akPlayerContainerRef
+			LogDebug("LootProcessor", "Rejected loose-loot route: candidate belongs to PlayerRef inventory/container: " + akLoot)
+			Return false
+		EndIf
 	EndIf
 
 	; Hard safety guards for framework/player refs.

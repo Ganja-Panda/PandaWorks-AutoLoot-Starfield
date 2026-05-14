@@ -120,13 +120,6 @@ Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	If !akEffectContext.IsContainerMode() && !akEffectContext.IsCorpseMode()
-		If akLoot.GetContainer() != None
-			LogDebug("LootValidation", "Rejected: loot still belongs to a live container reference.")
-			Return false
-		EndIf
-	EndIf
-
 	LogDebug("LootValidation", "Accepted: loot passed validation.")
 	Return true
 EndFunction
