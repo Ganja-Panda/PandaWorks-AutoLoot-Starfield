@@ -258,6 +258,7 @@ EndFunction
 
 Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
 	ObjectReference akDestinationRef
+	ObjectReference akContainingRef
 	Form akLootForm
 	Int iDestinationCode
 
@@ -265,8 +266,27 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
+	If akEffectContext == None
+		LogWarn("LootProcessor", "RouteLooseLoot failed: akEffectContext is None.")
+		Return false
+	EndIf
+
 	If DestinationResolver == None
 		LogWarn("LootProcessor", "RouteLooseLoot failed: DestinationResolver property is not filled.")
+		Return false
+	EndIf
+
+	; Loose loot must be an actual placed/world ref, not an inventory pseudo-ref.
+	akContainingRef = akLoot.GetContainer()
+	If akContainingRef != None
+		LogDebug("LootProcessor", "RouteLooseLoot rejected: candidate is inside a container/inventory: " + akLoot + " container=" + akContainingRef)
+		Return false
+	EndIf
+
+	; Get the base item form. Do NOT cast the ObjectReference itself to Form.
+	akLootForm = akLoot.GetBaseObject()
+	If akLootForm == None
+		LogWarn("LootProcessor", "RouteLooseLoot failed: loot reference has no base object: " + akLoot)
 		Return false
 	EndIf
 
@@ -279,14 +299,13 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	akLootForm = akLoot as Form
-	If akLootForm == None
-		LogWarn("LootProcessor", "RouteLooseLoot failed: loot reference could not be cast to Form.")
-		Return false
-	EndIf
-
 	akDestinationRef.AddItem(akLootForm, 1, true)
-	LogDebug("LootProcessor", "Loose loot transferred: " + akLoot)
+
+	; Since we added the base form, remove the placed world ref.
+	akLoot.Disable()
+	akLoot.Delete()
+
+	LogDebug("LootProcessor", "Loose loot transferred by base form: " + akLootForm + " from ref " + akLoot + " to " + akDestinationRef)
 	Return true
 EndFunction
 
@@ -317,14 +336,11 @@ Bool Function CanRouteAsLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffec
 		Return false
 	EndIf
 
-	; Loose loot must not process inventory refs belonging to the player.
-	ObjectReference akPlayerContainerRef = akEffectContext.GetPlayerRef()
-
-	If akPlayerContainerRef != None
-		If akLoot.GetContainer() == akPlayerContainerRef
-			LogDebug("LootProcessor", "Rejected loose-loot route: candidate belongs to PlayerRef inventory/container: " + akLoot)
-			Return false
-		EndIf
+	; Loose loot must be an actual placed/world ref, not an inventory pseudo-ref.
+	ObjectReference akContainingRef = akLoot.GetContainer()
+	If akContainingRef != None
+		LogDebug("LootProcessor", "Rejected loose-loot route: candidate is inside a container/inventory: " + akLoot + " container=" + akContainingRef)
+		Return false
 	EndIf
 
 	; Hard safety guards for framework/player refs.
