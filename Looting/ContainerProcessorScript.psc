@@ -31,17 +31,12 @@ Group FrameworkServices_AutoFill
 	PWAL:Looting:UnlockingServiceScript Property UnlockingService Auto Const Mandatory
 EndGroup
 
-Group QuestItems_AutoFill
-	FormList Property PWAL_FLST_System_QuestItems Auto Const Mandatory
-EndGroup
-
 ; ==============================================================
 ; Public API
 ; ==============================================================
 
 Function ProcessContainer(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
 	ObjectReference akDestinationRef
-	ObjectReference akPlayerRef
 	Int iDestinationCode
 
 	If akContainer == None
@@ -61,16 +56,6 @@ Function ProcessContainer(ObjectReference akContainer, PWAL:Looting:LootEffectSc
 
 	If DestinationResolver == None
 		LogError("ContainerProcessor", "ProcessContainer failed: DestinationResolver property is not filled.")
-		Return
-	EndIf
-
-	akPlayerRef = akEffectContext.GetPlayerRef()
-	If akPlayerRef == None
-		akPlayerRef = Game.GetPlayer()
-	EndIf
-
-	If akPlayerRef == None
-		LogWarn("ContainerProcessor", "ProcessContainer aborted: PlayerRef resolved to None.")
 		Return
 	EndIf
 
@@ -99,9 +84,9 @@ Function ProcessContainer(ObjectReference akContainer, PWAL:Looting:LootEffectSc
 	EndIf
 
 	If akEffectContext.TakeAllContainers()
-		ProcessTakeAllContainer(akContainer, akDestinationRef, akPlayerRef, akEffectContext)
+		ProcessTakeAllContainer(akContainer, akDestinationRef, akEffectContext)
 	Else
-		ProcessFilteredContainerItems(akContainer, akDestinationRef, akPlayerRef, akEffectContext)
+		ProcessFilteredContainerItems(akContainer, akDestinationRef, akEffectContext)
 	EndIf
 
 	LogDebug("ContainerProcessor", "ProcessContainer complete: " + akContainer)
@@ -111,25 +96,20 @@ EndFunction
 ; Processing Paths
 ; ==============================================================
 
-Function ProcessTakeAllContainer(ObjectReference akContainer, ObjectReference akDestinationRef, ObjectReference akPlayerRef, PWAL:Looting:LootEffectScript akEffectContext)
+Function ProcessTakeAllContainer(ObjectReference akContainer, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
 	Bool bTransferOwnership
 
-	If akContainer == None || akDestinationRef == None || akPlayerRef == None || akEffectContext == None
+	If akContainer == None || akDestinationRef == None || akEffectContext == None
 		Return
 	EndIf
 
-	; Quest items must always go to the player first.
-	ProcessQuestItemsFromContainer(akContainer, akPlayerRef)
-
-	; Preserve the old working behavior:
-	; transfer everything else, using the hostile-steal flag as the transfer ownership mode.
 	bTransferOwnership = akEffectContext.IsStealingHostile()
 
 	akContainer.RemoveAllItems(akDestinationRef, false, bTransferOwnership)
-	LogDebug("ContainerProcessor", "ProcessTakeAllContainer transferred all non-quest contents.")
+	LogDebug("ContainerProcessor", "ProcessTakeAllContainer transferred all contents.")
 EndFunction
 
-Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectReference akDestinationRef, ObjectReference akPlayerRef, PWAL:Looting:LootEffectScript akEffectContext)
+Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
 	FormList akLootingLists
 	FormList akLootingGlobals
 	FormList akCurrentList
@@ -140,13 +120,10 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 	Int iMaxSize
 	Int iIndex
 
-	If akContainer == None || akDestinationRef == None || akPlayerRef == None || akEffectContext == None
+	If akContainer == None || akDestinationRef == None || akEffectContext == None
 		LogWarn("ContainerProcessor", "ProcessFilteredContainerItems aborted: invalid input.")
 		Return
 	EndIf
-
-	; Quest items must always go to the player, regardless of filter state.
-	ProcessQuestItemsFromContainer(akContainer, akPlayerRef)
 
 	akLootingLists = akEffectContext.PWAL_FLST_System_Looting_Lists
 	akLootingGlobals = akEffectContext.PWAL_FLST_System_Looting_Globals
@@ -193,8 +170,6 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 			fGlobalValue = akCurrentGlobal.GetValue()
 
 			If fGlobalValue == 1.0
-				; Preserve old LZP behavior:
-				; remove every item matching the enabled category list into the destination.
 				akContainer.RemoveItem(akCurrentList as Form, -1, true, akDestinationRef)
 			EndIf
 		EndIf
@@ -203,25 +178,6 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 	EndWhile
 
 	LogDebug("ContainerProcessor", "ProcessFilteredContainerItems complete.")
-EndFunction
-
-; ==============================================================
-; Internal Helpers
-; ==============================================================
-
-Function ProcessQuestItemsFromContainer(ObjectReference akContainer, ObjectReference akPlayerRef)
-	If akContainer == None || akPlayerRef == None
-		Return
-	EndIf
-
-	If PWAL_FLST_System_QuestItems == None
-		LogWarn("ContainerProcessor", "ProcessQuestItemsFromContainer skipped: PWAL_FLST_System_QuestItems is None.")
-		Return
-	EndIf
-
-	akContainer.RemoveItem(PWAL_FLST_System_QuestItems as Form, -1, false, akPlayerRef)
-
-	LogDebug("ContainerProcessor", "ProcessQuestItemsFromContainer routed quest items directly to player.")
 EndFunction
 
 ; ==============================================================

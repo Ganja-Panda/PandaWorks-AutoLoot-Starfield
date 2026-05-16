@@ -30,10 +30,6 @@ Group FrameworkServices_AutoFill
 	PWAL:Looting:DestinationResolverScript Property DestinationResolver Auto Const Mandatory
 EndGroup
 
-Group QuestItems_AutoFill
-	FormList Property PWAL_FLST_System_QuestItems Auto Const Mandatory
-EndGroup
-
 ; ==============================================================
 ; Public API
 ; ==============================================================
@@ -41,7 +37,6 @@ EndGroup
 Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript akEffectContext)
 	Actor akCorpseActor
 	ObjectReference akDestinationRef
-	ObjectReference akPlayerRef
 
 	If akCorpse == None
 		LogWarn("CorpseProcessor", "ProcessCorpse aborted: akCorpse is None.")
@@ -90,20 +85,10 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 		Return
 	EndIf
 
-	akPlayerRef = akEffectContext.GetPlayerRef()
-	If akPlayerRef == None
-		akPlayerRef = Game.GetPlayer()
-	EndIf
-
-	If akPlayerRef == None
-		LogWarn("CorpseProcessor", "ProcessCorpse aborted: PlayerRef resolved to None.")
-		Return
-	EndIf
-
 	If akEffectContext.TakeAllCorpses()
-		ProcessTakeAllCorpse(akCorpse, akDestinationRef, akPlayerRef, akEffectContext)
+		ProcessTakeAllCorpse(akCorpse, akDestinationRef, akEffectContext)
 	Else
-		ProcessFilteredCorpseItems(akCorpse, akDestinationRef, akPlayerRef, akEffectContext)
+		ProcessFilteredCorpseItems(akCorpse, akDestinationRef, akEffectContext)
 	EndIf
 
 	MarkCorpseAsLooted(akCorpse, akEffectContext)
@@ -178,21 +163,16 @@ EndFunction
 ; Processing Paths
 ; ==============================================================
 
-Function ProcessTakeAllCorpse(ObjectReference akCorpse, ObjectReference akDestinationRef, ObjectReference akPlayerRef, PWAL:Looting:LootEffectScript akEffectContext)
-	If akCorpse == None || akDestinationRef == None || akPlayerRef == None || akEffectContext == None
+Function ProcessTakeAllCorpse(ObjectReference akCorpse, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
+	If akCorpse == None || akDestinationRef == None || akEffectContext == None
 		Return
 	EndIf
 
-	; Quest items must always go directly to the player before bulk transfer.
-	ProcessQuestItemsFromCorpse(akCorpse, akPlayerRef)
-
-	; Preserve old LZP behavior exactly for corpses:
-	; take-all corpse transfer does not use hostile ownership transfer.
 	akCorpse.RemoveAllItems(akDestinationRef, false, false)
-	LogDebug("CorpseProcessor", "ProcessTakeAllCorpse transferred all non-quest contents.")
+	LogDebug("CorpseProcessor", "ProcessTakeAllCorpse transferred all contents.")
 EndFunction
 
-Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference akDestinationRef, ObjectReference akPlayerRef, PWAL:Looting:LootEffectScript akEffectContext)
+Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
 	FormList akLootingLists
 	FormList akLootingGlobals
 	FormList akCurrentList
@@ -203,13 +183,11 @@ Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference ak
 	Int iMaxSize
 	Int iIndex
 
-	If akCorpse == None || akDestinationRef == None || akPlayerRef == None || akEffectContext == None
+	If akCorpse == None || akDestinationRef == None || akEffectContext == None
 		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems aborted: invalid input.")
 		Return
 	EndIf
 
-	; Quest items must always go to the player, regardless of filter state.
-	ProcessQuestItemsFromCorpse(akCorpse, akPlayerRef)
 	akLootingLists = akEffectContext.PWAL_FLST_System_Looting_Lists
 	akLootingGlobals = akEffectContext.PWAL_FLST_System_Looting_Globals
 
@@ -310,25 +288,6 @@ Function MarkCorpseAsLooted(ObjectReference akCorpse, PWAL:Looting:LootEffectScr
 	If !akCorpse.HasKeyword(akLootedKeyword)
 		akCorpse.AddKeyword(akLootedKeyword)
 	EndIf
-EndFunction
-
-; ==============================================================
-; Internal Helpers
-; ==============================================================
-
-Function ProcessQuestItemsFromCorpse(ObjectReference akCorpse, ObjectReference akPlayerRef)
-	If akCorpse == None || akPlayerRef == None
-		Return
-	EndIf
-
-	If PWAL_FLST_System_QuestItems == None
-		LogWarn("CorpseProcessor", "ProcessQuestItemsFromCorpse skipped: PWAL_FLST_System_QuestItems is None.")
-		Return
-	EndIf
-
-	akCorpse.RemoveItem(PWAL_FLST_System_QuestItems as Form, -1, false, akPlayerRef)
-
-	LogDebug("CorpseProcessor", "ProcessQuestItemsFromCorpse routed quest items directly to player.")
 EndFunction
 
 ; ==============================================================
