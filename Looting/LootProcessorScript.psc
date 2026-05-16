@@ -212,18 +212,23 @@ Bool Function RouteNonLethalHarvest(ObjectReference akTarget, PWAL:Looting:LootE
 EndFunction
 
 Bool Function RouteActivator(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
-	ObjectReference akLooterRef
+	ObjectReference akPlayerRef
 
-	If akLoot == None
+	If akLoot == None || akEffectContext == None
 		Return false
 	EndIf
 
-	akLooterRef = akEffectContext.theLooterRef
-	If akLooterRef == None
-		akLooterRef = akEffectContext.GetPlayerRef()
+	akPlayerRef = akEffectContext.GetPlayerRef()
+	If akPlayerRef == None
+		akPlayerRef = Game.GetPlayer()
 	EndIf
 
-	akLoot.Activate(akLooterRef, false)
+	If akPlayerRef == None
+		LogWarn("LootProcessor", "RouteActivator failed: PlayerRef resolved to None.")
+		Return false
+	EndIf
+
+	akLoot.Activate(akPlayerRef, false)
 	LogDebug("LootProcessor", "Activator routed: " + akLoot)
 	Return true
 EndFunction
@@ -263,7 +268,7 @@ EndFunction
 Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
 	ObjectReference akDestinationRef
 	ObjectReference akContainingRef
-	Form akLootForm
+	ObjectReference akPlayerRef
 	Int iDestinationCode
 
 	If akLoot == None
@@ -287,16 +292,9 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	; Get the base item form. Do NOT cast the ObjectReference itself to Form.
-	akLootForm = akLoot.GetBaseObject()
-	If akLootForm == None
-		LogWarn("LootProcessor", "RouteLooseLoot failed: loot reference has no base object: " + akLoot)
-		Return false
-	EndIf
-
 	; Quest items must always go directly to the player.
 	If akLoot.IsQuestItem()
-		ObjectReference akPlayerRef = akEffectContext.GetPlayerRef()
+		akPlayerRef = akEffectContext.GetPlayerRef()
 
 		If akPlayerRef == None
 			akPlayerRef = Game.GetPlayer()
@@ -307,12 +305,9 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 			Return false
 		EndIf
 
-		akPlayerRef.AddItem(akLootForm, 1, false)
+		akPlayerRef.AddItem(akLoot as Form, 1, false)
 
-		akLoot.Disable()
-		akLoot.Delete()
-
-		LogDebug("LootProcessor", "Quest item routed directly to player: " + akLootForm + " from ref " + akLoot)
+		LogDebug("LootProcessor", "Quest item routed directly to player: " + akLoot)
 		Return true
 	EndIf
 
@@ -325,13 +320,9 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	akDestinationRef.AddItem(akLootForm, 1, true)
+	akDestinationRef.AddItem(akLoot as Form, 1, true)
 
-	; Since we added the base form, remove the placed world ref.
-	akLoot.Disable()
-	akLoot.Delete()
-
-	LogDebug("LootProcessor", "Loose loot transferred by base form: " + akLootForm + " from ref " + akLoot + " to " + akDestinationRef)
+	LogDebug("LootProcessor", "Loose loot transferred by ref form: " + akLoot + " to " + akDestinationRef)
 	Return true
 EndFunction
 
