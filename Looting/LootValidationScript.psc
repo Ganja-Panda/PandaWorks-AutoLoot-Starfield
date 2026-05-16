@@ -15,7 +15,6 @@ ScriptName PWAL:Looting:LootValidationScript Extends Quest Hidden
 ;
 ; Responsibilities:
 ;   - Validate whether loot may be processed
-;   - Block quest items
 ;   - Check protected source references
 ;   - Check owned-area looting rules
 ;   - Check stealing/ownership rules
@@ -64,11 +63,6 @@ Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 
 	If !IsLootLoaded(akLoot)
 		LogDebug("LootValidation", "Rejected: loot is not loaded or is disabled/deleted.")
-		Return false
-	EndIf
-
-	If IsQuestLoot(akLoot)
-		LogDebug("LootValidation", "Rejected: loot is marked as a quest item.")
 		Return false
 	EndIf
 
