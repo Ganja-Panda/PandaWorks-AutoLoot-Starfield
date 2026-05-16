@@ -74,8 +74,9 @@ Int Function Scan(PWAL:Looting:LootEffectScript akEffectContext)
 		Return ProcessLocatedArray(akLootArray, akEffectContext)
 	EndIf
 
-	LogDebug("LootScanner", "Scan mode resolved: form list.")
-	Return LocateLootByFormList(akLootList, akEffectContext)
+	LogDebug("LootScanner", "Scan mode resolved: form type.")
+	akLootArray = LocateLootByFormType(akLootList, akEffectContext)
+	Return ProcessLocatedArray(akLootArray, akEffectContext)
 EndFunction
 
 ; ==============================================================
@@ -105,47 +106,27 @@ ObjectReference[] Function LocateLootBySingleKeyword(FormList akLootList, PWAL:L
 	Return akLootArray
 EndFunction
 
-Int Function LocateLootByFormList(FormList akLootList, PWAL:Looting:LootEffectScript akEffectContext)
-	ObjectReference[] akLootArray
+ObjectReference[] Function LocateLootByFormType(FormList akLootList, PWAL:Looting:LootEffectScript akEffectContext)
 	Form akScanForm
-	Int iIndex
-	Int iProcessedTotal
-	Float fRadius
+	ObjectReference[] akLootArray
 
 	If akLootList == None || akEffectContext == None
-		Return 0
+		Return None
 	EndIf
 
-	If LootProcessor == None
-		LogWarn("LootScanner", "LocateLootByFormList aborted: LootProcessor is None.")
-		Return 0
+	akScanForm = akLootList as Form
+	If akScanForm == None
+		LogWarn("LootScanner", "LocateLootByFormType failed: ActiveLootList could not be cast to Form.")
+		Return None
 	EndIf
 
-	fRadius = akEffectContext.GetRadius()
-	iIndex = 0
-	iProcessedTotal = 0
+	akLootArray = GetPlayerRefSafe().FindAllReferencesOfType(akScanForm, akEffectContext.GetRadius())
 
-	While iIndex < akLootList.GetSize()
-		akScanForm = akLootList.GetAt(iIndex)
+	If akLootArray != None
+		LogDebug("LootScanner", "LocateLootByFormType found " + akLootArray.Length + " candidate(s).")
+	EndIf
 
-		If akScanForm != None
-			akLootArray = GetPlayerRefSafe().FindAllReferencesOfType(akScanForm, fRadius)
-
-			If akLootArray != None
-				LogDebug("LootScanner", "LocateLootByFormList found " + akLootArray.Length + " candidate(s) at form index " + iIndex + " form=" + akScanForm)
-			EndIf
-
-			If akLootArray != None && akLootArray.Length > 0
-				iProcessedTotal += ProcessLocatedArray(akLootArray, akEffectContext)
-			EndIf
-		Else
-			LogWarn("LootScanner", "LocateLootByFormList skipped invalid form at index " + iIndex)
-		EndIf
-
-		iIndex += 1
-	EndWhile
-
-	Return iProcessedTotal
+	Return akLootArray
 EndFunction
 
 Int Function LocateLootByKeywordList(FormList akLootList, PWAL:Looting:LootEffectScript akEffectContext)
