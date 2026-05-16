@@ -103,7 +103,7 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 	If akEffectContext.TakeAllCorpses()
 		ProcessTakeAllCorpse(akCorpse, akDestinationRef, akPlayerRef, akEffectContext)
 	Else
-		ProcessFilteredCorpseItems(akCorpse, akDestinationRef, akEffectContext)
+		ProcessFilteredCorpseItems(akCorpse, akDestinationRef, akPlayerRef, akEffectContext)
 	EndIf
 
 	MarkCorpseAsLooted(akCorpse, akEffectContext)
