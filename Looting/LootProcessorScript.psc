@@ -233,7 +233,7 @@ Bool Function RouteSpellActivation(ObjectReference akLoot, PWAL:Looting:LootEffe
 	ObjectReference akPlayerRef
 	Actor akPlayerActor
 
-	If akLoot == None
+	If akLoot == None || akEffectContext == None
 		Return false
 	EndIf
 
@@ -244,7 +244,11 @@ Bool Function RouteSpellActivation(ObjectReference akLoot, PWAL:Looting:LootEffe
 	EndIf
 
 	akPlayerRef = akEffectContext.GetPlayerRef()
-	akPlayerActor = akEffectContext.GetPlayerActor()
+	If akPlayerRef == None
+		akPlayerRef = Game.GetPlayer()
+	EndIf
+
+	akPlayerActor = akPlayerRef as Actor
 
 	If akPlayerRef == None || akPlayerActor == None
 		LogWarn("LootProcessor", "RouteSpellActivation failed: player reference or actor is None.")
