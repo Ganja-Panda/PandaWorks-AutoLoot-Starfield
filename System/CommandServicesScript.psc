@@ -59,6 +59,15 @@ Group TransferLists_Optional
 EndGroup
 
 ; ==============================================================
+; Static Accessor
+; ==============================================================
+
+PWAL:System:CommandServicesScript Function GetScript() Global
+	Quest akQuest = Game.GetFormFromFile(0x040009E1, "PandaWorks AutoLoot - AIO.esm") as Quest
+	Return akQuest as PWAL:System:CommandServicesScript
+EndFunction
+
+; ==============================================================
 ; Public Command API
 ; ==============================================================
 
