@@ -45,6 +45,10 @@ Group RuntimeReferences
 	ObjectReference Property PWAL_TERM_UtilityDevice_Ref Auto Const Mandatory
 EndGroup
 
+Group RuntimeConfig
+	Float Property fOpenDelay = 0.25 Auto Const
+EndGroup
+
 
 ; ==============================================================
 ; Events
@@ -53,7 +57,28 @@ EndGroup
 Event OnEffectStart(ObjectReference akTarget, Actor akCaster, MagicEffect akBaseEffect, Float afMagnitude, Float afDuration)
 	LogDebug("UtilityDevice", "Utility aid device used.")
 
+	If fOpenDelay > 0.0
+		Utility.Wait(fOpenDelay)
+	EndIf
+
+	OpenUtilityTerminal(akTarget, akCaster)
+EndEvent
+
+
+; ==============================================================
+; Core Execution
+; ==============================================================
+
+Function OpenUtilityTerminal(ObjectReference akTarget, Actor akCaster)
 	ObjectReference akActivator = PlayerRef
+
+	If akActivator == None
+		akActivator = akTarget
+	EndIf
+
+	If akActivator == None
+		akActivator = akCaster as ObjectReference
+	EndIf
 
 	If akActivator == None
 		akActivator = Game.GetPlayer()
@@ -69,8 +94,9 @@ Event OnEffectStart(ObjectReference akTarget, Actor akCaster, MagicEffect akBase
 		Return
 	EndIf
 
+	LogDebug("UtilityDevice", "Activating utility terminal ref.")
 	PWAL_TERM_UtilityDevice_Ref.Activate(akActivator, false)
-EndEvent
+EndFunction
 
 
 ; ==============================================================
@@ -85,7 +111,6 @@ Function LogInfo(String asSource, String asMessage)
 	EndIf
 EndFunction
 
-
 Function LogWarn(String asSource, String asMessage)
 	If Logger
 		Logger.Warn(asSource, asMessage)
@@ -94,7 +119,6 @@ Function LogWarn(String asSource, String asMessage)
 	EndIf
 EndFunction
 
-
 Function LogError(String asSource, String asMessage)
 	If Logger
 		Logger.Error(asSource, asMessage)
@@ -102,7 +126,6 @@ Function LogError(String asSource, String asMessage)
 		Debug.Trace("[PWAL][ERROR][" + asSource + "] " + asMessage)
 	EndIf
 EndFunction
-
 
 Function LogDebug(String asSource, String asMessage)
 	If Logger
