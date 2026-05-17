@@ -77,11 +77,14 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 	EndIf
 
 	If auiMenuItemID == 0
-		LogDebug("UtilityMenu", "Transfer Items submenu selected; CK handles navigation.")
+		LogDebug("UtilityMenu", "Inventories submenu selected; CK handles navigation.")
 		Return
 	ElseIf auiMenuItemID == 1
-		RunToggleLooting()
+		LogDebug("UtilityMenu", "Transfer Items submenu selected; CK handles navigation.")
+		Return
 	ElseIf auiMenuItemID == 2
+		RunToggleLooting()
+	ElseIf auiMenuItemID == 3
 		RunToggleLogging()
 	Else
 		LogDebug("UtilityMenu", "Ignoring unmapped menu item ID: " + (auiMenuItemID as String))
