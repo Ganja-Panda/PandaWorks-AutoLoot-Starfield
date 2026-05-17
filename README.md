@@ -1,276 +1,275 @@
-# PandaWorks AutoLoot (PWAL)
+# PandaWorks AutoLoot for Starfield
 
 **PandaWorks AutoLoot** is a quality-of-life loot routing and inventory logistics framework for **Starfield**.
 
-PWAL is not a cheat terminal, economy bypass, or instant-progression mod. It is designed to reduce repetitive looting and inventory management while preserving the core gameplay loop as much as possible.
+PWAL is designed to reduce repetitive looting and inventory management while still giving the player control over what gets looted and where it goes.
 
-It is the full framework rebuild of the original **Lazy Panda** auto-loot mod.
+It is the framework rebuild and successor to **Lazy Panda**.
 
-Where Lazy Panda proved the idea could work, PandaWorks AutoLoot rebuilds the system from the ground up using a cleaner, modular, performance-focused architecture.
+Lazy Panda proved the idea worked.
+
+PandaWorks AutoLoot turns it into a larger, cleaner, more configurable system.
+
+---
+
+## Current Status
+
+PWAL is currently in **alpha**.
+
+Core systems are working, but testing is still active.
+
+Expect rough edges, changing behavior, and the occasional Bethesda-flavored gremlin crawling out of the vents.
+
+If you are using this build, you are testing.
 
 ---
 
 ## What PWAL Does
 
-PWAL automatically detects lootable objects, processes them by category, and routes them to configurable destinations.
+PWAL can automatically detect supported loot, filter it by category, and route it to configured destinations.
 
 The goal is simple:
 
-> Spend less time manually looting every corpse, crate, rock, and debris field, and more time actually playing the game.
+Spend less time manually looting every corpse, crate, rock, and debris field, and more time actually playing the game.
 
-PWAL can handle systems such as:
+PWAL currently supports or is being built around systems such as:
 
-- containers
-- corpses
-- loose loot
-- resource objects
-- nonlethal Zoology harvest targets
-- configurable category filters
-- configurable loot destinations
-- utility transfers between inventories
-- terminal-based configuration
-- aid-device quick actions
-- PC hotkey / CGF command support where available  
+- Containers
+- Corpses
+- Loose loot
+- Resource objects
+- Nonlethal Zoology harvest targets
+- Configurable loot categories
+- Configurable loot destinations
+- PandaWorks Inventory
+- Player inventory routing
+- Player Ship Cargo routing
+- Lodge Safe routing
+- Utility terminal access
+- Portable Utility Device access
+- Transfer utilities
+- Terminal-based configuration
+- PC Call Global Function command support
 
-Planned / experimental systems include:  
+Planned or experimental systems may include:
 
-- ship debris support
-- asteroid debris support
-- space loot support
+- Ship debris support
+- Asteroid debris support
+- Expanded space loot support
 
 ---
 
 ## What PWAL Is Not
 
-PWAL is not intended to be a cheat mod.
+PWAL is not a cheat terminal.
 
-There are already cheat terminals and cheat utility mods for players who want free credits, free XP, instant progression, or unrestricted reward sliders.
+PWAL is not an economy bypass.
 
-PWAL is built as a **QOL and logistics framework**.
+PWAL is not an instant-progression mod.
 
-That means:
+There are already cheat terminals and cheat utility mods for players who want free credits, free XP, unrestricted reward sliders, or instant unlocks.
 
-- it removes repetitive friction
-- it automates tedious looting
-- it helps route items intelligently
-- it protects players from known gameplay problems, such as contraband arrest loops
-- it avoids turning every feature into a reward exploit
+PWAL is a **quality-of-life and logistics framework**.
 
-Some features may offer convenience rewards in the future, such as small asteroid XP or low-value Void salvage, but these will be intentionally balanced and will not replace merchants, skill progression, or normal gameplay systems.
+That means it is designed to:
 
----
+- Reduce repetitive looting
+- Automate tedious inventory cleanup
+- Route items intelligently
+- Protect players from known gameplay problems
+- Keep configuration in the player’s hands where appropriate
+- Avoid turning every feature into a reward exploit
 
-## Core Philosophy
+PWAL removes friction.
 
-PWAL follows a simple rule:
-
-> Quality of life removes friction. Cheating removes consequence.
-
-For example, auto-unlock support may exist, but PWAL can also support skill-check behavior for players who want convenience without bypassing character investment.
-
-The same applies to loot routing. The mod gives players broad control over where loot goes, but a few safety-critical categories are intentionally protected.
+It is not supposed to remove consequence.
 
 ---
 
-## Loot Filters
+## Basic Use
 
-PWAL lets players choose what categories should be automatically looted.
+After installing PWAL:
+
+1. Open your inventory.
+2. Go to the **Weapons** section.
+3. Use the **PandaWorks AutoLoot Terminal**.
+4. Enable the loot categories you want.
+5. Set destinations for configurable loot.
+6. Enable looting.
+7. Test with a small amount of loot first.
+
+If looting is disabled, PWAL will not loot.
+
+If a category is disabled, PWAL will not loot that category.
+
+That is not a bug.
+
+That is the panda obeying instructions.
+
+---
+
+## Main Terminal
+
+The **PandaWorks AutoLoot Terminal** is the main configuration interface.
+
+It is found in the **Weapons** section of the player inventory.
+
+Use it for:
+
+- Loot category setup
+- Destination setup
+- General settings
+- Always Loot settings
+- Utility menus
+- Inventory access
+- Transfer tools
+
+If you are setting up PWAL for the first time, use the main terminal.
+
+---
+
+## Utility Device
+
+PWAL also includes a **PandaWorks Utility Device**.
+
+The Utility Device opens the utility terminal from the player inventory.
+
+It is meant for quick access to common tools such as:
+
+- Open PandaWorks Inventory
+- Open Lodge Safe
+- Open Player Ship Cargo
+- Transfer utilities
+- Toggle looting
+- Toggle logging
+
+The Utility Device is not the main setup terminal.
+
+Use the main terminal for full configuration.
+
+Use the Utility Device for quick access during gameplay.
+
+---
+
+## Loot Categories
+
+Loot categories control what PWAL is allowed to loot.
 
 Examples include:
 
-- weapons
-- armor
-- ammo
-- aid items
-- chems
-- food and drink
-- resources
-- manufactured resources
-- organic resources
-- containers
-- corpses
-- books
-- dataslates
-- skill magazines
-- collectibles
-- junk
-- misc items
-- planned / experimental space loot support
-- nonlethal harvest resources
+- Weapons
+- Armor
+- Ammo
+- Aid
+- Chems
+- Food
+- Drinks
+- Books
+- Dataslates
+- Resources
+- Collectibles
+- Junk
+- Containers
+- Corpses
+- Harvestables
 
-Filters determine **whether** PWAL should loot a category.
+Categories decide whether PWAL can loot something.
 
-Destinations determine **where** that category goes.
+Destinations decide where the loot goes.
+
+Do not confuse the two.
 
 ---
 
-## Loot Destinations
+## Destinations
 
-PWAL supports configurable destination routing.
-
-A loot category can be routed to destinations such as:
+PWAL can route supported configurable loot to several destinations:
 
 - Player
-- PandaWorks Storage
-- Ship Cargo
+- PandaWorks Inventory
+- Player Ship Cargo
 - Lodge Safe
-- The Void
+- The Void, where available
 
-Destination settings are category-based. This allows players to build their own logistics flow.
+Some item groups are forced to specific destinations for safety, progression, or gameplay reasons.
 
-For example:
+Not every backend rule is exposed to the player.
 
-- resources can go to ship cargo
-- collectibles can go to the Lodge Safe
-- junk can go to PandaWorks Storage or The Void
-- weapons and armor can go wherever the player prefers
-
-Some categories are intentionally not exposed in the destination menu because they must stay safe.
+Some knobs should not be handed to people who will immediately turn them sideways and complain the machine screams.
 
 ---
 
-## Fixed Routing Rules
+## Forced Routing Rules
 
-A few categories are hard-routed for safety or progression reasons.
+Some items are not treated like normal storage loot.
 
-These are not normal destination options.
+These items go directly to the player:
 
-### Always Routed to Player
-
-The following item types are intended to go directly to the player:
-
-- credits
-- digipicks
-- Astra
-- keycards
-- landmark books
-- skill magazines
-- critical activator-based pickups
-- quest/progression items when detected by the game
-
-These items are treated as direct player acquisition items, not general storage loot.
-
-### Contraband Safety Rule
-
-Contraband always routes to **PandaWorks Storage** by default.
+- Credits
+- Keycards
+- Skill magazines
+- Landmark books
+- Collectibles
+- Certain activator-based pickups
+- Quest/progression items when detected by the game
 
 This is intentional.
 
-Starfield’s contraband scan behavior can create an arrest loop if an auto-loot system silently moves contraband back to the player or ship cargo after the player has just been caught.
+These items are tied to direct acquisition, progression, unlocks, or player clarity.
 
-To prevent this, PWAL does not automatically send contraband to the player or ship.
-
-Players who want to smuggle contraband must manually move it from PandaWorks Storage to their ship cargo or personal inventory.
+Do not report this as a destination bug.
 
 ---
 
-## Ship Cargo Availability
+## Contraband
 
-Ship cargo is only available after the player has access to an active home ship, such as after receiving the Frontier.
+Contraband is special.
 
-Before that point:
+By default, contraband routes to **PandaWorks Inventory**.
 
-- Ship Cargo cannot be opened
-- items should not be transferred into ship cargo
-- ship transfer commands may fail safely
-- loot routed to ship cargo may be redirected to PandaWorks Storage until a valid ship exists
+This is intentional.
 
-This protects early-game saves from broken or nonexistent ship references.
+Starfield’s contraband scan system can create stupid arrest-loop problems if automation moves contraband into the wrong place at the wrong time.
+
+PWAL keeps contraband out of normal player/ship routing unless the framework explicitly allows safe handling.
+
+If you want to smuggle contraband, move it manually when you are ready.
+
+The panda is trying to keep you out of space jail.
+
+Mostly.
+
+---
+
+## Ship Cargo
+
+Player Ship Cargo requires a valid player home ship.
+
+If the player does not have a valid home ship yet, ship cargo tools may fail safely or redirect depending on current framework behavior.
+
+PWAL cannot store loot in a ship the game has not properly assigned.
+
+That is Starfield’s problem.
+
+PWAL just has to survive it.
 
 ---
 
 ## The Void
 
-The Void is planned as a disposal destination.
+The Void is a disposal-style destination.
 
-Items routed to The Void are destroyed instead of stored.
+Items sent to The Void are not stored normally.
 
-The Void is intended as a cleanup and salvage feature, not a replacement for merchants.
+The Void is intended for cleanup and possible salvage-style behavior.
 
-If credit salvage is added, it will be a small percentage of the item’s value with a minimum payout, such as 1 credit. It will not be tuned to outperform selling items normally.
+It is not intended to replace vendors or become a free money printer.
 
-The Void is for convenience, not infinite money.
+If you send something to The Void, do not expect to get it back.
 
----
+The Void eats.
 
-## Terminal Configuration
-
-PWAL uses an in-game terminal interface as its main configuration system.
-
-The terminal is planned around four major areas:
-
-- Loot Filters
-- Loot Destinations
-- Settings
-- Utilities
-
-### Loot Filters Menu
-
-Controls what categories are automatically looted.
-
-### Loot Destinations Menu
-
-Controls where configurable categories are sent.
-
-### Settings Menu
-
-Controls general behavior such as looting enabled/disabled, logging, scan radius behavior, auto-unlock settings, and other framework options.
-
-### Utilities Menu
-
-Provides inventory and transfer actions, such as:
-
-- open PandaWorks Storage
-- open Lodge Safe
-- open Ship Cargo
-- move resources to ship
-- move valuables to player
-- move all from PandaWorks to ship
-- move all from ship to PandaWorks
-- move all from Lodge Safe to PandaWorks
-- move all from Lodge Safe to ship
-
----
-
-## Aid Device
-
-PWAL will include a single aid/utility device for quick access.
-
-The aid device is intended for console-friendly use and for players who do not want to open the full terminal every time.
-
-Planned aid-device actions include:
-
-- enable or disable looting
-- enable or disable logging
-- open PandaWorks Storage
-- open Lodge Safe
-- open Ship Cargo
-- access quick transfer actions
-
-The full terminal remains the main configuration tool. The aid device is the quick control panel.
-
----
-
-## PC Hotkey / CGF Support
-
-PC players may be able to bind certain PWAL commands using console command function calls.
-
-PWAL will expose a small public command façade for hotkey use.
-
-The hotkey-facing script will not contain the actual logic. It will only forward commands to the proper PWAL services.
-
-Example command categories may include:
-
-- open terminal
-- open PandaWorks Storage
-- open Lodge Safe
-- open Ship Cargo
-- toggle looting
-- move resources to ship
-- move valuables to player
-- move all from ship to PandaWorks
-
-Console versions will use the aid device instead.
+The Void does not apologize.
 
 ---
 
@@ -278,146 +277,78 @@ Console versions will use the aid device instead.
 
 PWAL is designed around distributed, budgeted scanning.
 
-Instead of one giant script trying to do everything, PWAL uses multiple MagicEffect-based workers configured through the Creation Kit.
+Instead of one giant script trying to do everything, PWAL uses focused systems with separated responsibilities.
 
-Each effect handles a specific type of loot or behavior.
+Major concepts include:
 
-The system is designed around:
-
-- distributed MagicEffect workers
-- category-specific scan filters
-- staggered timer starts
-- internal processing budgets
-- shared processor services
-- destination resolution
-- controlled transfer behavior
-
-The goal is to avoid Papyrus VM stalls and reduce the risk of large script spikes.
-
-Raw scan timing is not intended to be exposed directly to players. Timing and budgets are treated as internal engineering values, not user-facing sliders.
-
-Future versions may include curated performance profiles, such as:
-
-- Lazy Panda
-- Active Panda
-- Stoned Panda
-
-But these profiles will use safe internal values rather than unrestricted timing controls.
-
----
-
-## Planned Profiles
-
-Profiles are planned for a future release.
-
-### Lazy Panda
-
-Lowest workload profile.
-
-Designed for minimal automation and conservative behavior.
-
-### Active Panda
-
-Recommended balanced profile.
-
-Enables practical looting categories and common quality-of-life behavior.
-
-### Stoned Panda
-
-Maximum shiny-object mode.
-
-Enables most configurable categories and performs the most aggressive looting behavior within safe limits.
-
-The panda likes shiny things. This may or may not be wise.
-
----
-
-## Nonlethal Harvest Support
-
-PWAL includes support for Starfield’s native nonlethal Zoology harvest behavior.
-
-This is not a custom fake harvest system.
-
-PWAL uses the game’s own nonlethal harvest condition logic and harvest effect behavior, then integrates it into the same framework used by normal looting.
-
-This allows harvestable organic targets to be processed through PWAL’s scanner and processor architecture without needing a separate standalone harvest script.
-
----
-
-## Framework Architecture
-
-PWAL is built as a modular framework.
-
-Major systems include:
-
-- LootEffect workers
-- LootScanner
-- LootProcessor
-- ContainerProcessor
-- CorpseProcessor
-- HarvestProcessor
-- DestinationResolver
-- CommandService
-- TransferActionService
+- MagicEffect-driven workers
+- Category-specific scanning
+- Validation services
+- Processor services
+- Destination resolution
+- Transfer services
 - Terminal menu scripts
-- Aid device input script
-- Daemon / CGF command façade
+- Command services
+- Utility access points
 
-The design goal is to keep each script focused.
+The goal is to keep each script focused.
 
-Loot workers scan.
+Scanners scan.
+
+Validators validate.
 
 Processors process.
 
-The destination resolver resolves.
+Destination systems route.
 
-Command services execute player actions.
+Terminal and utility scripts act as input surfaces.
 
-Terminal and aid-device scripts act as input surfaces only.
-
-This keeps the system easier to debug, easier to expand, and less likely to become one giant script trying to do everything.
+This keeps the system easier to debug, easier to expand, and less likely to become one giant cursed script dragging itself across the floor.
 
 ---
 
-## Known Limitations
+## Call Global Function Support
 
-- Space loot support is experimental.
-- Ship Cargo requires an active home ship.
-- Terminal UI token refresh behavior is being rebuilt from the Lazy Panda system and may change during testing.
-- Performance profiles are planned but not currently exposed.
+PWAL exposes public Call Global Function commands through `PWAL:Daemon`.
 
----
+These commands are mainly for:
 
-## Development Status
+- Hotkeys
+- Console command runners
+- Bat files
+- External command bindings
+- Advanced user automation
 
-PWAL is currently under active development.
+Normal users should use the in-game terminal menus unless they specifically want external command bindings.
 
-This repository reflects ongoing framework work and may not represent a final release build.
+See the wiki page:
 
-Features and behavior may change before release.
-
-Current major development areas include:
-
-- terminal menu framework
-- destination configuration menus
-- aid-device quick actions
-- transfer service implementation
-- hotkey/CGF façade
-- framework stability testing
-- console testing
-- performance tuning
+[Call Global Functions](https://github.com/Ganja-Panda/PandaWorks-AutoLoot-Starfield/wiki/Call-Global-Functions)
 
 ---
 
-## Distribution
+## Documentation
 
-PWAL will only be officially available through:
+Full documentation is available in the GitHub Wiki:
 
-- Bethesda Creations / Creation Club
-- Nexus Mods
-- this GitHub repository
+[PWAL Wiki Home](https://github.com/Ganja-Panda/PandaWorks-AutoLoot-Starfield/wiki)
 
-Any other distribution is unauthorized.
+Recommended pages:
+
+- [Getting Started](https://github.com/Ganja-Panda/PandaWorks-AutoLoot-Starfield/wiki/Getting-Started)
+- [Installation](https://github.com/Ganja-Panda/PandaWorks-AutoLoot-Starfield/wiki/Installation)
+- [Quick Start](https://github.com/Ganja-Panda/PandaWorks-AutoLoot-Starfield/wiki/Quick-Start)
+- [Core Concepts](https://github.com/Ganja-Panda/PandaWorks-AutoLoot-Starfield/wiki/Core-Concepts)
+- [Utility Device](https://github.com/Ganja-Panda/PandaWorks-AutoLoot-Starfield/wiki/Utility-Device)
+- [Terminal Menus](https://github.com/Ganja-Panda/PandaWorks-AutoLoot-Starfield/wiki/Terminal-Menus)
+- [Destinations](https://github.com/Ganja-Panda/PandaWorks-AutoLoot-Starfield/wiki/Destinations)
+- [Loot Categories](https://github.com/Ganja-Panda/PandaWorks-AutoLoot-Starfield/wiki/Loot-Categories)
+- [Troubleshooting](https://github.com/Ganja-Panda/PandaWorks-AutoLoot-Starfield/wiki/Troubleshooting)
+- [Support](https://github.com/Ganja-Panda/PandaWorks-AutoLoot-Starfield/wiki/Support)
+
+Read the wiki before reporting bugs.
+
+The answer may already be there, sitting quietly, judging everyone.
 
 ---
 
@@ -425,12 +356,55 @@ Any other distribution is unauthorized.
 
 Support, bug reports, testing feedback, and general discussion are handled through the PandaWorks Discord.
 
-Join here: https://discord.gg/aGJhkYb4
+Join here:
+
+https://discord.gg/aGJhkYb4
+
+When reporting bugs, include useful information:
+
+- PWAL version
+- Starfield version
+- Mod manager used
+- What you expected to happen
+- What actually happened
+- Which category was involved
+- Which destination was selected
+- Where you were in-game
+- Whether the issue repeats
+- Any useful log output
+
+“Mod broken” is not a bug report.
+
+That is a distress signal from a fog machine.
+
+---
+
+## Distribution
+
+PWAL is officially distributed through:
+
+- GitHub
+- Nexus Mods, when available
+- Bethesda Creations / Creation Club, when available
+
+Any other distribution is unauthorized.
+
+Do not reupload this mod.
+
+Do not redistribute it.
+
+Do not port it.
+
+Do not reuse its content without explicit permission.
 
 ---
 
 ## License
 
-Copyright (c) 2026 PandaWorks Studio. All rights reserved.
+Copyright (c) 2026 PandaWorks Studios / Ganja Panda. All rights reserved.
+
+PandaWorks AutoLoot for Starfield is proprietary mod content.
+
+Unauthorized redistribution, reuse, modification, or porting of PandaWorks AutoLoot is not permitted.
 
 See the LICENSE file for details.
