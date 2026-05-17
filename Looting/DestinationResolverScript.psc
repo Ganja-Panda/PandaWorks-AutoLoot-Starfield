@@ -29,7 +29,6 @@ ScriptName PWAL:Looting:DestinationResolverScript extends Quest
 ;   - No destination-setting logic
 ; ==============================================================
 
-
 ; ==============================================================
 ; Properties
 ; ==============================================================
@@ -69,20 +68,29 @@ GlobalVariable Property PWAL_GLOB_Settings_Dest_BOOK_SkillMags Auto Const
 
 ; MISC
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_AMMO Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Collectibles Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Contraband Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_CraftingItems Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Currency Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_JunkItems Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Keycards Auto Const
-GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Plushies Auto Const
-GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Snowglobes Auto Const
 
 ; RES / Inorganic
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Common Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Common_Harvest Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Common_HarvestSpell Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Exotic Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Exotic_Harvest Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Exotic_HarvestSpell Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Rare Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Rare_Harvest Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Rare_HarvestSpell Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Uncommon Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Uncommon_Harvest Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Uncommon_HarvestSpell Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Unique Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Unique_Harvest Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Unique_HarvestSpell Auto Const
 
 ; RES / Manufactured
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Manufactured_Tier01 Auto Const
@@ -91,6 +99,7 @@ GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Manufactured_Tier03 Auto Con
 
 ; RES / Organic
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Organic_Common Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Organic_Common_Harvest Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Organic_Exotic Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Organic_Legendary Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Organic_NonLethalHarvest Auto Const
@@ -112,7 +121,6 @@ ObjectReference Property LodgeSafeRef Auto Const
 ObjectReference Property PWAL_INV_REF Auto Const
 ReferenceAlias Property PlayerHomeShip Auto Const
 
-
 ; ==============================================================
 ; Destination Constants
 ; ==============================================================
@@ -122,7 +130,6 @@ Int Property DEST_PANDAWORKS = 2 Auto Const
 Int Property DEST_PLAYER_SHIP = 3 Auto Const
 Int Property DEST_LODGE_SAFE = 4 Auto Const
 Int Property DEST_VOID = 5 Auto Const
-
 
 ; ==============================================================
 ; Loot Group Constants
@@ -151,21 +158,30 @@ Int Property LG_BOOK_SKILLMAGS = 303 Auto Const
 
 ; MISC
 Int Property LG_MISC_AMMO = 401 Auto Const
-Int Property LG_MISC_CONTRABAND = 402 Auto Const
-Int Property LG_MISC_CRAFTINGITEMS = 403 Auto Const
-Int Property LG_MISC_CURRENCY = 404 Auto Const
-Int Property LG_MISC_JUNKITEMS = 405 Auto Const
-Int Property LG_MISC_KEYCARDS = 406 Auto Const
-Int Property LG_MISC_PLUSHIES = 407 Auto Const
-Int Property LG_MISC_SNOWGLOBES = 408 Auto Const
-Int Property LG_MISC_MISCITEMS = 409 Auto Const
+Int Property LG_MISC_COLLECTIBLES = 402 Auto Const
+Int Property LG_MISC_CONTRABAND = 403 Auto Const
+Int Property LG_MISC_CRAFTINGITEMS = 404 Auto Const
+Int Property LG_MISC_CURRENCY = 405 Auto Const
+Int Property LG_MISC_JUNKITEMS = 406 Auto Const
+Int Property LG_MISC_KEYCARDS = 407 Auto Const
+Int Property LG_MISC_MISCITEMS = 408 Auto Const
 
 ; RES / Inorganic
 Int Property LG_RES_INORGANIC_COMMON = 501 Auto Const
-Int Property LG_RES_INORGANIC_EXOTIC = 502 Auto Const
-Int Property LG_RES_INORGANIC_RARE = 503 Auto Const
-Int Property LG_RES_INORGANIC_UNCOMMON = 504 Auto Const
-Int Property LG_RES_INORGANIC_UNIQUE = 505 Auto Const
+Int Property LG_RES_INORGANIC_COMMON_HARVEST = 502 Auto Const
+Int Property LG_RES_INORGANIC_COMMON_HARVESTSPELL = 503 Auto Const
+Int Property LG_RES_INORGANIC_EXOTIC = 504 Auto Const
+Int Property LG_RES_INORGANIC_EXOTIC_HARVEST = 505 Auto Const
+Int Property LG_RES_INORGANIC_EXOTIC_HARVESTSPELL = 506 Auto Const
+Int Property LG_RES_INORGANIC_RARE = 507 Auto Const
+Int Property LG_RES_INORGANIC_RARE_HARVEST = 508 Auto Const
+Int Property LG_RES_INORGANIC_RARE_HARVESTSPELL = 509 Auto Const
+Int Property LG_RES_INORGANIC_UNCOMMON = 510 Auto Const
+Int Property LG_RES_INORGANIC_UNCOMMON_HARVEST = 511 Auto Const
+Int Property LG_RES_INORGANIC_UNCOMMON_HARVESTSPELL = 512 Auto Const
+Int Property LG_RES_INORGANIC_UNIQUE = 513 Auto Const
+Int Property LG_RES_INORGANIC_UNIQUE_HARVEST = 514 Auto Const
+Int Property LG_RES_INORGANIC_UNIQUE_HARVESTSPELL = 515 Auto Const
 
 ; RES / Manufactured
 Int Property LG_RES_MANUFACTURED_TIER01 = 601 Auto Const
@@ -174,12 +190,13 @@ Int Property LG_RES_MANUFACTURED_TIER03 = 603 Auto Const
 
 ; RES / Organic
 Int Property LG_RES_ORGANIC_COMMON = 701 Auto Const
-Int Property LG_RES_ORGANIC_EXOTIC = 702 Auto Const
-Int Property LG_RES_ORGANIC_LEGENDARY = 703 Auto Const
-Int Property LG_RES_ORGANIC_NONLETHALHARVEST = 704 Auto Const
-Int Property LG_RES_ORGANIC_RARE = 705 Auto Const
-Int Property LG_RES_ORGANIC_UNCOMMON = 706 Auto Const
-Int Property LG_RES_ORGANIC_UNIQUE = 707 Auto Const
+Int Property LG_RES_ORGANIC_COMMON_HARVEST = 702 Auto Const
+Int Property LG_RES_ORGANIC_EXOTIC = 703 Auto Const
+Int Property LG_RES_ORGANIC_LEGENDARY = 704 Auto Const
+Int Property LG_RES_ORGANIC_NONLETHALHARVEST = 705 Auto Const
+Int Property LG_RES_ORGANIC_RARE = 706 Auto Const
+Int Property LG_RES_ORGANIC_UNCOMMON = 707 Auto Const
+Int Property LG_RES_ORGANIC_UNIQUE = 708 Auto Const
 
 ; WEAP
 Int Property LG_WEAP_HEAVY = 801 Auto Const
@@ -188,7 +205,6 @@ Int Property LG_WEAP_PISTOLS = 803 Auto Const
 Int Property LG_WEAP_RIFLES = 804 Auto Const
 Int Property LG_WEAP_SHOTGUNS = 805 Auto Const
 Int Property LG_WEAP_THROWABLES = 806 Auto Const
-
 
 ; ==============================================================
 ; Public API
@@ -217,7 +233,6 @@ Int Function ResolveDestinationCode(Int aiLootGroupCode = 0)
 	Return iDefaultCode
 EndFunction
 
-
 Int Function ResolveDefaultDestinationCode()
 	If PWAL_GLOB_Settings_Dest == None
 		LogError("DestinationResolver", "ResolveDefaultDestinationCode failed: PWAL_GLOB_Settings_Dest property is not filled.")
@@ -233,7 +248,6 @@ Int Function ResolveDefaultDestinationCode()
 
 	Return iValue
 EndFunction
-
 
 Int Function ResolveLootGroupDestinationCode(Int aiLootGroupCode)
 	GlobalVariable akLootGroupGlobal = GetLootGroupDestinationGlobal(aiLootGroupCode)
@@ -258,7 +272,6 @@ Int Function ResolveLootGroupDestinationCode(Int aiLootGroupCode)
 
 	Return iValue
 EndFunction
-
 
 ObjectReference Function ResolveDestinationRef(Int aiDestinationCode)
 	If aiDestinationCode == DEST_PLAYER
@@ -328,11 +341,9 @@ ObjectReference Function ResolveDestinationRef(Int aiDestinationCode)
 	Return Game.GetPlayer()
 EndFunction
 
-
 Bool Function IsVoidDestination(Int aiDestinationCode)
 	Return (aiDestinationCode == DEST_VOID)
 EndFunction
-
 
 ; ==============================================================
 ; Internal Helpers
@@ -350,7 +361,6 @@ Bool Function IsValidDestinationCode(Int aiDestinationCode)
 	Return true
 EndFunction
 
-
 Bool Function IsForcedPlayerLootGroup(Int aiLootGroupCode)
 	; These are progression / acquisition groups.
 	; They should not be routeable through normal destination logic.
@@ -364,6 +374,10 @@ Bool Function IsForcedPlayerLootGroup(Int aiLootGroupCode)
 	EndIf
 
 	If aiLootGroupCode == LG_MISC_CURRENCY
+		Return true
+	EndIf
+
+	If aiLootGroupCode == LG_MISC_COLLECTIBLES
 		Return true
 	EndIf
 
@@ -381,7 +395,6 @@ Bool Function IsForcedPandaWorksLootGroup(Int aiLootGroupCode)
 
 	Return false
 EndFunction
-
 
 GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 	; ALCH
@@ -436,6 +449,10 @@ GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 		Return PWAL_GLOB_Settings_Dest_MISC_AMMO
 	EndIf
 
+	If aiLootGroupCode == LG_MISC_COLLECTIBLES
+		Return PWAL_GLOB_Settings_Dest_MISC_Collectibles
+	EndIf
+
 	If aiLootGroupCode == LG_MISC_CONTRABAND
 		Return PWAL_GLOB_Settings_Dest_MISC_Contraband
 	EndIf
@@ -448,10 +465,6 @@ GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 		Return PWAL_GLOB_Settings_Dest_MISC_Currency
 	EndIf
 
-	If aiLootGroupCode == LG_MISC_MISCITEMS
-		Return PWAL_GLOB_Settings_Dest_MISC_JunkItems
-	EndIf
-
 	If aiLootGroupCode == LG_MISC_JUNKITEMS
 		Return PWAL_GLOB_Settings_Dest_MISC_JunkItems
 	EndIf
@@ -460,12 +473,8 @@ GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 		Return PWAL_GLOB_Settings_Dest_MISC_Keycards
 	EndIf
 
-	If aiLootGroupCode == LG_MISC_PLUSHIES
-		Return PWAL_GLOB_Settings_Dest_MISC_Plushies
-	EndIf
-
-	If aiLootGroupCode == LG_MISC_SNOWGLOBES
-		Return PWAL_GLOB_Settings_Dest_MISC_Snowglobes
+	If aiLootGroupCode == LG_MISC_MISCITEMS
+		Return PWAL_GLOB_Settings_Dest_MISC_JunkItems
 	EndIf
 
 	; RES / Inorganic
@@ -473,20 +482,60 @@ GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Common
 	EndIf
 
+	If aiLootGroupCode == LG_RES_INORGANIC_COMMON_HARVEST
+		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Common_Harvest
+	EndIf
+
+	If aiLootGroupCode == LG_RES_INORGANIC_COMMON_HARVESTSPELL
+		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Common_HarvestSpell
+	EndIf
+
 	If aiLootGroupCode == LG_RES_INORGANIC_EXOTIC
 		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Exotic
+	EndIf
+
+	If aiLootGroupCode == LG_RES_INORGANIC_EXOTIC_HARVEST
+		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Exotic_Harvest
+	EndIf
+
+	If aiLootGroupCode == LG_RES_INORGANIC_EXOTIC_HARVESTSPELL
+		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Exotic_HarvestSpell
 	EndIf
 
 	If aiLootGroupCode == LG_RES_INORGANIC_RARE
 		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Rare
 	EndIf
 
+	If aiLootGroupCode == LG_RES_INORGANIC_RARE_HARVEST
+		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Rare_Harvest
+	EndIf
+
+	If aiLootGroupCode == LG_RES_INORGANIC_RARE_HARVESTSPELL
+		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Rare_HarvestSpell
+	EndIf
+
 	If aiLootGroupCode == LG_RES_INORGANIC_UNCOMMON
 		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Uncommon
 	EndIf
 
+	If aiLootGroupCode == LG_RES_INORGANIC_UNCOMMON_HARVEST
+		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Uncommon_Harvest
+	EndIf
+
+	If aiLootGroupCode == LG_RES_INORGANIC_UNCOMMON_HARVESTSPELL
+		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Uncommon_HarvestSpell
+	EndIf
+
 	If aiLootGroupCode == LG_RES_INORGANIC_UNIQUE
 		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Unique
+	EndIf
+
+	If aiLootGroupCode == LG_RES_INORGANIC_UNIQUE_HARVEST
+		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Unique_Harvest
+	EndIf
+
+	If aiLootGroupCode == LG_RES_INORGANIC_UNIQUE_HARVESTSPELL
+		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Unique_HarvestSpell
 	EndIf
 
 	; RES / Manufactured
@@ -505,6 +554,10 @@ GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 	; RES / Organic
 	If aiLootGroupCode == LG_RES_ORGANIC_COMMON
 		Return PWAL_GLOB_Settings_Dest_RES_Organic_Common
+	EndIf
+
+	If aiLootGroupCode == LG_RES_ORGANIC_COMMON_HARVEST
+		Return PWAL_GLOB_Settings_Dest_RES_Organic_Common_Harvest
 	EndIf
 
 	If aiLootGroupCode == LG_RES_ORGANIC_EXOTIC
@@ -558,7 +611,6 @@ GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 
 	Return None
 EndFunction
-
 
 ; ==============================================================
 ; Internal Logging Wrappers
