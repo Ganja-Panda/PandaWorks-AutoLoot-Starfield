@@ -90,8 +90,8 @@ Function SendValuablesToPlayer() Global
 	PWAL:System:CommandServicesScript.GetScript().SendValuablesToPlayer()
 EndFunction
 
-Function PullShipToPandaWorks() Global
-	PWAL:System:CommandServicesScript.GetScript().PullShipToPandaWorks()
+Function SendCargoHoldToPandaWorks() Global
+	PWAL:System:CommandServicesScript.GetScript().SendCargoHoldToPandaWorks()
 EndFunction
 
 
@@ -120,5 +120,5 @@ Function MoveValuablesToPlayer() Global
 EndFunction
 
 Function MoveAllFromShipToPandaWorks() Global
-	PWAL:System:CommandServicesScript.GetScript().PullShipToPandaWorks()
+	PWAL:System:CommandServicesScript.GetScript().SendCargoHoldToPandaWorks()
 EndFunction
