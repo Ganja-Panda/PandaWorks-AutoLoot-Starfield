@@ -42,7 +42,7 @@ EndGroup
 
 Group RuntimeReferences
 	ObjectReference Property PlayerRef Auto Const
-	ObjectReference Property PWAL_TERM_REF_Utilities Auto Const Mandatory
+	ObjectReference Property PWAL_TERM_UtilityDevice_Ref Auto Const Mandatory
 EndGroup
 
 
@@ -64,12 +64,12 @@ Event OnEffectStart(ObjectReference akTarget, Actor akCaster, MagicEffect akBase
 		Return
 	EndIf
 
-	If PWAL_TERM_REF_Utilities == None
-		LogError("UtilityDevice", "Unable to open utility terminal: PWAL_TERM_REF_Utilities property is not filled.")
+	If PWAL_TERM_UtilityDevice_Ref == None
+		LogError("UtilityDevice", "Unable to open utility terminal: PWAL_TERM_UtilityDevice_Ref property is not filled.")
 		Return
 	EndIf
 
-	PWAL_TERM_REF_Utilities.Activate(akActivator, false)
+	PWAL_TERM_UtilityDevice_Ref.Activate(akActivator, false)
 EndEvent
 
 
