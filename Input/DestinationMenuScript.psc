@@ -17,7 +17,7 @@ ScriptName PWAL:Input:DestinationMenuScript Extends TerminalMenu Hidden
 ;   - Refresh SendAll and State# destination tokens on menu enter
 ;   - Cycle individual destination globals
 ;   - Apply SendAll destination values to child destination globals
-;   - Preserve resolver contract where 0 means use default destination
+;   - Keep player-facing destination choices limited to real destinations
 ;   - Always provide valid destination replacement messages
 ;   - Ignore submenu/navigation rows safely
 ;
@@ -46,7 +46,6 @@ Group MenuData
 EndGroup
 
 Group DisplayMessages
-	Message Property PWAL_MSG_Dest_Default Auto Const Mandatory
 	Message Property PWAL_MSG_Dest_Player Auto Const Mandatory
 	Message Property PWAL_MSG_Dest_PandaWorks Auto Const Mandatory
 	Message Property PWAL_MSG_Dest_PlayerShip Auto Const Mandatory
@@ -55,7 +54,6 @@ Group DisplayMessages
 EndGroup
 
 Group RuntimeConfig
-	Int Property DEST_DEFAULT = 0 Auto Const
 	Int Property DEST_PLAYER = 1 Auto Const
 	Int Property DEST_PANDAWORKS = 2 Auto Const
 	Int Property DEST_PLAYER_SHIP = 3 Auto Const
@@ -86,7 +84,7 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 	EndIf
 
 	If !IsMappedMenuItem(auiMenuItemID)
-		LogDebug("DestinationMenu", "Ignoring unmapped menu item ID: " + auiMenuItemID)
+		LogDebug("DestinationMenu", "Ignoring unmapped menu item ID: " + (auiMenuItemID as String))
 		Return
 	EndIf
 
@@ -135,19 +133,11 @@ EndFunction
 
 Int Function CycleDestinationGlobal(GlobalVariable akGlobal)
 	If akGlobal == None
-		Return DEST_DEFAULT
+		Return DEST_PLAYER
 	EndIf
 
 	Int iCurrentValue = NormalizeDestinationValue(akGlobal.GetValueInt())
-	Int iNewValue = iCurrentValue + 1
-
-	If iNewValue > DEST_VOID
-		iNewValue = DEST_DEFAULT
-	EndIf
-
-	If iNewValue < DEST_DEFAULT
-		iNewValue = DEST_DEFAULT
-	EndIf
+	Int iNewValue = GetNextDestinationValue(iCurrentValue)
 
 	akGlobal.SetValueInt(iNewValue)
 	Return iNewValue
@@ -198,21 +188,19 @@ EndFunction
 Message Function GetDestinationMessage(Int aiValue)
 	Int iValue = NormalizeDestinationValue(aiValue)
 
-	If iValue == DEST_DEFAULT
-		Return PWAL_MSG_Dest_Default
-	ElseIf iValue == DEST_PLAYER
-		Return PWAL_MSG_Dest_Player
+	If iValue == DEST_LODGE_SAFE
+		Return PWAL_MSG_Dest_LodgeSafe
 	ElseIf iValue == DEST_PANDAWORKS
 		Return PWAL_MSG_Dest_PandaWorks
+	ElseIf iValue == DEST_PLAYER
+		Return PWAL_MSG_Dest_Player
 	ElseIf iValue == DEST_PLAYER_SHIP
 		Return PWAL_MSG_Dest_PlayerShip
-	ElseIf iValue == DEST_LODGE_SAFE
-		Return PWAL_MSG_Dest_LodgeSafe
 	ElseIf iValue == DEST_VOID
 		Return PWAL_MSG_Dest_Void
 	EndIf
 
-	Return PWAL_MSG_Dest_Default
+	Return PWAL_MSG_Dest_Player
 EndFunction
 
 String Function GetTokenName(Int aiIndex)
@@ -228,15 +216,44 @@ EndFunction
 ; ==============================================================
 
 Int Function NormalizeDestinationValue(Int aiValue)
-	If aiValue < DEST_DEFAULT
-		Return DEST_DEFAULT
+	If aiValue == DEST_PLAYER
+		Return DEST_PLAYER
 	EndIf
 
-	If aiValue > DEST_VOID
-		Return DEST_DEFAULT
+	If aiValue == DEST_PANDAWORKS
+		Return DEST_PANDAWORKS
 	EndIf
 
-	Return aiValue
+	If aiValue == DEST_PLAYER_SHIP
+		Return DEST_PLAYER_SHIP
+	EndIf
+
+	If aiValue == DEST_LODGE_SAFE
+		Return DEST_LODGE_SAFE
+	EndIf
+
+	If aiValue == DEST_VOID
+		Return DEST_VOID
+	EndIf
+
+	Return DEST_LODGE_SAFE
+EndFunction
+
+Int Function GetNextDestinationValue(Int aiCurrentValue)
+	; Alphabetical player-facing order:
+	; Lodge Safe -> PandaWorks -> Player -> Player Ship -> Void
+
+	If aiCurrentValue == DEST_LODGE_SAFE
+		Return DEST_PANDAWORKS
+	ElseIf aiCurrentValue == DEST_PANDAWORKS
+		Return DEST_PLAYER
+	ElseIf aiCurrentValue == DEST_PLAYER
+		Return DEST_PLAYER_SHIP
+	ElseIf aiCurrentValue == DEST_PLAYER_SHIP
+		Return DEST_VOID
+	EndIf
+
+	Return DEST_LODGE_SAFE
 EndFunction
 
 ; ==============================================================
