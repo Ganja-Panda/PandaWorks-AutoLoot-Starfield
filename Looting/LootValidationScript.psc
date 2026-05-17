@@ -60,6 +60,11 @@ Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		LogDebug("LootValidation", "Rejected: effect context is None.")
 		Return false
 	EndIf
+	
+	If IsBlockedPlayerInventoryRef(akLoot, akEffectContext)
+		LogDebug("LootValidation", "Rejected: candidate belongs to PlayerRef inventory/container.")
+		Return false
+	EndIf
 
 	If !IsLootLoaded(akLoot)
 		LogDebug("LootValidation", "Rejected: loot is not loaded or is disabled/deleted.")
@@ -68,11 +73,6 @@ Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 
 	If !IsPlayerAvailable()
 		LogDebug("LootValidation", "Rejected: player is not available.")
-		Return false
-	EndIf
-
-	If IsBlockedPlayerInventoryRef(akLoot, akEffectContext)
-		LogDebug("LootValidation", "Rejected: candidate belongs to PlayerRef inventory/container.")
 		Return false
 	EndIf
 
@@ -128,6 +128,7 @@ EndFunction
 
 Bool Function IsBlockedPlayerInventoryRef(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
 	ObjectReference akPlayerRef
+	ObjectReference akPWALInventoryRef
 
 	If akLoot == None || akEffectContext == None
 		Return false
@@ -138,16 +139,25 @@ Bool Function IsBlockedPlayerInventoryRef(ObjectReference akLoot, PWAL:Looting:L
 		akPlayerRef = Game.GetPlayer()
 	EndIf
 
-	If akPlayerRef == None
-		Return false
+	If akPlayerRef != None
+		If akLoot == akPlayerRef
+			Return true
+		EndIf
+
+		If akLoot.GetContainer() == akPlayerRef
+			Return true
+		EndIf
 	EndIf
 
-	If akLoot == akPlayerRef
-		Return true
-	EndIf
+	akPWALInventoryRef = akEffectContext.GetPWALInventoryContainerRef()
+	If akPWALInventoryRef != None
+		If akLoot == akPWALInventoryRef
+			Return true
+		EndIf
 
-	If akLoot.GetContainer() == akPlayerRef
-		Return true
+		If akLoot.GetContainer() == akPWALInventoryRef
+			Return true
+		EndIf
 	EndIf
 
 	Return false
@@ -339,6 +349,10 @@ EndFunction
 
 Bool Function IsLootLoaded(ObjectReference akLoot)
 	If akLoot == None
+		Return false
+	EndIf
+
+	If !akLoot.IsBoundGameObjectAvailable()
 		Return false
 	EndIf
 
