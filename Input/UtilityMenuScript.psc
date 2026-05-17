@@ -36,7 +36,6 @@ ScriptName PWAL:Input:UtilityMenuScript Extends TerminalMenu Hidden
 
 Group FrameworkServices
 	PWAL:Core:LoggerScript Property Logger Auto Const
-	PWAL:System:CommandServicesScript Property CommandServices Auto Const
 EndGroup
 
 Group Terminal
@@ -84,12 +83,6 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 		RunToggleLooting()
 	ElseIf auiMenuItemID == 2
 		RunToggleLogging()
-	ElseIf auiMenuItemID == 3
-		RunOpenLodgeSafe()
-	ElseIf auiMenuItemID == 4
-		RunOpenPandaWorksInventory()
-	ElseIf auiMenuItemID == 5
-		RunOpenShipCargo()
 	Else
 		LogDebug("UtilityMenu", "Ignoring unmapped menu item ID: " + (auiMenuItemID as String))
 	EndIf
@@ -107,51 +100,6 @@ EndFunction
 
 Function RunToggleLogging()
 	ToggleBoolGlobal(PWAL_GLOB_Utilities_Toggle_Logging, "Logging")
-EndFunction
-
-Function RunOpenLodgeSafe()
-	If CommandServices == None
-		LogError("UtilityMenu", "RunOpenLodgeSafe failed: CommandServices property is not filled.")
-		ShowMessage(PWAL_MSG_Utilities_Unavailable)
-		Return
-	EndIf
-
-	Bool bSuccess = CommandServices.OpenLodgeSafe()
-
-	If !bSuccess
-		LogWarn("UtilityMenu", "OpenLodgeSafe returned false.")
-		ShowMessage(PWAL_MSG_Utilities_Unavailable)
-	EndIf
-EndFunction
-
-Function RunOpenPandaWorksInventory()
-	If CommandServices == None
-		LogError("UtilityMenu", "RunOpenPandaWorksInventory failed: CommandServices property is not filled.")
-		ShowMessage(PWAL_MSG_Utilities_Unavailable)
-		Return
-	EndIf
-
-	Bool bSuccess = CommandServices.OpenPandaWorksInventory()
-
-	If !bSuccess
-		LogWarn("UtilityMenu", "OpenPandaWorksInventory returned false.")
-		ShowMessage(PWAL_MSG_Utilities_Unavailable)
-	EndIf
-EndFunction
-
-Function RunOpenShipCargo()
-	If CommandServices == None
-		LogError("UtilityMenu", "RunOpenShipCargo failed: CommandServices property is not filled.")
-		ShowMessage(PWAL_MSG_Utilities_Unavailable)
-		Return
-	EndIf
-
-	Bool bSuccess = CommandServices.OpenShipCargo()
-
-	If !bSuccess
-		LogWarn("UtilityMenu", "OpenShipCargo returned false.")
-		ShowMessage(PWAL_MSG_Utilities_Unavailable)
-	EndIf
 EndFunction
 
 ; ==============================================================
