@@ -119,24 +119,7 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 		Return RouteCorpse(akResolvedLoot, akEffectContext)
 	EndIf
 
-	LogDebug("LootProcessor", "Pre-validation route state.")
-	LogDebug("LootProcessor", "Ref: " + akResolvedLoot)
-	LogDebug("LootProcessor", "Base: " + akResolvedLoot.GetBaseObject())
-	LogDebug("LootProcessor", "GroupCode: " + (akEffectContext.GetLootGroupCode() as String))
-	LogDebug("LootProcessor", "ActivatorMode: " + (akEffectContext.IsActivatorMode() as String))
-	LogDebug("LootProcessor", "SpellActivationMode: " + (akEffectContext.IsSpellActivationMode() as String))
-	LogDebug("LootProcessor", "NonLethalHarvestMode: " + (akEffectContext.IsNonLethalHarvestMode() as String))
-	LogDebug("LootProcessor", "ContainerMode: " + (akEffectContext.IsContainerMode() as String))
-	LogDebug("LootProcessor", "CorpseMode: " + (akEffectContext.IsCorpseMode() as String))
-
 	If !LootValidation.CanProcessLoot(akResolvedLoot, akEffectContext)
-		LogDebug("LootProcessor", "Candidate rejected by LootValidation.")
-		LogDebug("LootProcessor", "Rejected Ref: " + akResolvedLoot)
-		LogDebug("LootProcessor", "Rejected Base: " + akResolvedLoot.GetBaseObject())
-		LogDebug("LootProcessor", "Rejected GroupCode: " + (akEffectContext.GetLootGroupCode() as String))
-		LogDebug("LootProcessor", "Rejected ActivatorMode: " + (akEffectContext.IsActivatorMode() as String))
-		LogDebug("LootProcessor", "Rejected SpellActivationMode: " + (akEffectContext.IsSpellActivationMode() as String))
-		LogDebug("LootProcessor", "Rejected NonLethalHarvestMode: " + (akEffectContext.IsNonLethalHarvestMode() as String))
 		Return false
 	EndIf
 
@@ -244,10 +227,6 @@ Bool Function RouteActivator(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	LogDebug("LootProcessor", "RouteActivator entered.")
-	LogDebug("LootProcessor", "Activator Ref: " + akLoot)
-	LogDebug("LootProcessor", "Activator Base: " + akLoot.GetBaseObject())
-
 	akLoot.Activate(akPlayerRef, false)
 	LogDebug("LootProcessor", "Activator routed: " + akLoot)
 	Return true
@@ -279,11 +258,6 @@ Bool Function RouteSpellActivation(ObjectReference akLoot, PWAL:Looting:LootEffe
 		LogWarn("LootProcessor", "RouteSpellActivation failed: player reference or actor is None.")
 		Return false
 	EndIf
-
-	LogDebug("LootProcessor", "RouteSpellActivation entered.")
-	LogDebug("LootProcessor", "Spell Target Ref: " + akLoot)
-	LogDebug("LootProcessor", "Spell Target Base: " + akLoot.GetBaseObject())
-	LogDebug("LootProcessor", "Spell: " + akEffectContext.ActiveLootSpell)
 
 	akLootSpell.RemoteCast(akPlayerRef, akPlayerActor, akLoot)
 	LogDebug("LootProcessor", "Spell activation routed: " + akLoot)
