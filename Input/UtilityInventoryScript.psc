@@ -48,14 +48,14 @@ EndGroup
 ; Menu Item IDs
 ;
 ; PWAL_TMLM_Utilities_Inventories
-; ID 1 = Lodge Safe
-; ID 2 = PandaWorks
-; ID 3 = Cargo Hold
+; ID 0 = Lodge Safe
+; ID 1 = PandaWorks
+; ID 2 = Cargo Hold
 ; ==============================================================
 
-Int Property ITEM_LODGE_SAFE = 1 Auto Const
-Int Property ITEM_PANDAWORKS = 2 Auto Const
-Int Property ITEM_CARGO_HOLD = 3 Auto Const
+Int Property ITEM_LODGE_SAFE = 0 Auto Const
+Int Property ITEM_PANDAWORKS = 1 Auto Const
+Int Property ITEM_CARGO_HOLD = 2 Auto Const
 
 ; ==============================================================
 ; Events
