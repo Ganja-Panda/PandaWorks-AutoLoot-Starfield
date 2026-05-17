@@ -50,6 +50,7 @@ EndGroup
 
 Group UtilityGlobals_AutoFill
 	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Looting Auto Const Mandatory
+	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto Const Mandatory
 EndGroup
 
 Group TransferLists_Optional
@@ -95,6 +96,24 @@ Bool Function ToggleLooting()
 	EndIf
 
 	LogDebug("CommandServices", "Looting toggle is now " + (PWAL_GLOB_Utilities_Toggle_Looting.GetValueInt() as String))
+	Return true
+EndFunction
+
+Bool Function ToggleLogging()
+	LogDebug("CommandServices", "ToggleLogging requested.")
+
+	If PWAL_GLOB_Utilities_Toggle_Logging == None
+		LogError("CommandServices", "ToggleLogging failed: PWAL_GLOB_Utilities_Toggle_Logging property is not filled.")
+		Return false
+	EndIf
+
+	If PWAL_GLOB_Utilities_Toggle_Logging.GetValueInt() > 0
+		PWAL_GLOB_Utilities_Toggle_Logging.SetValueInt(0)
+	Else
+		PWAL_GLOB_Utilities_Toggle_Logging.SetValueInt(1)
+	EndIf
+
+	LogDebug("CommandServices", "Logging toggle is now " + (PWAL_GLOB_Utilities_Toggle_Logging.GetValueInt() as String))
 	Return true
 EndFunction
 
@@ -294,6 +313,34 @@ Bool Function TransferFormListItems(ObjectReference akSourceRef, ObjectReference
 
 	LogDebug("CommandServices", "TransferFormListItems complete: " + asTransferLabel + " | " + asSourceLabel + " -> " + asDestinationLabel)
 	Return true
+EndFunction
+
+; ==============================================================
+; PandaWorks Public Command Aliases
+; ==============================================================
+
+Bool Function OpenPandaWorks()
+	Return OpenPandaWorksInventory()
+EndFunction
+
+Bool Function SendPandaWorksToShip()
+	Return TransferPandaWorksToShip()
+EndFunction
+
+Bool Function SendResourcesToShip()
+	Return TransferResourcesToShip()
+EndFunction
+
+Bool Function SendPandaWorksToLodge()
+	Return TransferPandaWorksToLodgeSafe()
+EndFunction
+
+Bool Function SendValuablesToPlayer()
+	Return TransferValuablesToPlayer()
+EndFunction
+
+Bool Function PullShipToPandaWorks()
+	Return TransferShipToPandaWorks()
 EndFunction
 
 ; ==============================================================
