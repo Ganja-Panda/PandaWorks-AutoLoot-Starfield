@@ -58,6 +58,13 @@ Group Settings_Radius_AutoFill
 	GlobalVariable Property PWAL_GLOB_Settings_Radius_Wilderness Auto Const
 EndGroup
 
+Group Settings_AllowLooting_AutoFill
+	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_Lodge Auto Const
+	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_Outposts Auto Const
+	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_PlayerHomes Auto Const
+	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_Ships Auto Const
+EndGroup
+
 Group Settings_ContainersCorpses_AutoFill
 	GlobalVariable Property PWAL_GLOB_Settings_Unlock_Auto Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_Unlock_SkillCheck Auto Const
@@ -134,6 +141,14 @@ Function RunGeneralMenuItem(Int aiMenuItemID)
 		CycleCityRadius()
 	ElseIf aiMenuItemID == 2
 		CycleWildernessRadius()
+	ElseIf aiMenuItemID == 3
+		ToggleBoolGlobal(PWAL_GLOB_Settings_AllowLooting_Lodge, "Lodge")
+	ElseIf aiMenuItemID == 4
+		ToggleBoolGlobal(PWAL_GLOB_Settings_AllowLooting_Outposts, "Outpost")
+	ElseIf aiMenuItemID == 5
+		ToggleBoolGlobal(PWAL_GLOB_Settings_AllowLooting_PlayerHomes, "PlayerHomes")
+	ElseIf aiMenuItemID == 6
+		ToggleBoolGlobal(PWAL_GLOB_Settings_AllowLooting_Ships, "Ships")
 	Else
 		LogDebug("SettingsMenu", "Ignoring unmapped General menu item ID: " + (aiMenuItemID as String))
 	EndIf
@@ -227,6 +242,12 @@ Int Function GetNextInternalRadius(Int aiCurrentValue)
 		Return RADIUS_INTERNAL_02
 	ElseIf aiCurrentValue == RADIUS_INTERNAL_02
 		Return RADIUS_INTERNAL_03
+	ElseIf aiCurrentValue == RADIUS_INTERNAL_03
+		Return RADIUS_INTERNAL_04
+	ElseIf aiCurrentValue == RADIUS_INTERNAL_04
+		Return RADIUS_INTERNAL_05
+	ElseIf aiCurrentValue == RADIUS_INTERNAL_05
+		Return RADIUS_INTERNAL_06
 	EndIf
 
 	Return RADIUS_INTERNAL_01
@@ -239,6 +260,8 @@ Int Function GetNextCityRadius(Int aiCurrentValue)
 		Return RADIUS_CITY_02
 	ElseIf aiCurrentValue == RADIUS_CITY_02
 		Return RADIUS_CITY_03
+	ElseIf aiCurrentValue == RADIUS_CITY_03
+		Return RADIUS_CITY_04
 	EndIf
 
 	Return RADIUS_CITY_01
@@ -281,6 +304,11 @@ Function RefreshGeneralTokens(ObjectReference akTerminalRef)
 	RefreshRadiusToken(akTerminalRef, "InternalRadius", PWAL_GLOB_Settings_Radius_Internal)
 	RefreshRadiusToken(akTerminalRef, "CityRadius", PWAL_GLOB_Settings_Radius_City)
 	RefreshRadiusToken(akTerminalRef, "WildernessRadius", PWAL_GLOB_Settings_Radius_Wilderness)
+
+	RefreshBoolToken(akTerminalRef, "Lodge", PWAL_GLOB_Settings_AllowLooting_Lodge)
+	RefreshBoolToken(akTerminalRef, "Outpost", PWAL_GLOB_Settings_AllowLooting_Outposts)
+	RefreshBoolToken(akTerminalRef, "PlayerHomes", PWAL_GLOB_Settings_AllowLooting_PlayerHomes)
+	RefreshBoolToken(akTerminalRef, "Ships", PWAL_GLOB_Settings_AllowLooting_Ships)
 EndFunction
 
 Function RefreshContainersCorpsesTokens(ObjectReference akTerminalRef)
