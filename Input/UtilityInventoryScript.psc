@@ -1,0 +1,1 @@
+ScriptName PWAL:Input:UtilityInventoryScript Extends TerminalMenu Hidden

@@ -75,10 +75,14 @@ Group RuntimeConfig
 	Int Property RADIUS_INTERNAL_01 = 2 Auto Const
 	Int Property RADIUS_INTERNAL_02 = 4 Auto Const
 	Int Property RADIUS_INTERNAL_03 = 8 Auto Const
+	Int Property RADIUS_INTERNAL_04 = 16 Auto Const
+	Int Property RADIUS_INTERNAL_05 = 32 Auto Const
+	Int Property RADIUS_INTERNAL_06 = 64 Auto Const
 
 	Int Property RADIUS_CITY_01 = 8 Auto Const
 	Int Property RADIUS_CITY_02 = 16 Auto Const
 	Int Property RADIUS_CITY_03 = 32 Auto Const
+	Int Property RADIUS_CITY_04 = 64 Auto Const
 
 	Int Property RADIUS_WILDERNESS_01 = 32 Auto Const
 	Int Property RADIUS_WILDERNESS_02 = 64 Auto Const
