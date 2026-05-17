@@ -421,6 +421,14 @@ Any other distribution is unauthorized.
 
 ---
 
+## Support
+
+Support, bug reports, testing feedback, and general discussion are handled through the PandaWorks Discord.
+
+Join here: https://discord.gg/aGJhkYb4
+
+---
+
 ## License
 
 Copyright (c) 2026 PandaWorks Studio. All rights reserved.
