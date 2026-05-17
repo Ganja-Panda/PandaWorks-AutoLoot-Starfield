@@ -348,7 +348,7 @@ Bool Function SendValuablesToPlayer()
 	Return TransferValuablesToPlayer()
 EndFunction
 
-Bool Function PullShipToPandaWorks()
+Bool Function SendCargoHoldToPandaWorks()
 	Return TransferShipToPandaWorks()
 EndFunction
 

@@ -14,10 +14,11 @@ ScriptName PWAL:Input:UtilityTransferMenuScript Extends TerminalMenu Hidden
 ;   command/service layer.
 ;
 ; Responsibilities:
-;   - Route All to Ship transfer action
-;   - Route PandaWorks to Lodge Safe transfer action
+;   - Route Cargo Hold to PandaWorks transfer action
+;   - Route PandaWorks to Ship transfer action
+;   - Route PandaWorks to Lodge transfer action
+;   - Route Resources to Ship transfer action
 ;   - Route Valuables to Player transfer action
-;   - Route optional Resources to Ship transfer action
 ;   - Show success/failure utility messages when available
 ;   - Ignore unmapped menu rows safely
 ;
@@ -28,6 +29,7 @@ ScriptName PWAL:Input:UtilityTransferMenuScript Extends TerminalMenu Hidden
 ;   - No install/update logic
 ;   - No terminal token management
 ; ==============================================================
+
 
 ; ==============================================================
 ; Properties
@@ -43,13 +45,23 @@ Group Terminal
 EndGroup
 
 Group UtilityMessages
+	Message Property PWAL_MSG_Utilities_MoveItemsToPandaWorks Auto Const
 	Message Property PWAL_MSG_Utilities_MoveItemsToShip Auto Const
 	Message Property PWAL_MSG_Utilities_MoveItemsToLodge Auto Const
-	Message Property PWAL_MSG_ValuablesToPlayer Auto Const
 	Message Property PWAL_MSG_ResourcesToShip Auto Const
+	Message Property PWAL_MSG_ValuablesToPlayer Auto Const
 	Message Property PWAL_MSG_Utilities_NoItems Auto Const
 	Message Property PWAL_MSG_Utilities_Unavailable Auto Const
 EndGroup
+
+Group MenuItems
+	Int Property ITEM_SEND_CARGO_HOLD_TO_PANDAWORKS = 0 Auto Const
+	Int Property ITEM_SEND_PANDAWORKS_TO_SHIP = 1 Auto Const
+	Int Property ITEM_SEND_PANDAWORKS_TO_LODGE = 2 Auto Const
+	Int Property ITEM_SEND_RESOURCES_TO_SHIP = 3 Auto Const
+	Int Property ITEM_SEND_VALUABLES_TO_PLAYER = 4 Auto Const
+EndGroup
+
 
 ; ==============================================================
 ; Events
@@ -66,27 +78,43 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 		Return
 	EndIf
 
-	If auiMenuItemID == 0
-		RunMoveAllToShip()
-	ElseIf auiMenuItemID == 1
-		RunMovePandaWorksToLodgeSafe()
-	ElseIf auiMenuItemID == 2
-		RunMoveValuablesToPlayer()
-	ElseIf auiMenuItemID == 3
-		RunMoveResourcesToShip()
+	If auiMenuItemID == ITEM_SEND_CARGO_HOLD_TO_PANDAWORKS
+		RunSendCargoHoldToPandaWorks()
+	ElseIf auiMenuItemID == ITEM_SEND_PANDAWORKS_TO_SHIP
+		RunSendPandaWorksToShip()
+	ElseIf auiMenuItemID == ITEM_SEND_PANDAWORKS_TO_LODGE
+		RunSendPandaWorksToLodge()
+	ElseIf auiMenuItemID == ITEM_SEND_RESOURCES_TO_SHIP
+		RunSendResourcesToShip()
+	ElseIf auiMenuItemID == ITEM_SEND_VALUABLES_TO_PLAYER
+		RunSendValuablesToPlayer()
 	Else
 		LogDebug("UtilityTransferMenu", "Ignoring unmapped menu item ID: " + (auiMenuItemID as String))
 	EndIf
 EndEvent
 
+
 ; ==============================================================
 ; Core Execution
 ; ==============================================================
 
-Function RunMoveAllToShip()
-	LogDebug("UtilityTransferMenu", "RunMoveAllToShip triggered.")
+Function RunSendCargoHoldToPandaWorks()
+	LogDebug("UtilityTransferMenu", "RunSendCargoHoldToPandaWorks triggered.")
 
-	Bool bMovedAnything = CommandServices.TransferPandaWorksToShip()
+	Bool bMovedAnything = CommandServices.SendCargoHoldToPandaWorks()
+
+	If bMovedAnything
+		ShowMessage(PWAL_MSG_Utilities_MoveItemsToPandaWorks)
+	Else
+		ShowMessage(PWAL_MSG_Utilities_NoItems)
+	EndIf
+EndFunction
+
+
+Function RunSendPandaWorksToShip()
+	LogDebug("UtilityTransferMenu", "RunSendPandaWorksToShip triggered.")
+
+	Bool bMovedAnything = CommandServices.SendPandaWorksToShip()
 
 	If bMovedAnything
 		ShowMessage(PWAL_MSG_Utilities_MoveItemsToShip)
@@ -95,10 +123,11 @@ Function RunMoveAllToShip()
 	EndIf
 EndFunction
 
-Function RunMovePandaWorksToLodgeSafe()
-	LogDebug("UtilityTransferMenu", "RunMovePandaWorksToLodgeSafe triggered.")
 
-	Bool bMovedAnything = CommandServices.TransferPandaWorksToLodgeSafe()
+Function RunSendPandaWorksToLodge()
+	LogDebug("UtilityTransferMenu", "RunSendPandaWorksToLodge triggered.")
+
+	Bool bMovedAnything = CommandServices.SendPandaWorksToLodge()
 
 	If bMovedAnything
 		ShowMessage(PWAL_MSG_Utilities_MoveItemsToLodge)
@@ -107,10 +136,24 @@ Function RunMovePandaWorksToLodgeSafe()
 	EndIf
 EndFunction
 
-Function RunMoveValuablesToPlayer()
-	LogDebug("UtilityTransferMenu", "RunMoveValuablesToPlayer triggered.")
 
-	Bool bMovedAnything = CommandServices.TransferValuablesToPlayer()
+Function RunSendResourcesToShip()
+	LogDebug("UtilityTransferMenu", "RunSendResourcesToShip triggered.")
+
+	Bool bMovedAnything = CommandServices.SendResourcesToShip()
+
+	If bMovedAnything
+		ShowMessage(PWAL_MSG_ResourcesToShip)
+	Else
+		ShowMessage(PWAL_MSG_Utilities_NoItems)
+	EndIf
+EndFunction
+
+
+Function RunSendValuablesToPlayer()
+	LogDebug("UtilityTransferMenu", "RunSendValuablesToPlayer triggered.")
+
+	Bool bMovedAnything = CommandServices.SendValuablesToPlayer()
 
 	If bMovedAnything
 		ShowMessage(PWAL_MSG_ValuablesToPlayer)
@@ -119,17 +162,6 @@ Function RunMoveValuablesToPlayer()
 	EndIf
 EndFunction
 
-Function RunMoveResourcesToShip()
-	LogDebug("UtilityTransferMenu", "RunMoveResourcesToShip triggered.")
-
-	Bool bMovedAnything = CommandServices.TransferResourcesToShip()
-
-	If bMovedAnything
-		ShowMessage(PWAL_MSG_ResourcesToShip)
-	Else
-		ShowMessage(PWAL_MSG_Utilities_NoItems)
-	EndIf
-EndFunction
 
 ; ==============================================================
 ; Utility Helpers
@@ -140,6 +172,7 @@ Function ShowMessage(Message akMessage)
 		akMessage.Show()
 	EndIf
 EndFunction
+
 
 ; ==============================================================
 ; Internal Logging Wrappers
@@ -153,6 +186,7 @@ Function LogInfo(String asSource, String asMessage)
 	EndIf
 EndFunction
 
+
 Function LogWarn(String asSource, String asMessage)
 	If Logger
 		Logger.Warn(asSource, asMessage)
@@ -161,6 +195,7 @@ Function LogWarn(String asSource, String asMessage)
 	EndIf
 EndFunction
 
+
 Function LogError(String asSource, String asMessage)
 	If Logger
 		Logger.Error(asSource, asMessage)
@@ -168,6 +203,7 @@ Function LogError(String asSource, String asMessage)
 		Debug.Trace("[PWAL][ERROR][" + asSource + "] " + asMessage)
 	EndIf
 EndFunction
+
 
 Function LogDebug(String asSource, String asMessage)
 	If Logger
