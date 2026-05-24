@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:LootValidationScript Extends Quest Hidden
 ; ==============================================================
 ; Pandworks Studios - PandaWork Auto Loot
 ; Author: Ganja Panda
-; Version: 1.00
+; Version: 1.0.1
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: LootValidationScript
@@ -40,6 +40,10 @@ Location Property CityNewAtlantisLodgeLocation Auto Const
 LocationAlias Property PlayerShipInterior Auto Const Mandatory
 Keyword Property LocTypeOutpost Auto Const
 Keyword Property LocTypePlayerHouse Auto Const
+ReferenceAlias Property PlayerShip Auto Const
+ReferenceAlias Property HomeShip Auto Const
+ReferenceAlias Property PlayerShipSpaceshipInventory Auto Const
+LocationAlias Property HomeShipInteriorLocation Auto Const
 
 
 ; ==============================================================
@@ -163,6 +167,79 @@ Bool Function IsBlockedPlayerInventoryRef(ObjectReference akLoot, PWAL:Looting:L
 	Return false
 EndFunction
 
+Bool Function IsPlayerShipProtectedSource(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
+	ObjectReference akPlayerShipRef
+	ObjectReference akHomeShipRef
+	ObjectReference akShipInventoryRef
+	ObjectReference akCurrentShipRef
+
+	If akLoot == None || akEffectContext == None
+		Return false
+	EndIf
+
+	; This protection is only for the ship/space container scan path.
+	; Do not let it block normal corpses, loose loot, or regular containers.
+	If !akEffectContext.IsShipContainerMode()
+		Return false
+	EndIf
+
+	If PlayerShip != None
+		akPlayerShipRef = PlayerShip.GetReference()
+	EndIf
+
+	If HomeShip != None
+		akHomeShipRef = HomeShip.GetReference()
+	EndIf
+
+	If PlayerShipSpaceshipInventory != None
+		akShipInventoryRef = PlayerShipSpaceshipInventory.GetReference()
+	EndIf
+
+	; Direct cargo/inventory alias protection.
+	If akShipInventoryRef != None
+		If akLoot == akShipInventoryRef
+			LogDebug("LootValidation", "Protected player ship source matched PlayerShipSpaceshipInventory alias.")
+			Return true
+		EndIf
+	EndIf
+
+	; Cargo hold path may normalize directly to the player/home ship ref.
+	If akPlayerShipRef != None
+		If akLoot == akPlayerShipRef
+			LogDebug("LootValidation", "Protected player ship source matched PlayerShip alias.")
+			Return true
+		EndIf
+	EndIf
+
+	If akHomeShipRef != None
+		If akLoot == akHomeShipRef
+			LogDebug("LootValidation", "Protected player ship source matched HomeShip alias.")
+			Return true
+		EndIf
+	EndIf
+
+	; Ship-interior containers like Captain's Locker may resolve to their owning/current ship.
+	akCurrentShipRef = akLoot.GetCurrentShipRef() as ObjectReference
+
+	If akCurrentShipRef != None
+		If akPlayerShipRef != None
+			If akCurrentShipRef == akPlayerShipRef
+				LogDebug("LootValidation", "Protected player ship source matched current ship ref to PlayerShip alias.")
+				Return true
+			EndIf
+		EndIf
+
+		If akHomeShipRef != None
+			If akCurrentShipRef == akHomeShipRef
+				LogDebug("LootValidation", "Protected player ship source matched current ship ref to HomeShip alias.")
+				Return true
+			EndIf
+		EndIf
+	EndIf
+
+	Return false
+EndFunction
+
 Bool Function IsActorOutsideCorpseOrHarvestMode(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
 	Actor akActor
 
@@ -216,8 +293,15 @@ Bool Function IsProtectedSourceRef(ObjectReference akLoot, PWAL:Looting:LootEffe
 		Return true
 	EndIf
 
-	; PWAL_CONT_Inventory_Reference is the  Ganja Panda's inventory container.
-	; It is not a protected home-ship source ref.
+	If akLoot == akEffectContext.GetPWALInventoryContainerRef()
+		Return true
+	EndIf
+
+	If IsPlayerShipProtectedSource(akLoot, akEffectContext)
+		LogDebug("LootValidation", "Rejected: protected player/home ship source.")
+		Return true
+	EndIf
+
 	Return false
 EndFunction
 
