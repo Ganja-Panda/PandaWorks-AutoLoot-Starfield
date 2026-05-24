@@ -74,19 +74,19 @@ Function ProcessContainer(ObjectReference akContainer, PWAL:Looting:LootEffectSc
 		Return
 	EndIf
 
-	iDestinationCode = DestinationResolver.ResolveDestinationCode()
-	LogDebug("ContainerProcessor", "Resolved destination code " + (iDestinationCode as String) + " for container contents.")
-
-	akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
-	If akDestinationRef == None
-		LogWarn("ContainerProcessor", "ProcessContainer aborted: destination ref resolved to None.")
-		Return
-	EndIf
-
 	If akEffectContext.TakeAllContainers()
+		iDestinationCode = DestinationResolver.ResolveDestinationCode()
+		LogDebug("ContainerProcessor", "Resolved destination code " + (iDestinationCode as String) + " for take-all container contents.")
+
+		akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
+		If akDestinationRef == None
+			LogWarn("ContainerProcessor", "ProcessContainer aborted: destination ref resolved to None.")
+			Return
+		EndIf
+
 		ProcessTakeAllContainer(akContainer, akDestinationRef, akEffectContext)
 	Else
-		ProcessFilteredContainerItems(akContainer, akDestinationRef, akEffectContext)
+		ProcessFilteredContainerItems(akContainer, None, akEffectContext)
 	EndIf
 
 	LogDebug("ContainerProcessor", "ProcessContainer complete: " + akContainer)
@@ -112,21 +112,33 @@ EndFunction
 Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
 	FormList akLootingLists
 	FormList akLootingGlobals
+	FormList akLootGroupCodes
 	FormList akCurrentList
 	GlobalVariable akCurrentGlobal
+	GlobalVariable akCurrentLootGroupCodeGlobal
+	ObjectReference akCurrentDestinationRef
 	Float fGlobalValue
 	Int iListSize
 	Int iGlobalSize
+	Int iCodeSize
 	Int iMaxSize
 	Int iIndex
+	Int iLootGroupCode
+	Int iDestinationCode
 
-	If akContainer == None || akDestinationRef == None || akEffectContext == None
+	If akContainer == None || akEffectContext == None
 		LogWarn("ContainerProcessor", "ProcessFilteredContainerItems aborted: invalid input.")
+		Return
+	EndIf
+
+	If DestinationResolver == None
+		LogError("ContainerProcessor", "ProcessFilteredContainerItems failed: DestinationResolver property is not filled.")
 		Return
 	EndIf
 
 	akLootingLists = akEffectContext.PWAL_FLST_System_Looting_Lists
 	akLootingGlobals = akEffectContext.PWAL_FLST_System_Looting_Globals
+	akLootGroupCodes = akEffectContext.PWAL_FLST_System_Loot_GroupCodes
 
 	If akLootingLists == None
 		LogWarn("ContainerProcessor", "ProcessFilteredContainerItems aborted: PWAL_FLST_System_Looting_Lists is None.")
@@ -138,8 +150,14 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 		Return
 	EndIf
 
+	If akLootGroupCodes == None
+		LogWarn("ContainerProcessor", "ProcessFilteredContainerItems aborted: PWAL_FLST_System_Loot_GroupCodes is None.")
+		Return
+	EndIf
+
 	iListSize = akLootingLists.GetSize()
 	iGlobalSize = akLootingGlobals.GetSize()
+	iCodeSize = akLootGroupCodes.GetSize()
 
 	If iListSize <= 0
 		LogDebug("ContainerProcessor", "ProcessFilteredContainerItems skipped: no looting lists configured.")
@@ -151,26 +169,52 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 		Return
 	EndIf
 
+	If iCodeSize <= 0
+		LogDebug("ContainerProcessor", "ProcessFilteredContainerItems skipped: no loot group codes configured.")
+		Return
+	EndIf
+
 	iMaxSize = iListSize
+
 	If iGlobalSize < iMaxSize
 		iMaxSize = iGlobalSize
-		LogWarn("ContainerProcessor", "ProcessFilteredContainerItems detected mismatched paired list sizes. Using smaller size: " + iMaxSize)
+	EndIf
+
+	If iCodeSize < iMaxSize
+		iMaxSize = iCodeSize
+	EndIf
+
+	If iMaxSize < iListSize || iMaxSize < iGlobalSize || iMaxSize < iCodeSize
+		LogWarn("ContainerProcessor", "ProcessFilteredContainerItems detected mismatched paired list sizes. Lists=" + (iListSize as String) + " Globals=" + (iGlobalSize as String) + " Codes=" + (iCodeSize as String) + " Using=" + (iMaxSize as String))
 	EndIf
 
 	iIndex = 0
 	While iIndex < iMaxSize
 		akCurrentList = akLootingLists.GetAt(iIndex) as FormList
 		akCurrentGlobal = akLootingGlobals.GetAt(iIndex) as GlobalVariable
+		akCurrentLootGroupCodeGlobal = akLootGroupCodes.GetAt(iIndex) as GlobalVariable
 
 		If akCurrentList == None
-			LogWarn("ContainerProcessor", "ProcessFilteredContainerItems skipped invalid FormList at index " + iIndex)
+			LogWarn("ContainerProcessor", "ProcessFilteredContainerItems skipped invalid FormList at index " + (iIndex as String))
 		ElseIf akCurrentGlobal == None
-			LogWarn("ContainerProcessor", "ProcessFilteredContainerItems skipped invalid GlobalVariable at index " + iIndex)
+			LogWarn("ContainerProcessor", "ProcessFilteredContainerItems skipped invalid GlobalVariable at index " + (iIndex as String))
+		ElseIf akCurrentLootGroupCodeGlobal == None
+			LogWarn("ContainerProcessor", "ProcessFilteredContainerItems skipped invalid LootGroupCode GlobalVariable at index " + (iIndex as String))
 		Else
 			fGlobalValue = akCurrentGlobal.GetValue()
 
 			If fGlobalValue == 1.0
-				akContainer.RemoveItem(akCurrentList as Form, -1, true, akDestinationRef)
+				iLootGroupCode = akCurrentLootGroupCodeGlobal.GetValueInt()
+				iDestinationCode = DestinationResolver.ResolveDestinationCode(iLootGroupCode)
+				akCurrentDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
+
+				If akCurrentDestinationRef == None
+					LogWarn("ContainerProcessor", "ProcessFilteredContainerItems skipped index " + (iIndex as String) + ": destination ref resolved to None. LootGroupCode=" + (iLootGroupCode as String) + " DestinationCode=" + (iDestinationCode as String))
+				Else
+					LogDebug("ContainerProcessor", "ProcessFilteredContainerItems routing index " + (iIndex as String) + " LootGroupCode=" + (iLootGroupCode as String) + " DestinationCode=" + (iDestinationCode as String))
+
+					akContainer.RemoveItem(akCurrentList as Form, -1, true, akCurrentDestinationRef)
+				EndIf
 			EndIf
 		EndIf
 

@@ -75,20 +75,20 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 
 	Utility.Wait(0.1)
 
-	Int iDestinationCode
-	iDestinationCode = DestinationResolver.ResolveDestinationCode()
-	LogDebug("CorpseProcessor", "Resolved destination code " + (iDestinationCode as String) + " for corpse contents.")
-	
-	akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
-	If akDestinationRef == None
-		LogWarn("CorpseProcessor", "ProcessCorpse aborted: destination ref resolved to None.")
-		Return
-	EndIf
-
 	If akEffectContext.TakeAllCorpses()
+		Int iDestinationCode
+		iDestinationCode = DestinationResolver.ResolveDestinationCode()
+		LogDebug("CorpseProcessor", "Resolved destination code " + (iDestinationCode as String) + " for take-all corpse contents.")
+
+		akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
+		If akDestinationRef == None
+			LogWarn("CorpseProcessor", "ProcessCorpse aborted: destination ref resolved to None.")
+			Return
+		EndIf
+
 		ProcessTakeAllCorpse(akCorpse, akDestinationRef, akEffectContext)
 	Else
-		ProcessFilteredCorpseItems(akCorpse, akDestinationRef, akEffectContext)
+		ProcessFilteredCorpseItems(akCorpse, None, akEffectContext)
 	EndIf
 
 	MarkCorpseAsLooted(akCorpse, akEffectContext)
@@ -175,21 +175,33 @@ EndFunction
 Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
 	FormList akLootingLists
 	FormList akLootingGlobals
+	FormList akLootGroupCodes
 	FormList akCurrentList
 	GlobalVariable akCurrentGlobal
+	GlobalVariable akCurrentLootGroupCodeGlobal
+	ObjectReference akCurrentDestinationRef
 	Float fGlobalValue
 	Int iListSize
 	Int iGlobalSize
+	Int iCodeSize
 	Int iMaxSize
 	Int iIndex
+	Int iLootGroupCode
+	Int iDestinationCode
 
-	If akCorpse == None || akDestinationRef == None || akEffectContext == None
+	If akCorpse == None || akEffectContext == None
 		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems aborted: invalid input.")
+		Return
+	EndIf
+
+	If DestinationResolver == None
+		LogError("CorpseProcessor", "ProcessFilteredCorpseItems failed: DestinationResolver property is not filled.")
 		Return
 	EndIf
 
 	akLootingLists = akEffectContext.PWAL_FLST_System_Looting_Lists
 	akLootingGlobals = akEffectContext.PWAL_FLST_System_Looting_Globals
+	akLootGroupCodes = akEffectContext.PWAL_FLST_System_Loot_GroupCodes
 
 	If akLootingLists == None
 		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems aborted: PWAL_FLST_System_Looting_Lists is None.")
@@ -201,8 +213,14 @@ Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference ak
 		Return
 	EndIf
 
+	If akLootGroupCodes == None
+		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems aborted: PWAL_FLST_System_Loot_GroupCodes is None.")
+		Return
+	EndIf
+
 	iListSize = akLootingLists.GetSize()
 	iGlobalSize = akLootingGlobals.GetSize()
+	iCodeSize = akLootGroupCodes.GetSize()
 
 	If iListSize <= 0
 		LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems skipped: no looting lists configured.")
@@ -214,37 +232,63 @@ Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference ak
 		Return
 	EndIf
 
+	If iCodeSize <= 0
+		LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems skipped: no loot group codes configured.")
+		Return
+	EndIf
+
 	iMaxSize = iListSize
+
 	If iGlobalSize < iMaxSize
 		iMaxSize = iGlobalSize
-		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems detected mismatched paired list sizes. Using smaller size: " + iMaxSize)
+	EndIf
+
+	If iCodeSize < iMaxSize
+		iMaxSize = iCodeSize
+	EndIf
+
+	If iMaxSize < iListSize || iMaxSize < iGlobalSize || iMaxSize < iCodeSize
+		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems detected mismatched paired list sizes. Lists=" + (iListSize as String) + " Globals=" + (iGlobalSize as String) + " Codes=" + (iCodeSize as String) + " Using=" + (iMaxSize as String))
 	EndIf
 
 	iIndex = 0
 	While iIndex < iMaxSize
 		akCurrentList = akLootingLists.GetAt(iIndex) as FormList
 		akCurrentGlobal = akLootingGlobals.GetAt(iIndex) as GlobalVariable
+		akCurrentLootGroupCodeGlobal = akLootGroupCodes.GetAt(iIndex) as GlobalVariable
 
 		If akCurrentList == None
-			LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems skipped invalid FormList at index " + iIndex)
+			LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems skipped invalid FormList at index " + (iIndex as String))
 		ElseIf akCurrentGlobal == None
-			LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems skipped invalid GlobalVariable at index " + iIndex)
+			LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems skipped invalid GlobalVariable at index " + (iIndex as String))
+		ElseIf akCurrentLootGroupCodeGlobal == None
+			LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems skipped invalid LootGroupCode GlobalVariable at index " + (iIndex as String))
 		Else
 			fGlobalValue = akCurrentGlobal.GetValue()
 
 			If fGlobalValue == 1.0
-				Int j = 0
-				Int iEntryCount = akCurrentList.GetSize()
+				iLootGroupCode = akCurrentLootGroupCodeGlobal.GetValueInt()
+				iDestinationCode = DestinationResolver.ResolveDestinationCode(iLootGroupCode)
+				akCurrentDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
 
-				While j < iEntryCount
-					Form akEntry = akCurrentList.GetAt(j)
+				If akCurrentDestinationRef == None
+					LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems skipped index " + (iIndex as String) + ": destination ref resolved to None. LootGroupCode=" + (iLootGroupCode as String) + " DestinationCode=" + (iDestinationCode as String))
+				Else
+					LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems routing index " + (iIndex as String) + " LootGroupCode=" + (iLootGroupCode as String) + " DestinationCode=" + (iDestinationCode as String))
 
-					If akEntry != None
-						akCorpse.RemoveItem(akEntry, -1, true, akDestinationRef)
-					EndIf
+					Int j = 0
+					Int iEntryCount = akCurrentList.GetSize()
 
-					j += 1
-				EndWhile
+					While j < iEntryCount
+						Form akEntry = akCurrentList.GetAt(j)
+
+						If akEntry != None
+							akCorpse.RemoveItem(akEntry, -1, true, akCurrentDestinationRef)
+						EndIf
+
+						j += 1
+					EndWhile
+				EndIf
 			EndIf
 		EndIf
 
@@ -253,7 +297,6 @@ Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference ak
 
 	LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems complete.")
 EndFunction
-
 ; ==============================================================
 ; State Tracking
 ; ==============================================================

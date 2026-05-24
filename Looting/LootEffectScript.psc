@@ -47,6 +47,7 @@ EndGroup
 Group EffectProfile_Optional
 	Spell Property ActiveLootSpell Auto Const
 	Int Property iLootGroupCode = 0 Auto Const
+	Formlist Property PWAL_FLST_System_Loot_GroupCodes Auto Const
 EndGroup
 
 Group EffectBehavior_Method
