@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:ContainerProcessorScript Extends Quest Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.00
+; Version: 1.0.1
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: ContainerProcessorScript
