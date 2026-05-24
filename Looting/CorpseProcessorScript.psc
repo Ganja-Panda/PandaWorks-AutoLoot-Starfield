@@ -30,6 +30,10 @@ Group FrameworkServices_AutoFill
 	PWAL:Looting:DestinationResolverScript Property DestinationResolver Auto Const Mandatory
 EndGroup
 
+Group SafetyKeywords_AutoFill
+	Keyword Property PWAL_KYWD_NotLootable Auto Const Mandatory
+EndGroup
+
 ; ==============================================================
 ; Public API
 ; ==============================================================
@@ -172,6 +176,18 @@ Function ProcessTakeAllCorpse(ObjectReference akCorpse, ObjectReference akDestin
 	LogDebug("CorpseProcessor", "ProcessTakeAllCorpse transferred all contents.")
 EndFunction
 
+Bool Function IsNotLootableForm(Form akItem)
+	If akItem == None
+		Return false
+	EndIf
+
+	If PWAL_KYWD_NotLootable == None
+		Return false
+	EndIf
+
+	Return akItem.HasKeyword(PWAL_KYWD_NotLootable)
+EndFunction
+
 Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
 	FormList akLootingLists
 	FormList akLootingGlobals
@@ -283,7 +299,11 @@ Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference ak
 						Form akEntry = akCurrentList.GetAt(j)
 
 						If akEntry != None
-							akCorpse.RemoveItem(akEntry, -1, true, akCurrentDestinationRef)
+							If IsNotLootableForm(akEntry)
+								LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems skipped not-lootable form: " + akEntry)
+							Else
+								akCorpse.RemoveItem(akEntry, -1, true, akCurrentDestinationRef)
+							EndIf
 						EndIf
 
 						j += 1
