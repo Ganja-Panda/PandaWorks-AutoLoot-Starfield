@@ -66,6 +66,9 @@ GlobalVariable Property PWAL_GLOB_Settings_Dest_BOOK_Dataslates Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_BOOK_Landmarks Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_BOOK_SkillMags Auto Const
 
+; Corpses
+GlobalVariable Property PWAL_GLOB_Settings_Dest_Corpses Auto Const
+
 ; MISC
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_AMMO Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Collectibles Auto Const
@@ -74,6 +77,10 @@ GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_CraftingItems Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Currency Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_JunkItems Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Keycards Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_UpgradeModules Auto Const
+
+; RES / X-Tech 
+GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_XTech Auto Const
 
 ; RES / Inorganic
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Common Auto Const
@@ -155,6 +162,7 @@ Int Property LG_MISC_CURRENCY = 405 Auto Const
 Int Property LG_MISC_JUNKITEMS = 406 Auto Const
 Int Property LG_MISC_KEYCARDS = 407 Auto Const
 Int Property LG_MISC_MISCITEMS = 408 Auto Const
+Int Property LG_MISC_UPGRADEMODULES = 409 Auto Const
 
 ; RES / Inorganic
 Int Property LG_RES_INORGANIC_COMMON = 501 Auto Const
@@ -188,6 +196,9 @@ Int Property LG_RES_ORGANIC_RARE = 706 Auto Const
 Int Property LG_RES_ORGANIC_UNCOMMON = 707 Auto Const
 Int Property LG_RES_ORGANIC_UNIQUE = 708 Auto Const
 
+; RES / X-Tech
+Int Property LG_RES_XTECH = 901 Auto Const
+
 ; WEAP
 Int Property LG_WEAP_HEAVY = 801 Auto Const
 Int Property LG_WEAP_MELEE = 802 Auto Const
@@ -195,6 +206,9 @@ Int Property LG_WEAP_PISTOLS = 803 Auto Const
 Int Property LG_WEAP_RIFLES = 804 Auto Const
 Int Property LG_WEAP_SHOTGUNS = 805 Auto Const
 Int Property LG_WEAP_THROWABLES = 806 Auto Const
+
+; Corpses 
+Int Property LG_CORPSES = 1001 Auto Const
 
 ; ==============================================================
 ; Public API
