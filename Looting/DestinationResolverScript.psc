@@ -89,7 +89,6 @@ GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Rare Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Uncommon Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Inorganic_Unique Auto Const
 
-
 ; RES / Manufactured
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Manufactured_Tier01 Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_RES_Manufactured_Tier02 Auto Const
