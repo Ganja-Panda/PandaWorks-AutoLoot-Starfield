@@ -3,7 +3,7 @@ ScriptName PWAL:System:StartupValidatorScript extends Quest
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.00
+; Version: 1.0.1
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: StartupValidatorScript
@@ -36,7 +36,6 @@ PWAL:Core:RuntimeManagerScript Property RuntimeManager Auto
 
 GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto
 GlobalVariable Property PWAL_GLOB_System_Installed Auto
-GlobalVariable Property PWAL_GLOB_Settings_Container_TakeAll Auto
 GlobalVariable Property PWAL_GLOB_Settings_Corpses_TakeAll Auto
 GlobalVariable Property PWAL_GLOB_Settings_Dest Auto
 
@@ -95,7 +94,6 @@ EndFunction
 Function ValidateRequiredGlobals()
 	ValidateLoggingGlobal()
 	ValidateInstalledGlobal()
-	ValidateContainerTakeAllGlobal()
 	ValidateCorpsesTakeAllGlobal()
 	ValidateDestinationGlobal()
 EndFunction
@@ -142,15 +140,6 @@ Function ValidateInstalledGlobal()
 	EndIf
 
 	LogDebug("StartupValidator", "Installed global validation passed.")
-EndFunction
-
-Function ValidateContainerTakeAllGlobal()
-	If PWAL_GLOB_Settings_Container_TakeAll == None
-		AddError("PWAL_GLOB_Settings_Container_TakeAll property is not filled.")
-		Return
-	EndIf
-
-	LogDebug("StartupValidator", "Container TakeAll global validation passed.")
 EndFunction
 
 Function ValidateCorpsesTakeAllGlobal()
