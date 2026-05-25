@@ -73,8 +73,9 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 		Return
 	EndIf
 
+	; Expose equipped inventory BEFORE transfer, but do not apply replacement skin yet.
 	If akEffectContext.IsHumanRace(akCorpseActor)
-		ApplyHumanCorpseSkin(akCorpseActor, akEffectContext)
+		akCorpseActor.UnequipAll()
 	EndIf
 
 	Utility.Wait(0.1)
@@ -93,6 +94,11 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 		ProcessTakeAllCorpse(akCorpse, akDestinationRef, akEffectContext)
 	Else
 		ProcessFilteredCorpseItems(akCorpse, None, akEffectContext)
+	EndIf
+
+	; Apply corpse skin AFTER transfer so RemoveAllItems/RemoveItem cannot steal it.
+	If akEffectContext.IsHumanRace(akCorpseActor)
+		ApplyHumanCorpseSkin(akCorpseActor, akEffectContext)
 	EndIf
 
 	MarkCorpseAsLooted(akCorpse, akEffectContext)
@@ -122,7 +128,6 @@ Function ApplyHumanCorpseSkin(Actor akCorpseActor, PWAL:Looting:LootEffectScript
 		Return
 	EndIf
 
-	akCorpseActor.UnequipAll()
 	akCorpseActor.EquipItem(akCorpseSkin as Form, false, false)
 
 	LogDebug("CorpseProcessor", "Applied human corpse skin: " + akCorpseSkin)
