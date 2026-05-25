@@ -69,8 +69,6 @@ Group Settings_ContainersCorpses_AutoFill
 	GlobalVariable Property PWAL_GLOB_Settings_Unlock_Auto Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_Unlock_SkillCheck Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_Corpses_Remove Auto Const
-	GlobalVariable Property PWAL_GLOB_Settings_Container_TakeAll Auto Const
-	GlobalVariable Property PWAL_GLOB_Settings_Corpses_TakeAll Auto Const
 EndGroup
 
 Group Settings_Stealing_AutoFill
@@ -161,10 +159,6 @@ Function RunContainersCorpsesMenuItem(Int aiMenuItemID)
 		ToggleBoolGlobal(PWAL_GLOB_Settings_Unlock_SkillCheck, "AutoUnlockSkill")
 	ElseIf aiMenuItemID == 2
 		ToggleBoolGlobal(PWAL_GLOB_Settings_Corpses_Remove, "Corpses")
-	ElseIf aiMenuItemID == 3
-		ToggleBoolGlobal(PWAL_GLOB_Settings_Container_TakeAll, "TakeAllContainer")
-	ElseIf aiMenuItemID == 4
-		ToggleBoolGlobal(PWAL_GLOB_Settings_Corpses_TakeAll, "TakeAllCorpse")
 	Else
 		LogDebug("SettingsMenu", "Ignoring unmapped Containers/Corpses menu item ID: " + (aiMenuItemID as String))
 	EndIf
@@ -315,8 +309,6 @@ Function RefreshContainersCorpsesTokens(ObjectReference akTerminalRef)
 	RefreshBoolToken(akTerminalRef, "AutoUnlock", PWAL_GLOB_Settings_Unlock_Auto)
 	RefreshBoolToken(akTerminalRef, "AutoUnlockSkill", PWAL_GLOB_Settings_Unlock_SkillCheck)
 	RefreshBoolToken(akTerminalRef, "Corpses", PWAL_GLOB_Settings_Corpses_Remove)
-	RefreshBoolToken(akTerminalRef, "TakeAllContainer", PWAL_GLOB_Settings_Container_TakeAll)
-	RefreshBoolToken(akTerminalRef, "TakeAllCorpse", PWAL_GLOB_Settings_Corpses_TakeAll)
 EndFunction
 
 Function RefreshStealingTokens(ObjectReference akTerminalRef)
