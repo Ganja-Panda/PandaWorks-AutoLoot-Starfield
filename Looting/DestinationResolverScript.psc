@@ -388,6 +388,14 @@ Bool Function IsForcedPlayerLootGroup(Int aiLootGroupCode)
 		Return true
 	EndIf
 
+	If aiLootGroupCode == LG_MISC_UPGRADEMODULES
+		Return true
+	EndIf
+
+	If aiLootGroupCode == LG_RES_XTECH
+		Return true
+	EndIf
+
 	Return false
 EndFunction
 
@@ -610,6 +618,11 @@ GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 
 	If aiLootGroupCode == LG_WEAP_THROWABLES
 		Return PWAL_GLOB_Settings_Dest_WEAP_Throwables
+	EndIf
+
+	; Corpses
+	If aiLootGroupCode == LG_CORPSES
+		Return PWAL_GLOB_Settings_Dest_Corpses
 	EndIf
 
 	Return None

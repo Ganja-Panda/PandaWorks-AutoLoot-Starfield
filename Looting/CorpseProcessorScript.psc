@@ -82,12 +82,12 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 
 	If akEffectContext.TakeAllCorpses()
 		Int iDestinationCode
-		iDestinationCode = DestinationResolver.ResolveDestinationCode()
-		LogDebug("CorpseProcessor", "Resolved destination code " + (iDestinationCode as String) + " for take-all corpse contents.")
+		iDestinationCode = DestinationResolver.ResolveDestinationCode(DestinationResolver.LG_CORPSES)
+		LogDebug("CorpseProcessor", "Resolved corpse destination code " + (iDestinationCode as String) + " for take-all corpse contents.")
 
 		akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
 		If akDestinationRef == None
-			LogWarn("CorpseProcessor", "ProcessCorpse aborted: destination ref resolved to None.")
+			LogWarn("CorpseProcessor", "ProcessCorpse aborted: corpse destination ref resolved to None.")
 			Return
 		EndIf
 
