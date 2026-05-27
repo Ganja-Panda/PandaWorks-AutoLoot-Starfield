@@ -78,7 +78,7 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 		akCorpseActor.UnequipAll()
 	EndIf
 
-	Utility.Wait(0.1)
+	Utility.Wait(0.01)
 
 	If akEffectContext.TakeAllCorpses()
 		Int iDestinationCode
