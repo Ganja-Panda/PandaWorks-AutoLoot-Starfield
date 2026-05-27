@@ -260,6 +260,10 @@ Bool Function IsActorOutsideCorpseOrHarvestMode(ObjectReference akLoot, PWAL:Loo
 		Return false
 	EndIf
 
+	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
+		Return false
+	EndIf
+
 	Return true
 EndFunction
 
