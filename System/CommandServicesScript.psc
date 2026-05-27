@@ -63,7 +63,7 @@ EndGroup
 ; ==============================================================
 
 PWAL:System:CommandServicesScript Function GetScript() Global
-	Quest akQuest = Game.GetFormFromFile(0x040009E1, "PandaWorks AutoLoot - AIO.esm") as Quest
+	Quest akQuest = Game.GetFormFromFile(0x040009E1, "PandaWorks AutoLoot.esm") as Quest
 	Return akQuest as PWAL:System:CommandServicesScript
 EndFunction
 
