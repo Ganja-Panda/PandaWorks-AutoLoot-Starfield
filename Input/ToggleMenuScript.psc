@@ -3,7 +3,7 @@ ScriptName PWAL:Input:ToggleMenuScript Extends TerminalMenu Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.00
+; Version: 1.0.1
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: ToggleMenuScript
@@ -65,6 +65,8 @@ Event OnTerminalMenuEnter(TerminalMenu akTerminalBase, ObjectReference akTermina
 	EndIf
 
 	LogDebug("ToggleMenu", "OnTerminalMenuEnter triggered.")
+
+	SyncToggleAllFromChildren()
 	RefreshAllTokens(akTerminalRef)
 EndEvent
 
