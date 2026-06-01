@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:LootProcessorScript Extends Quest Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.00
+; Version: 1.0.1
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: LootProcessorScript
@@ -164,7 +164,7 @@ EndFunction
 Bool Function RouteCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript akEffectContext)
 	Actor akCorpseActor
 
-	If akCorpse == None
+	If akCorpse == None || akEffectContext == None
 		Return false
 	EndIf
 
@@ -177,6 +177,13 @@ Bool Function RouteCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScrip
 	If !akCorpseActor.IsDead()
 		LogDebug("LootProcessor", "RouteCorpse skipped: actor is not dead.")
 		Return false
+	EndIf
+
+	If LootValidation != None
+		If !LootValidation.CanProcessLoot(akCorpse, akEffectContext)
+			LogDebug("LootProcessor", "RouteCorpse skipped: LootValidation rejected corpse.")
+			Return false
+		EndIf
 	EndIf
 
 	If CorpseProcessor == None

@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:CorpseProcessorScript Extends Quest Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.1
+; Version: 1.0.2
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: CorpseProcessorScript
@@ -41,6 +41,7 @@ EndGroup
 Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript akEffectContext)
 	Actor akCorpseActor
 	ObjectReference akDestinationRef
+	Bool bIsHumanCorpse
 
 	If akCorpse == None
 		LogWarn("CorpseProcessor", "ProcessCorpse aborted: akCorpse is None.")
@@ -74,11 +75,12 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 	EndIf
 
 	; Expose equipped inventory BEFORE transfer, but do not apply replacement skin yet.
-	If akEffectContext.IsHumanRace(akCorpseActor)
-		akCorpseActor.UnequipAll()
-	EndIf
+	bIsHumanCorpse = akEffectContext.IsHumanRace(akCorpseActor)
 
-	Utility.Wait(0.01)
+	If bIsHumanCorpse
+		akCorpseActor.UnequipAll()
+		Utility.Wait(0.01)
+	EndIf
 
 	If akEffectContext.TakeAllCorpses()
 		Int iDestinationCode
@@ -97,7 +99,7 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 	EndIf
 
 	; Apply corpse skin AFTER transfer so RemoveAllItems/RemoveItem cannot steal it.
-	If akEffectContext.IsHumanRace(akCorpseActor)
+	If bIsHumanCorpse
 		ApplyHumanCorpseSkin(akCorpseActor, akEffectContext)
 	EndIf
 
