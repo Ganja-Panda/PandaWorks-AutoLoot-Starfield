@@ -274,7 +274,6 @@ EndFunction
 Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
 	ObjectReference akDestinationRef
 	ObjectReference akContainingRef
-	ObjectReference akPlayerRef
 	Int iDestinationCode
 
 	If akLoot == None
@@ -298,23 +297,10 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	; Quest items must always go directly to the player.
+	; Quest items must never be auto-looted.
 	If akLoot.IsQuestItem()
-		akPlayerRef = akEffectContext.GetPlayerRef()
-
-		If akPlayerRef == None
-			akPlayerRef = Game.GetPlayer()
-		EndIf
-
-		If akPlayerRef == None
-			LogWarn("LootProcessor", "RouteLooseLoot failed: quest item detected but PlayerRef is None.")
-			Return false
-		EndIf
-
-		akPlayerRef.AddItem(akLoot as Form, 1, false)
-
-		LogDebug("LootProcessor", "Quest item routed directly to player: " + akLoot)
-		Return true
+		LogDebug("LootProcessor", "RouteLooseLoot skipped quest item: " + akLoot)
+		Return false
 	EndIf
 
 	iDestinationCode = DestinationResolver.ResolveDestinationCode(akEffectContext.GetLootGroupCode())

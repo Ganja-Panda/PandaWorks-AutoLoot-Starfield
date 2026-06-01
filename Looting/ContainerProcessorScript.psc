@@ -36,8 +36,6 @@ EndGroup
 ; ==============================================================
 
 Function ProcessContainer(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
-	ObjectReference akDestinationRef
-	Int iDestinationCode
 
 	If akContainer == None
 		LogWarn("ContainerProcessor", "ProcessContainer aborted: akContainer is None.")
@@ -75,16 +73,8 @@ Function ProcessContainer(ObjectReference akContainer, PWAL:Looting:LootEffectSc
 	EndIf
 
 	If akEffectContext.TakeAllContainers()
-		iDestinationCode = DestinationResolver.ResolveDestinationCode()
-		LogDebug("ContainerProcessor", "Resolved destination code " + (iDestinationCode as String) + " for take-all container contents.")
-
-		akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
-		If akDestinationRef == None
-			LogWarn("ContainerProcessor", "ProcessContainer aborted: destination ref resolved to None.")
-			Return
-		EndIf
-
-		ProcessTakeAllContainer(akContainer, akDestinationRef, akEffectContext)
+		LogDebug("ContainerProcessor", "TakeAllContainers suppressed for quest safety; using filtered container transfer.")
+		ProcessFilteredContainerItems(akContainer, None, akEffectContext)
 	Else
 		ProcessFilteredContainerItems(akContainer, None, akEffectContext)
 	EndIf
