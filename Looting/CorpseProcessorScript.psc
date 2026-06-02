@@ -42,6 +42,7 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 	Actor akCorpseActor
 	ObjectReference akDestinationRef
 	Bool bIsHumanCorpse
+	Bool bTransferSucceeded = false
 
 	If akCorpse == None
 		LogWarn("CorpseProcessor", "ProcessCorpse aborted: akCorpse is None.")
@@ -93,9 +94,14 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 			Return
 		EndIf
 
-		ProcessTakeAllCorpse(akCorpse, akDestinationRef, akEffectContext)
+		bTransferSucceeded = ProcessTakeAllCorpse(akCorpse, akDestinationRef, akEffectContext)
 	Else
-		ProcessFilteredCorpseItems(akCorpse, None, akEffectContext)
+		bTransferSucceeded = ProcessFilteredCorpseItems(akCorpse, None, akEffectContext)
+	EndIf
+
+	If !bTransferSucceeded
+		LogDebug("CorpseProcessor", "ProcessCorpse aborted: transfer did not succeed.")
+		Return
 	EndIf
 
 	; Apply corpse skin AFTER transfer so RemoveAllItems/RemoveItem cannot steal it.
@@ -174,13 +180,14 @@ EndFunction
 ; Processing Paths
 ; ==============================================================
 
-Function ProcessTakeAllCorpse(ObjectReference akCorpse, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
+Bool Function ProcessTakeAllCorpse(ObjectReference akCorpse, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
 	If akCorpse == None || akDestinationRef == None || akEffectContext == None
-		Return
+		Return false
 	EndIf
 
 	akCorpse.RemoveAllItems(akDestinationRef, false, false)
 	LogDebug("CorpseProcessor", "ProcessTakeAllCorpse transferred all contents.")
+	Return true
 EndFunction
 
 Bool Function IsNotLootableForm(Form akItem)
@@ -195,7 +202,7 @@ Bool Function IsNotLootableForm(Form akItem)
 	Return akItem.HasKeyword(PWAL_KYWD_NotLootable)
 EndFunction
 
-Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
+Bool Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
 	FormList akLootingLists
 	FormList akLootingGlobals
 	FormList akLootGroupCodes
@@ -211,15 +218,16 @@ Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference ak
 	Int iIndex
 	Int iLootGroupCode
 	Int iDestinationCode
+	Bool bTransferAttempted = false
 
 	If akCorpse == None || akEffectContext == None
 		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems aborted: invalid input.")
-		Return
+		Return false
 	EndIf
 
 	If DestinationResolver == None
 		LogError("CorpseProcessor", "ProcessFilteredCorpseItems failed: DestinationResolver property is not filled.")
-		Return
+		Return false
 	EndIf
 
 	akLootingLists = akEffectContext.PWAL_FLST_System_Looting_Lists
@@ -228,17 +236,17 @@ Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference ak
 
 	If akLootingLists == None
 		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems aborted: PWAL_FLST_System_Looting_Lists is None.")
-		Return
+		Return false
 	EndIf
 
 	If akLootingGlobals == None
 		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems aborted: PWAL_FLST_System_Looting_Globals is None.")
-		Return
+		Return false
 	EndIf
 
 	If akLootGroupCodes == None
 		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems aborted: PWAL_FLST_System_Loot_GroupCodes is None.")
-		Return
+		Return false
 	EndIf
 
 	iListSize = akLootingLists.GetSize()
@@ -247,17 +255,17 @@ Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference ak
 
 	If iListSize <= 0
 		LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems skipped: no looting lists configured.")
-		Return
+		Return false
 	EndIf
 
 	If iGlobalSize <= 0
 		LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems skipped: no looting globals configured.")
-		Return
+		Return false
 	EndIf
 
 	If iCodeSize <= 0
 		LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems skipped: no loot group codes configured.")
-		Return
+		Return false
 	EndIf
 
 	iMaxSize = iListSize
@@ -310,6 +318,7 @@ Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference ak
 								LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems skipped not-lootable form: " + akEntry)
 							Else
 								akCorpse.RemoveItem(akEntry, -1, true, akCurrentDestinationRef)
+								bTransferAttempted = true
 							EndIf
 						EndIf
 
@@ -323,6 +332,7 @@ Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference ak
 	EndWhile
 
 	LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems complete.")
+	Return bTransferAttempted
 EndFunction
 ; ==============================================================
 ; State Tracking
