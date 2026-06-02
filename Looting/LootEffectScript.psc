@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:LootEffectScript Extends ActiveMagicEffect Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.1
+; Version: 1.0.2
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: LootEffectScript
@@ -134,6 +134,10 @@ Group RuntimeState
 	Bool Property bTakeAll = false Auto
 	Bool Property bTakeAllContainer = false Auto
 	Bool Property bTakeAllCorpse = false Auto
+	FormList[] Property CachedLootingLists Auto Hidden
+	Int[] Property CachedLootGroupCodes Auto Hidden
+	Int Property CachedLootingListCount = 0 Auto Hidden
+	Bool Property bLootingListCacheReady = false Auto Hidden
 	Float Property initialTimerJitter = 4.0 Auto
 	ObjectReference Property theLooterRef Auto 
 EndGroup
@@ -165,6 +169,7 @@ Event OnEffectFinish(ObjectReference akTarget, Actor akCaster, MagicEffect akBas
 
 	bIsLooting = false
 	theLooterRef = None
+	ClearLootingListCache()
 EndEvent
 
 Event OnTimer(Int aiTimerID)
@@ -244,6 +249,131 @@ Function RefreshRuntimeSettings()
 	bStealingIsHostile = GetGlobalBool(PWAL_GLOB_Settings_Stealing_IsHostile)
 	bTakeAllContainer = GetGlobalBool(PWAL_GLOB_Settings_Container_TakeAll)
 	bTakeAllCorpse = GetGlobalBool(PWAL_GLOB_Settings_Corpses_TakeAll)
+
+	RefreshLootingListCache()
+EndFunction
+
+; ==============================================================
+; Looting Registry Cache
+; ==============================================================
+
+Function ClearLootingListCache()
+	CachedLootingLists = None
+	CachedLootGroupCodes = None
+	CachedLootingListCount = 0
+	bLootingListCacheReady = false
+EndFunction
+
+
+Function RefreshLootingListCache()
+	FormList akLootingLists
+	FormList akLootingGlobals
+	FormList akLootGroupCodes
+	FormList akCurrentList
+	GlobalVariable akCurrentGlobal
+	GlobalVariable akCurrentLootGroupCodeGlobal
+	Int iListSize
+	Int iGlobalSize
+	Int iCodeSize
+	Int iMaxSize
+	Int iIndex
+	Int iWriteIndex
+
+	ClearLootingListCache()
+
+	akLootingLists = PWAL_FLST_System_Looting_Lists
+	akLootingGlobals = PWAL_FLST_System_Looting_Globals
+	akLootGroupCodes = PWAL_FLST_System_Loot_GroupCodes
+
+	If akLootingLists == None || akLootingGlobals == None || akLootGroupCodes == None
+		LogWarn("LootEffect", "RefreshLootingListCache aborted: one or more system looting lists are None.")
+		Return
+	EndIf
+
+	iListSize = akLootingLists.GetSize()
+	iGlobalSize = akLootingGlobals.GetSize()
+	iCodeSize = akLootGroupCodes.GetSize()
+
+	iMaxSize = iListSize
+
+	If iGlobalSize < iMaxSize
+		iMaxSize = iGlobalSize
+	EndIf
+
+	If iCodeSize < iMaxSize
+		iMaxSize = iCodeSize
+	EndIf
+
+	If iMaxSize <= 0
+		LogDebug("LootEffect", "RefreshLootingListCache skipped: no looting registry entries configured.")
+		Return
+	EndIf
+
+	If iMaxSize < iListSize || iMaxSize < iGlobalSize || iMaxSize < iCodeSize
+		LogWarn("LootEffect", "RefreshLootingListCache detected mismatched paired list sizes. Lists=" + (iListSize as String) + " Globals=" + (iGlobalSize as String) + " Codes=" + (iCodeSize as String) + " Using=" + (iMaxSize as String))
+	EndIf
+
+	CachedLootingLists = new FormList[iMaxSize]
+	CachedLootGroupCodes = new Int[iMaxSize]
+
+	iIndex = 0
+	iWriteIndex = 0
+
+	While iIndex < iMaxSize
+		akCurrentList = akLootingLists.GetAt(iIndex) as FormList
+		akCurrentGlobal = akLootingGlobals.GetAt(iIndex) as GlobalVariable
+		akCurrentLootGroupCodeGlobal = akLootGroupCodes.GetAt(iIndex) as GlobalVariable
+
+		If akCurrentList != None && akCurrentGlobal != None && akCurrentLootGroupCodeGlobal != None
+			If akCurrentGlobal.GetValueInt() > 0
+				CachedLootingLists[iWriteIndex] = akCurrentList
+				CachedLootGroupCodes[iWriteIndex] = akCurrentLootGroupCodeGlobal.GetValueInt()
+				iWriteIndex += 1
+			EndIf
+		EndIf
+
+		iIndex += 1
+	EndWhile
+
+	CachedLootingListCount = iWriteIndex
+	bLootingListCacheReady = true
+
+	; LogDebug("LootEffect", "RefreshLootingListCache complete. EnabledGroups=" + (CachedLootingListCount as String))
+EndFunction
+
+
+Int Function GetCachedLootingListCount()
+	Return CachedLootingListCount
+EndFunction
+
+
+FormList Function GetCachedLootingList(Int aiIndex)
+	If CachedLootingLists == None
+		Return None
+	EndIf
+
+	If aiIndex < 0 || aiIndex >= CachedLootingListCount
+		Return None
+	EndIf
+
+	Return CachedLootingLists[aiIndex]
+EndFunction
+
+
+Int Function GetCachedLootGroupCode(Int aiIndex)
+	If CachedLootGroupCodes == None
+		Return 0
+	EndIf
+
+	If aiIndex < 0 || aiIndex >= CachedLootingListCount
+		Return 0
+	EndIf
+
+	Return CachedLootGroupCodes[aiIndex]
+EndFunction
+
+Bool Function IsLootingListCacheReady()
+	Return bLootingListCacheReady
 EndFunction
 
 ; ==============================================================

@@ -30,10 +30,6 @@ Group FrameworkServices_AutoFill
 	PWAL:Looting:DestinationResolverScript Property DestinationResolver Auto Const Mandatory
 EndGroup
 
-Group SafetyKeywords_AutoFill
-	Keyword Property PWAL_KYWD_NotLootable Auto Const Mandatory
-EndGroup
-
 ; ==============================================================
 ; Public API
 ; ==============================================================
@@ -190,32 +186,11 @@ Bool Function ProcessTakeAllCorpse(ObjectReference akCorpse, ObjectReference akD
 	Return true
 EndFunction
 
-Bool Function IsNotLootableForm(Form akItem)
-	If akItem == None
-		Return false
-	EndIf
-
-	If PWAL_KYWD_NotLootable == None
-		Return false
-	EndIf
-
-	Return akItem.HasKeyword(PWAL_KYWD_NotLootable)
-EndFunction
-
 Bool Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
-	FormList akLootingLists
-	FormList akLootingGlobals
-	FormList akLootGroupCodes
 	FormList akCurrentList
-	GlobalVariable akCurrentGlobal
-	GlobalVariable akCurrentLootGroupCodeGlobal
 	ObjectReference akCurrentDestinationRef
-	Float fGlobalValue
-	Int iListSize
-	Int iGlobalSize
-	Int iCodeSize
-	Int iMaxSize
 	Int iIndex
+	Int iCount
 	Int iLootGroupCode
 	Int iDestinationCode
 	Bool bTransferAttempted = false
@@ -230,101 +205,32 @@ Bool Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReferen
 		Return false
 	EndIf
 
-	akLootingLists = akEffectContext.PWAL_FLST_System_Looting_Lists
-	akLootingGlobals = akEffectContext.PWAL_FLST_System_Looting_Globals
-	akLootGroupCodes = akEffectContext.PWAL_FLST_System_Loot_GroupCodes
+	iCount = akEffectContext.GetCachedLootingListCount()
 
-	If akLootingLists == None
-		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems aborted: PWAL_FLST_System_Looting_Lists is None.")
+	If iCount <= 0
+		LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems skipped: cached looting list is empty.")
 		Return false
-	EndIf
-
-	If akLootingGlobals == None
-		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems aborted: PWAL_FLST_System_Looting_Globals is None.")
-		Return false
-	EndIf
-
-	If akLootGroupCodes == None
-		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems aborted: PWAL_FLST_System_Loot_GroupCodes is None.")
-		Return false
-	EndIf
-
-	iListSize = akLootingLists.GetSize()
-	iGlobalSize = akLootingGlobals.GetSize()
-	iCodeSize = akLootGroupCodes.GetSize()
-
-	If iListSize <= 0
-		LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems skipped: no looting lists configured.")
-		Return false
-	EndIf
-
-	If iGlobalSize <= 0
-		LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems skipped: no looting globals configured.")
-		Return false
-	EndIf
-
-	If iCodeSize <= 0
-		LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems skipped: no loot group codes configured.")
-		Return false
-	EndIf
-
-	iMaxSize = iListSize
-
-	If iGlobalSize < iMaxSize
-		iMaxSize = iGlobalSize
-	EndIf
-
-	If iCodeSize < iMaxSize
-		iMaxSize = iCodeSize
-	EndIf
-
-	If iMaxSize < iListSize || iMaxSize < iGlobalSize || iMaxSize < iCodeSize
-		LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems detected mismatched paired list sizes. Lists=" + (iListSize as String) + " Globals=" + (iGlobalSize as String) + " Codes=" + (iCodeSize as String) + " Using=" + (iMaxSize as String))
 	EndIf
 
 	iIndex = 0
-	While iIndex < iMaxSize
-		akCurrentList = akLootingLists.GetAt(iIndex) as FormList
-		akCurrentGlobal = akLootingGlobals.GetAt(iIndex) as GlobalVariable
-		akCurrentLootGroupCodeGlobal = akLootGroupCodes.GetAt(iIndex) as GlobalVariable
+
+	While iIndex < iCount
+		akCurrentList = akEffectContext.GetCachedLootingList(iIndex)
+		iLootGroupCode = akEffectContext.GetCachedLootGroupCode(iIndex)
 
 		If akCurrentList == None
-			LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems skipped invalid FormList at index " + (iIndex as String))
-		ElseIf akCurrentGlobal == None
-			LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems skipped invalid GlobalVariable at index " + (iIndex as String))
-		ElseIf akCurrentLootGroupCodeGlobal == None
-			LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems skipped invalid LootGroupCode GlobalVariable at index " + (iIndex as String))
+			LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems skipped invalid cached FormList at index " + (iIndex as String))
+		ElseIf iLootGroupCode <= 0
+			LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems skipped invalid cached LootGroupCode at index " + (iIndex as String))
 		Else
-			fGlobalValue = akCurrentGlobal.GetValue()
+			iDestinationCode = DestinationResolver.ResolveDestinationCode(iLootGroupCode)
+			akCurrentDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
 
-			If fGlobalValue == 1.0
-				iLootGroupCode = akCurrentLootGroupCodeGlobal.GetValueInt()
-				iDestinationCode = DestinationResolver.ResolveDestinationCode(iLootGroupCode)
-				akCurrentDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
-
-				If akCurrentDestinationRef == None
-					LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems skipped index " + (iIndex as String) + ": destination ref resolved to None. LootGroupCode=" + (iLootGroupCode as String) + " DestinationCode=" + (iDestinationCode as String))
-				Else
-					LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems routing index " + (iIndex as String) + " LootGroupCode=" + (iLootGroupCode as String) + " DestinationCode=" + (iDestinationCode as String))
-
-					Int j = 0
-					Int iEntryCount = akCurrentList.GetSize()
-
-					While j < iEntryCount
-						Form akEntry = akCurrentList.GetAt(j)
-
-						If akEntry != None
-							If IsNotLootableForm(akEntry)
-								LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems skipped not-lootable form: " + akEntry)
-							Else
-								akCorpse.RemoveItem(akEntry, -1, true, akCurrentDestinationRef)
-								bTransferAttempted = true
-							EndIf
-						EndIf
-
-						j += 1
-					EndWhile
-				EndIf
+			If akCurrentDestinationRef == None
+				LogWarn("CorpseProcessor", "ProcessFilteredCorpseItems skipped index " + (iIndex as String) + ": destination ref resolved to None. LootGroupCode=" + (iLootGroupCode as String) + " DestinationCode=" + (iDestinationCode as String))
+			Else
+				akCorpse.RemoveItem(akCurrentList as Form, -1, true, akCurrentDestinationRef)
+				bTransferAttempted = true
 			EndIf
 		EndIf
 
@@ -334,6 +240,7 @@ Bool Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReferen
 	LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems complete.")
 	Return bTransferAttempted
 EndFunction
+
 ; ==============================================================
 ; State Tracking
 ; ==============================================================
