@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:LootProcessorScript Extends Quest Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.1
+; Version: 1.0.2
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: LootProcessorScript
@@ -274,6 +274,7 @@ EndFunction
 Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
 	ObjectReference akDestinationRef
 	ObjectReference akContainingRef
+	Form akBaseObject
 	Int iDestinationCode
 
 	If akLoot == None
@@ -292,8 +293,17 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 
 	; Loose loot must be an actual placed/world ref, not an inventory pseudo-ref.
 	akContainingRef = akLoot.GetContainer()
+	akBaseObject = akLoot.GetBaseObject()
+
+	LogDebug("LootProcessor", "LOOSE DEBUG BEFORE VALIDATION: ref=" + akLoot + " base=" + akBaseObject + " container=" + akContainingRef + " lootGroup=" + (akEffectContext.GetLootGroupCode() as String) + " activeList=" + akEffectContext.ActiveLootList)
+
 	If akContainingRef != None
-		LogDebug("LootProcessor", "RouteLooseLoot rejected: candidate is inside a container/inventory: " + akLoot + " container=" + akContainingRef)
+		LogDebug("LootProcessor", "RouteLooseLoot rejected: candidate is inside a container/inventory: " + akLoot + " container=" + akContainingRef + " base=" + akBaseObject)
+		Return false
+	EndIf
+
+	If akBaseObject == None
+		LogDebug("LootProcessor", "RouteLooseLoot rejected: base object is None: " + akLoot)
 		Return false
 	EndIf
 
@@ -312,9 +322,11 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
+	LogDebug("LootProcessor", "LOOSE DEBUG ADD ATTEMPT: ref=" + akLoot + " base=" + akBaseObject + " dest=" + akDestinationRef)
+
 	akDestinationRef.AddItem(akLoot as Form, 1, true)
 
-	LogDebug("LootProcessor", "Loose loot transferred by ref form: " + akLoot + " to " + akDestinationRef)
+	LogDebug("LootProcessor", "Loose loot AddItem attempted by ref form: " + akLoot + " base=" + akBaseObject + " to " + akDestinationRef)
 	Return true
 EndFunction
 
