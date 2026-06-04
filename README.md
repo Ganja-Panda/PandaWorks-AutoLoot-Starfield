@@ -14,13 +14,11 @@ PandaWorks AutoLoot turns it into a larger, cleaner, more configurable system.
 
 ## Current Status
 
-PWAL is currently in **alpha**.
+PWAL is live and operational.
 
-Core systems are working, but testing is still active.
+Core looting, filtering, destination routing, and plugin support are working. Current work is focused on optimization, bug fixes, menu cleanup, and edge-case handling discovered through testing on PC and console.
 
-Expect rough edges, changing behavior, and the occasional Bethesda-flavored gremlin crawling out of the vents.
-
-If you are using this build, you are testing.
+The framework is stable enough for public use, but still under active refinement.
 
 ---
 
