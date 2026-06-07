@@ -53,6 +53,7 @@ EndGroup
 Group RuntimeConfig
 	Int Property VALUE_OFF = 0 Auto Const
 	Int Property VALUE_ON = 1 Auto Const
+	Bool Property bHasToggleAll = true Auto Const
 EndGroup
 
 ; ==============================================================
@@ -66,7 +67,7 @@ Event OnTerminalMenuEnter(TerminalMenu akTerminalBase, ObjectReference akTermina
 
 	LogDebug("ToggleMenu", "OnTerminalMenuEnter triggered.")
 
-	SyncToggleAllFromChildren()
+	; Menu entry must not mutate toggle globals.
 	RefreshAllTokens(akTerminalRef)
 EndEvent
 
@@ -91,13 +92,16 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 		Return
 	EndIf
 
-	If auiMenuItemID == 0
+	If bHasToggleAll && auiMenuItemID == 0
 		LogDebug("ToggleMenu", "ToggleAll selected.")
 		RunToggleAll(akClickedGlobal)
 	Else
 		LogDebug("ToggleMenu", "State" + auiMenuItemID + " selected.")
 		RunSingleToggle(akClickedGlobal)
-		SyncToggleAllFromChildren()
+
+		If bHasToggleAll
+			SyncToggleAllFromChildren()
+		EndIf
 	EndIf
 
 	RefreshAllTokens(akTerminalRef)
@@ -108,6 +112,11 @@ EndEvent
 ; ==============================================================
 
 Function RunToggleAll(GlobalVariable akToggleAllGlobal)
+	If !bHasToggleAll
+		LogDebug("ToggleMenu", "RunToggleAll skipped: this menu has no Toggle All row.")
+		Return
+	EndIf
+
 	Int iNewValue = ToggleBoolGlobal(akToggleAllGlobal)
 
 	Int iIndex = 1
@@ -117,7 +126,9 @@ Function RunToggleAll(GlobalVariable akToggleAllGlobal)
 		GlobalVariable akChildGlobal = GetMenuGlobal(iIndex)
 
 		If akChildGlobal != None
-			akChildGlobal.SetValueInt(iNewValue)
+			If akChildGlobal.GetValueInt() != iNewValue
+				akChildGlobal.SetValueInt(iNewValue)
+			EndIf
 		EndIf
 
 		iIndex += 1
@@ -145,6 +156,10 @@ Int Function ToggleBoolGlobal(GlobalVariable akGlobal)
 EndFunction
 
 Function SyncToggleAllFromChildren()
+	If !bHasToggleAll
+		Return
+	EndIf
+
 	If !HasValidMenuGlobals()
 		Return
 	EndIf
@@ -175,10 +190,14 @@ Function SyncToggleAllFromChildren()
 		iIndex += 1
 	EndWhile
 
+	Int iDesiredValue = VALUE_OFF
+
 	If bAllEnabled
-		akToggleAllGlobal.SetValueInt(VALUE_ON)
-	Else
-		akToggleAllGlobal.SetValueInt(VALUE_OFF)
+		iDesiredValue = VALUE_ON
+	EndIf
+
+	If akToggleAllGlobal.GetValueInt() != iDesiredValue
+		akToggleAllGlobal.SetValueInt(iDesiredValue)
 	EndIf
 EndFunction
 
@@ -221,7 +240,6 @@ Function RefreshToken(Int aiIndex, ObjectReference akTerminalRef)
 	String sTokenName = GetTokenName(aiIndex)
 
 	akTerminalRef.AddTextReplacementData(sTokenName, akReplacementMessage as Form)
-	LogDebug("ToggleMenu", "Token refreshed: " + sTokenName)
 EndFunction
 
 Message Function GetToggleMessage(Int aiValue)
