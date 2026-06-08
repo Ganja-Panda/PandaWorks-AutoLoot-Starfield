@@ -66,12 +66,18 @@ GlobalVariable Property PWAL_GLOB_Settings_Dest_BOOK_Dataslates Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_BOOK_Landmarks Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_BOOK_SkillMags Auto Const
 
+; Collectibles
+GlobalVariable Property PWAL_GLOB_Settings_Dest_COLL_ActionFigures Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_COLL_Antiques Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_COLL_Eggs Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_COLL_Plushies Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_COLL_Snowglobes Auto Const
+
 ; Corpses
 GlobalVariable Property PWAL_GLOB_Settings_Dest_Corpses Auto Const
 
 ; MISC
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_AMMO Auto Const
-GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Collectibles Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Contraband Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_CraftingItems Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Currency Auto Const
@@ -154,14 +160,13 @@ Int Property LG_BOOK_SKILLMAGS = 303 Auto Const
 
 ; MISC
 Int Property LG_MISC_AMMO = 401 Auto Const
-Int Property LG_MISC_COLLECTIBLES = 402 Auto Const
-Int Property LG_MISC_CONTRABAND = 403 Auto Const
-Int Property LG_MISC_CRAFTINGITEMS = 404 Auto Const
-Int Property LG_MISC_CURRENCY = 405 Auto Const
-Int Property LG_MISC_JUNKITEMS = 406 Auto Const
-Int Property LG_MISC_KEYCARDS = 407 Auto Const
-Int Property LG_MISC_MISCITEMS = 408 Auto Const
-Int Property LG_MISC_UPGRADEMODULES = 409 Auto Const
+Int Property LG_MISC_CONTRABAND = 402 Auto Const
+Int Property LG_MISC_CRAFTINGITEMS = 403 Auto Const
+Int Property LG_MISC_CURRENCY = 404 Auto Const
+Int Property LG_MISC_JUNKITEMS = 405 Auto Const
+Int Property LG_MISC_KEYCARDS = 406 Auto Const
+Int Property LG_MISC_MISCITEMS = 407 Auto Const
+Int Property LG_MISC_UPGRADEMODULES = 408 Auto Const
 
 ; RES / Inorganic
 Int Property LG_RES_INORGANIC_COMMON = 501 Auto Const
@@ -208,6 +213,14 @@ Int Property LG_WEAP_THROWABLES = 806 Auto Const
 
 ; Corpses 
 Int Property LG_CORPSES = 1001 Auto Const
+
+; Collectibles
+Int Property LG_COLL_ACTIONFIGURES = 1101 Auto Const
+Int Property LG_COLL_ANTIQUES = 1102 Auto Const
+Int Property LG_COLL_EGGS = 1103 Auto Const
+Int Property LG_COLL_PLUSHIES = 1104 Auto Const
+Int Property LG_COLL_SNOWGLOBES = 1105 Auto Const
+
 
 ; ==============================================================
 ; Public API
@@ -376,11 +389,19 @@ Bool Function IsForcedPlayerLootGroup(Int aiLootGroupCode)
 		Return true
 	EndIf
 
-	If aiLootGroupCode == LG_MISC_CURRENCY
+	If aiLootGroupCode == LG_COLL_ACTIONFIGURES
 		Return true
 	EndIf
 
-	If aiLootGroupCode == LG_MISC_COLLECTIBLES
+	If aiLootGroupCode == LG_COLL_PLUSHIES
+		Return true
+	EndIf
+
+	If aiLootGroupCode == LG_COLL_SNOWGLOBES
+		Return true
+	EndIf
+
+	If aiLootGroupCode == LG_MISC_CURRENCY
 		Return true
 	EndIf
 
@@ -455,13 +476,30 @@ GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 		Return PWAL_GLOB_Settings_Dest_BOOK_SkillMags
 	EndIf
 
+	; COLL
+	If aiLootGroupCode == LG_COLL_ACTIONFIGURES
+		Return PWAL_GLOB_Settings_Dest_COLL_ActionFigures
+	EndIf
+
+	If aiLootGroupCode == LG_COLL_ANTIQUES
+		Return PWAL_GLOB_Settings_Dest_COLL_Antiques
+	EndIf
+
+	If aiLootGroupCode == LG_COLL_EGGS
+		Return PWAL_GLOB_Settings_Dest_COLL_Eggs
+	EndIf
+
+	If aiLootGroupCode == LG_COLL_PLUSHIES
+		Return PWAL_GLOB_Settings_Dest_COLL_Plushies
+	EndIf
+
+	If aiLootGroupCode == LG_COLL_SNOWGLOBES
+		Return PWAL_GLOB_Settings_Dest_COLL_Snowglobes
+	EndIf
+
 	; MISC
 	If aiLootGroupCode == LG_MISC_AMMO
 		Return PWAL_GLOB_Settings_Dest_MISC_AMMO
-	EndIf
-
-	If aiLootGroupCode == LG_MISC_COLLECTIBLES
-		Return PWAL_GLOB_Settings_Dest_MISC_Collectibles
 	EndIf
 
 	If aiLootGroupCode == LG_MISC_CONTRABAND
