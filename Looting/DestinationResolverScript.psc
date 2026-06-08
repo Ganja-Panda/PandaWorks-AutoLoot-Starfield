@@ -526,6 +526,11 @@ GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 		Return PWAL_GLOB_Settings_Dest_MISC_JunkItems
 	EndIf
 
+	; X-Tech
+	If aiLootGroupCode == LG_RES_XTECH
+		Return PWAL_GLOB_Settings_Dest_RES_XTech
+	EndIf
+
 	; RES / Inorganic
 	If aiLootGroupCode == LG_RES_INORGANIC_COMMON
 		Return PWAL_GLOB_Settings_Dest_RES_Inorganic_Common
