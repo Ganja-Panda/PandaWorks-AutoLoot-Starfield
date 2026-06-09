@@ -178,11 +178,17 @@ EndFunction
 ; ==============================================================
 
 Bool Function ProcessTakeAllCorpse(ObjectReference akCorpse, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
+	Bool bKeepOwnership
+
 	If akCorpse == None || akDestinationRef == None || akEffectContext == None
 		Return false
 	EndIf
 
-	akCorpse.RemoveAllItems(akDestinationRef, false, false)
+	bKeepOwnership = akEffectContext.IsStealingHostile()
+
+	; abKeepOwnership = bKeepOwnership, abRemoveQuestItems = false
+	akCorpse.RemoveAllItems(akDestinationRef, bKeepOwnership, false)
+
 	LogDebug("CorpseProcessor", "ProcessTakeAllCorpse transferred all contents.")
 	Return true
 EndFunction

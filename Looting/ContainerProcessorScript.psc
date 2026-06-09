@@ -87,15 +87,17 @@ EndFunction
 ; ==============================================================
 
 Function ProcessTakeAllContainer(ObjectReference akContainer, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
-	Bool bTransferOwnership
+	Bool bKeepOwnership
 
 	If akContainer == None || akDestinationRef == None || akEffectContext == None
 		Return
 	EndIf
 
-	bTransferOwnership = akEffectContext.IsStealingHostile()
+	bKeepOwnership = akEffectContext.IsStealingHostile()
 
-	akContainer.RemoveAllItems(akDestinationRef, false, bTransferOwnership)
+	; abKeepOwnership = bKeepOwnership, abRemoveQuestItems = true
+	akContainer.RemoveAllItems(akDestinationRef, bKeepOwnership, true)
+
 	LogDebug("ContainerProcessor", "ProcessTakeAllContainer transferred all contents.")
 EndFunction
 

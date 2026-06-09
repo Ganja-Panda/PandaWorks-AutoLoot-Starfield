@@ -3,7 +3,7 @@ ScriptName PWAL:System:CommandServicesScript Extends Quest Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.00
+; Version: 1.0.1
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: CommandServicesScript
@@ -286,7 +286,8 @@ Bool Function TransferAllItems(ObjectReference akSourceRef, ObjectReference akDe
 		Return false
 	EndIf
 
-	akSourceRef.RemoveAllItems(akDestinationRef, true, true)
+	; abKeepOwnership = false, abRemoveQuestItems = true
+	akSourceRef.RemoveAllItems(akDestinationRef, false, true)
 
 	LogDebug("CommandServices", "TransferAllItems complete: " + asSourceLabel + " -> " + asDestinationLabel)
 	Return true
