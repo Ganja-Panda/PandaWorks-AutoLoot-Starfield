@@ -42,7 +42,7 @@ GlobalVariable Property PWAL_GLOB_Version_Patch Auto
 
 Int Property iExpectedVersionMajor = 1 Auto Const
 Int Property iExpectedVersionMinor = 0 Auto Const
-Int Property iExpectedVersionPatch = 2 Auto Const
+Int Property iExpectedVersionPatch = 3 Auto Const
 
 ; ==============================================================
 ; Version State Constants
