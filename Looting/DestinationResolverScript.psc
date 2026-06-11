@@ -393,10 +393,6 @@ Bool Function IsForcedPlayerLootGroup(Int aiLootGroupCode)
 		Return true
 	EndIf
 
-	If aiLootGroupCode == LG_COLL_PLUSHIES
-		Return true
-	EndIf
-
 	If aiLootGroupCode == LG_COLL_SNOWGLOBES
 		Return true
 	EndIf
