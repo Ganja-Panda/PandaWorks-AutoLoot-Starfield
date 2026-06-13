@@ -127,6 +127,7 @@ EndGroup
 
 Group RuntimeState
 	Int Property LootTimerID = 1 Auto
+	String Property sEffectDebugName = "" Auto Const
 	Float Property lootTimerDelay = 0.5 Auto 
 	Bool Property bIsLooting = false Auto Hidden
 	Bool Property bAllowStealing = false Auto
@@ -147,11 +148,11 @@ EndGroup
 ; ==============================================================
 
 Event OnInit()
-	LogDebug("LootEffect", "OnInit triggered.")
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | OnInit triggered.")
 EndEvent
 
 Event OnEffectStart(ObjectReference akTarget, Actor akCaster, MagicEffect akBaseEffect, Float afMagnitude, Float afDuration)
-	LogDebug("LootEffect", "OnEffectStart triggered.")
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | OnEffectStart triggered.")
 	LogEffectProfile("OnEffectStart")
 
 	RefreshRuntimeSettings()
@@ -163,7 +164,7 @@ Event OnEffectStart(ObjectReference akTarget, Actor akCaster, MagicEffect akBase
 EndEvent
 
 Event OnEffectFinish(ObjectReference akTarget, Actor akCaster, MagicEffect akBaseEffect, Float afMagnitude, Float afDuration)
-	LogDebug("LootEffect", "OnEffectFinish triggered.")
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | OnEffectFinish triggered.")
 
 	CancelTimer(LootTimerID)
 
@@ -177,8 +178,10 @@ Event OnTimer(Int aiTimerID)
 		Return
 	EndIf
 
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | OnTimer fired. aiTimerID=" + (aiTimerID as String))
+
 	If bIsLooting
-		LogDebug("LootEffect", "OnTimer skipped: looting already in progress.")
+		LogDebug("LootEffect", GetEffectDebugLabel() + " | OnTimer skipped: looting already in progress.")
 		CancelTimer(LootTimerID)
 		StartTimer(lootTimerDelay, LootTimerID)
 		Return
@@ -197,33 +200,35 @@ EndEvent
 ; ==============================================================
 
 Function ExecuteLooting()
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting entered.")
+
 	If RuntimeManager == None
-		LogError("LootEffect", "ExecuteLooting failed: RuntimeManager property is not filled.")
+		LogError("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: RuntimeManager property is not filled.")
 		Return
 	EndIf
 
 	If LootScanner == None
-		LogError("LootEffect", "ExecuteLooting failed: LootScanner property is not filled.")
+		LogError("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: LootScanner property is not filled.")
 		Return
 	EndIf
 
 	If LootProcessor == None
-		LogError("LootEffect", "ExecuteLooting failed: LootProcessor property is not filled.")
+		LogError("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: LootProcessor property is not filled.")
 		Return
 	EndIf
 
 	If ActiveLootList == None
-		LogWarn("LootEffect", "ExecuteLooting aborted: ActiveLootList is None.")
+		LogWarn("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: ActiveLootList is None.")
 		Return
 	EndIf
 
 	If ActiveLootList.GetSize() <= 0
-		LogDebug("LootEffect", "ExecuteLooting skipped: ActiveLootList is empty.")
+		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: ActiveLootList is empty.")
 		Return
 	EndIf
 
 	If !RuntimeManager.CanRunLooting()
-		LogDebug("LootEffect", "ExecuteLooting skipped: RuntimeManager denied looting.")
+		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: RuntimeManager denied looting.")
 		Return
 	EndIf
 
@@ -233,11 +238,11 @@ Function ExecuteLooting()
 	Int iProcessed = LootScanner.Scan(Self)
 
 	If iProcessed <= 0
-		LogDebug("LootEffect", "ExecuteLooting complete: scanner processed zero candidates.")
+		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting complete: scanner processed zero candidates.")
 		Return
 	EndIf
 
-	LogDebug("LootEffect", "ExecuteLooting complete. Scanner processed " + (iProcessed as String) + " candidate(s). LootGroupCode=" + (iLootGroupCode as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting complete. Scanner processed " + (iProcessed as String) + " candidate(s).")
 EndFunction
 
 ; ==============================================================
@@ -286,7 +291,7 @@ Function RefreshLootingListCache()
 	akLootGroupCodes = PWAL_FLST_System_Loot_GroupCodes
 
 	If akLootingLists == None || akLootingGlobals == None || akLootGroupCodes == None
-		LogWarn("LootEffect", "RefreshLootingListCache aborted: one or more system looting lists are None.")
+		LogWarn("LootEffect", GetEffectDebugLabel() + " | RefreshLootingListCache aborted: one or more system looting lists are None.")
 		Return
 	EndIf
 
@@ -305,12 +310,12 @@ Function RefreshLootingListCache()
 	EndIf
 
 	If iMaxSize <= 0
-		LogDebug("LootEffect", "RefreshLootingListCache skipped: no looting registry entries configured.")
+		LogDebug("LootEffect", GetEffectDebugLabel() + " | RefreshLootingListCache skipped: no looting registry entries configured.")
 		Return
 	EndIf
 
 	If iMaxSize < iListSize || iMaxSize < iGlobalSize || iMaxSize < iCodeSize
-		LogWarn("LootEffect", "RefreshLootingListCache detected mismatched paired list sizes. Lists=" + (iListSize as String) + " Globals=" + (iGlobalSize as String) + " Codes=" + (iCodeSize as String) + " Using=" + (iMaxSize as String))
+		LogWarn("LootEffect", GetEffectDebugLabel() + " | RefreshLootingListCache detected mismatched paired list sizes. Lists=" + (iListSize as String) + " Globals=" + (iGlobalSize as String) + " Codes=" + (iCodeSize as String) + " Using=" + (iMaxSize as String))
 	EndIf
 
 	CachedLootingLists = new FormList[iMaxSize]
@@ -379,6 +384,14 @@ EndFunction
 ; ==============================================================
 ; Effect Context Helpers
 ; ==============================================================
+
+String Function GetEffectDebugLabel()
+	If sEffectDebugName != ""
+		Return sEffectDebugName + " | TimerID=" + (LootTimerID as String)
+	EndIf
+
+	Return "UnnamedEffect | TimerID=" + (LootTimerID as String)
+EndFunction
 
 Int Function GetLootGroupCode()
 	Return iLootGroupCode
@@ -452,22 +465,22 @@ Float Function GetRadius()
 			Return fShipDistance
 		EndIf
 
-		LogWarn("LootEffect", "GetRadius fallback: fMaxShipTransferDistance returned invalid value.")
+		LogWarn("LootEffect", GetEffectDebugLabel() + " | GetRadius fallback: fMaxShipTransferDistance returned invalid value.")
 		Return 0.0
 	EndIf
 
 	If PWAL_GLOB_Settings_Radius_Internal == None
-		LogWarn("LootEffect", "GetRadius fallback: PWAL_GLOB_Settings_Radius_Internal is not filled.")
+		LogWarn("LootEffect", GetEffectDebugLabel() + " | GetRadius fallback: PWAL_GLOB_Settings_Radius_Internal is not filled.")
 		Return 0.0
 	EndIf
 
 	If PWAL_GLOB_Settings_Radius_City == None
-		LogWarn("LootEffect", "GetRadius fallback: PWAL_GLOB_Settings_Radius_City is not filled.")
+		LogWarn("LootEffect", GetEffectDebugLabel() + " | GetRadius fallback: PWAL_GLOB_Settings_Radius_City is not filled.")
 		Return 0.0
 	EndIf
 
 	If PWAL_GLOB_Settings_Radius_Wilderness == None
-		LogWarn("LootEffect", "GetRadius fallback: PWAL_GLOB_Settings_Radius_Wilderness is not filled.")
+		LogWarn("LootEffect", GetEffectDebugLabel() + " | GetRadius fallback: PWAL_GLOB_Settings_Radius_Wilderness is not filled.")
 		Return 0.0
 	EndIf
 
@@ -478,7 +491,7 @@ Float Function GetRadius()
 	EndIf
 
 	If akRef == None
-		LogWarn("LootEffect", "GetRadius fallback: no looter/player ref available. Using internal radius.")
+		LogWarn("LootEffect", GetEffectDebugLabel() + " | GetRadius fallback: no looter/player ref available. Using internal radius.")
 		Return PWAL_GLOB_Settings_Radius_Internal.GetValue()
 	EndIf
 
@@ -502,7 +515,7 @@ Bool Function IsCityLocation(Location akLocation)
 	EndIf
 
 	If PWAL_FLST_Script_Locations_Cities == None
-		LogDebug("LootEffect", "IsCityLocation fallback: PWAL_FLST_Script_Locations_Cities is not filled.")
+		LogDebug("LootEffect", GetEffectDebugLabel() + " | IsCityLocation fallback: PWAL_FLST_Script_Locations_Cities is not filled.")
 		Return false
 	EndIf
 
@@ -552,7 +565,7 @@ Bool Function IsHumanRace(Actor akActor)
 	EndIf
 
 	If PWAL_FLST_Script_Races_Human == None
-		LogWarn("LootEffect", "IsHumanRace fallback: PWAL_FLST_Script_Races_Human is not filled.")
+		LogWarn("LootEffect", GetEffectDebugLabel() + " | IsHumanRace fallback: PWAL_FLST_Script_Races_Human is not filled.")
 		Return false
 	EndIf
 
@@ -569,19 +582,19 @@ EndFunction
 ; ==============================================================
 
 Function LogEffectProfile(String asReason)
-	LogDebug("LootEffect", "Profile dump requested by " + asReason)
-	LogDebug("LootEffect", "Profile | ActivePerk=" + ActivePerk)
-	LogDebug("LootEffect", "Profile | ActiveLootList=" + ActiveLootList)
-	LogDebug("LootEffect", "Profile | ActiveLootSpell=" + ActiveLootSpell)
-	LogDebug("LootEffect", "Profile | iLootGroupCode=" + (iLootGroupCode as String))
-	LogDebug("LootEffect", "Profile | bIsActivator=" + (bIsActivator as String))
-	LogDebug("LootEffect", "Profile | bIsContainer=" + (bIsContainer as String))
-	LogDebug("LootEffect", "Profile | bLootDeadActor=" + (bLootDeadActor as String))
-	LogDebug("LootEffect", "Profile | bIsActivatedBySpell=" + (bIsActivatedBySpell as String))
-	LogDebug("LootEffect", "Profile | bIsContainerSpace=" + (bIsContainerSpace as String))
-	LogDebug("LootEffect", "Profile | bIsNonLethalHarvest=" + (bIsNonLethalHarvest as String))
-	LogDebug("LootEffect", "Profile | bIsKeyword=" + (bIsKeyword as String))
-	LogDebug("LootEffect", "Profile | bIsMultipleKeyword=" + (bIsMultipleKeyword as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile dump requested by " + asReason)
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | ActivePerk=" + ActivePerk)
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | ActiveLootList=" + ActiveLootList)
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | ActiveLootSpell=" + ActiveLootSpell)
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | iLootGroupCode=" + (iLootGroupCode as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsActivator=" + (bIsActivator as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsContainer=" + (bIsContainer as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bLootDeadActor=" + (bLootDeadActor as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsActivatedBySpell=" + (bIsActivatedBySpell as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsContainerSpace=" + (bIsContainerSpace as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsNonLethalHarvest=" + (bIsNonLethalHarvest as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsKeyword=" + (bIsKeyword as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsMultipleKeyword=" + (bIsMultipleKeyword as String))
 EndFunction
 
 Bool Function GetGlobalBool(GlobalVariable akGlobal)

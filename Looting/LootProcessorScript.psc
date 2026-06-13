@@ -48,9 +48,13 @@ EndGroup
 Int Function ProcessCandidates(ObjectReference[] akCandidates, PWAL:Looting:LootEffectScript akEffectContext)
 	Int iIndex
 	Int iProcessed
+	String sEffectLabel = "UnknownEffect"
 
 	If akCandidates == None
-		LogWarn("LootProcessor", "ProcessCandidates aborted: candidate array is None.")
+		If akEffectContext != None
+			sEffectLabel = akEffectContext.GetEffectDebugLabel()
+		EndIf
+		LogWarn("LootProcessor", sEffectLabel + " | ProcessCandidates aborted: candidate array is None.")
 		Return 0
 	EndIf
 
@@ -59,23 +63,26 @@ Int Function ProcessCandidates(ObjectReference[] akCandidates, PWAL:Looting:Loot
 		Return 0
 	EndIf
 
+	sEffectLabel = akEffectContext.GetEffectDebugLabel()
+	LogDebug("LootProcessor", sEffectLabel + " | ProcessCandidates entered. CandidateCount=" + (akCandidates.Length as String))
+
 	If akCandidates.Length <= 0
-		LogDebug("LootProcessor", "ProcessCandidates skipped: candidate array is empty.")
+		LogDebug("LootProcessor", sEffectLabel + " | ProcessCandidates skipped: candidate array is empty.")
 		Return 0
 	EndIf
 
 	If RuntimeManager == None
-		LogError("LootProcessor", "ProcessCandidates failed: RuntimeManager property is not filled.")
+		LogError("LootProcessor", sEffectLabel + " | ProcessCandidates failed: RuntimeManager property is not filled.")
 		Return 0
 	EndIf
 
 	If LootValidation == None
-		LogError("LootProcessor", "ProcessCandidates failed: LootValidation property is not filled.")
+		LogError("LootProcessor", sEffectLabel + " | ProcessCandidates failed: LootValidation property is not filled.")
 		Return 0
 	EndIf
 
 	If !RuntimeManager.CanRunLooting()
-		LogDebug("LootProcessor", "ProcessCandidates skipped: RuntimeManager denied looting.")
+		LogDebug("LootProcessor", sEffectLabel + " | ProcessCandidates skipped: RuntimeManager denied looting.")
 		Return 0
 	EndIf
 
@@ -90,32 +97,46 @@ Int Function ProcessCandidates(ObjectReference[] akCandidates, PWAL:Looting:Loot
 		iIndex += 1
 	EndWhile
 
-	LogDebug("LootProcessor", "ProcessCandidates complete. Processed " + iProcessed + " candidate(s).")
+	LogDebug("LootProcessor", sEffectLabel + " | ProcessCandidates complete. Processed " + iProcessed + " candidate(s).")
 	Return iProcessed
 EndFunction
 
 Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
 	ObjectReference akResolvedLoot
+	String sEffectLabel = "UnknownEffect"
+	Form akBaseObject = None
+	ObjectReference akContainerRef = None
+	Location akCurrentLocation = None
 
 	If akLoot == None
+		LogDebug("LootProcessor", sEffectLabel + " | ProcessSingleCandidate aborted: candidate ref is None.")
 		Return false
 	EndIf
 
 	If akEffectContext == None
+		LogDebug("LootProcessor", sEffectLabel + " | ProcessSingleCandidate aborted: akEffectContext is None.")
 		Return false
 	EndIf
 
+	sEffectLabel = akEffectContext.GetEffectDebugLabel()
 	akResolvedLoot = NormalizeCandidateRef(akLoot, akEffectContext)
 	If akResolvedLoot == None
-		LogDebug("LootProcessor", "ProcessSingleCandidate skipped: normalized loot ref is None.")
+		LogDebug("LootProcessor", sEffectLabel + " | ProcessSingleCandidate aborted: normalized loot ref is None. original=" + akLoot)
 		Return false
 	EndIf
 
+	akBaseObject = akResolvedLoot.GetBaseObject()
+	akContainerRef = akResolvedLoot.GetContainer()
+	akCurrentLocation = akResolvedLoot.GetCurrentLocation()
+	LogDebug("LootProcessor", sEffectLabel + " | Candidate before validation: original=" + akLoot + " resolved=" + akResolvedLoot + " base=" + akBaseObject + " container=" + akContainerRef + " location=" + akCurrentLocation)
+
 	If akEffectContext.IsNonLethalHarvestMode()
+		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as non-lethal harvest: ref=" + akResolvedLoot + " base=" + akBaseObject)
 		Return RouteNonLethalHarvest(akResolvedLoot, akEffectContext)
 	EndIf
 
 	If akEffectContext.IsCorpseMode()
+		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as corpse: ref=" + akResolvedLoot + " base=" + akBaseObject)
 		Return RouteCorpse(akResolvedLoot, akEffectContext)
 	EndIf
 
@@ -124,14 +145,17 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 	EndIf
 
 	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
+		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as container: ref=" + akResolvedLoot + " base=" + akBaseObject)
 		Return RouteContainer(akResolvedLoot, akEffectContext)
 	EndIf
 
 	If akEffectContext.IsActivatorMode()
+		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as activator: ref=" + akResolvedLoot + " base=" + akBaseObject)
 		Return RouteActivator(akResolvedLoot, akEffectContext)
 	EndIf
 
 	If akEffectContext.IsSpellActivationMode()
+		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as spell activation: ref=" + akResolvedLoot + " base=" + akBaseObject)
 		Return RouteSpellActivation(akResolvedLoot, akEffectContext)
 	EndIf
 
@@ -139,6 +163,7 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 		Return false
 	EndIf
 
+	LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as loose loot: ref=" + akResolvedLoot + " base=" + akBaseObject)
 	Return RouteLooseLoot(akResolvedLoot, akEffectContext)
 EndFunction
 
@@ -157,7 +182,7 @@ Bool Function RouteContainer(ObjectReference akContainer, PWAL:Looting:LootEffec
 	EndIf
 
 	ContainerProcessor.ProcessContainer(akContainer, akEffectContext)
-	LogDebug("LootProcessor", "Container routed: " + akContainer)
+	LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | Container routed: " + akContainer)
 	Return true
 EndFunction
 
@@ -192,7 +217,7 @@ Bool Function RouteCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScrip
 	EndIf
 
 	CorpseProcessor.ProcessCorpse(akCorpse, akEffectContext)
-	LogDebug("LootProcessor", "Corpse routed: " + akCorpse)
+	LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | Corpse routed: " + akCorpse)
 	Return true
 EndFunction
 
@@ -209,9 +234,9 @@ Bool Function RouteNonLethalHarvest(ObjectReference akTarget, PWAL:Looting:LootE
 	Bool bProcessed = HarvestProcessor.ProcessNonLethalHarvest(akTarget, akEffectContext)
 
 	If bProcessed
-		LogDebug("LootProcessor", "Nonlethal harvest routed: " + akTarget)
+		LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | Nonlethal harvest routed: " + akTarget)
 	Else
-		LogDebug("LootProcessor", "Nonlethal harvest not processed: " + akTarget)
+		LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | Nonlethal harvest not processed: " + akTarget)
 	EndIf
 
 	Return bProcessed
@@ -235,7 +260,7 @@ Bool Function RouteActivator(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 	EndIf
 
 	akLoot.Activate(akPlayerRef, false)
-	LogDebug("LootProcessor", "Activator routed: " + akLoot)
+	LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | Activator routed: " + akLoot)
 	Return true
 EndFunction
 
@@ -267,7 +292,7 @@ Bool Function RouteSpellActivation(ObjectReference akLoot, PWAL:Looting:LootEffe
 	EndIf
 
 	akLootSpell.RemoteCast(akPlayerRef, akPlayerActor, akLoot)
-	LogDebug("LootProcessor", "Spell activation routed: " + akLoot)
+	LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | Spell activation routed: " + akLoot)
 	Return true
 EndFunction
 
@@ -295,26 +320,26 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 	akContainingRef = akLoot.GetContainer()
 	akBaseObject = akLoot.GetBaseObject()
 
-	LogDebug("LootProcessor", "LOOSE DEBUG BEFORE VALIDATION: ref=" + akLoot + " base=" + akBaseObject + " container=" + akContainingRef + " lootGroup=" + (akEffectContext.GetLootGroupCode() as String) + " activeList=" + akEffectContext.ActiveLootList)
+	LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | LOOSE DEBUG BEFORE VALIDATION: ref=" + akLoot + " base=" + akBaseObject + " container=" + akContainingRef + " lootGroup=" + (akEffectContext.GetLootGroupCode() as String) + " activeList=" + akEffectContext.ActiveLootList)
 
 	If akContainingRef != None
-		LogDebug("LootProcessor", "RouteLooseLoot rejected: candidate is inside a container/inventory: " + akLoot + " container=" + akContainingRef + " base=" + akBaseObject)
+		LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | RouteLooseLoot rejected: candidate is inside a container/inventory: " + akLoot + " container=" + akContainingRef + " base=" + akBaseObject)
 		Return false
 	EndIf
 
 	If akBaseObject == None
-		LogDebug("LootProcessor", "RouteLooseLoot rejected: base object is None: " + akLoot)
+		LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | RouteLooseLoot rejected: base object is None: " + akLoot)
 		Return false
 	EndIf
 
 	; Quest items must never be auto-looted.
 	If akLoot.IsQuestItem()
-		LogDebug("LootProcessor", "RouteLooseLoot skipped quest item: " + akLoot)
+		LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | RouteLooseLoot skipped quest item: " + akLoot)
 		Return false
 	EndIf
 
 	iDestinationCode = DestinationResolver.ResolveDestinationCode(akEffectContext.GetLootGroupCode())
-	LogDebug("LootProcessor", "Resolved destination code " + (iDestinationCode as String) + " for loot group " + (akEffectContext.GetLootGroupCode() as String))
+	LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | Resolved destination code " + (iDestinationCode as String) + " for loot group " + (akEffectContext.GetLootGroupCode() as String))
 
 	akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
 	If akDestinationRef == None
@@ -322,11 +347,11 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	LogDebug("LootProcessor", "LOOSE DEBUG ADD ATTEMPT: ref=" + akLoot + " base=" + akBaseObject + " dest=" + akDestinationRef)
+	LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | LOOSE DEBUG ADD ATTEMPT: ref=" + akLoot + " base=" + akBaseObject + " dest=" + akDestinationRef)
 
 	akDestinationRef.AddItem(akLoot as Form, 1, true)
 
-	LogDebug("LootProcessor", "Loose loot AddItem attempted by ref form: " + akLoot + " base=" + akBaseObject + " to " + akDestinationRef)
+	LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | Loose loot AddItem attempted by ref form: " + akLoot + " base=" + akBaseObject + " to " + akDestinationRef)
 	Return true
 EndFunction
 
@@ -385,6 +410,7 @@ EndFunction
 
 ObjectReference Function NormalizeCandidateRef(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
 	ObjectReference akShipRef
+	String sEffectLabel = "UnknownEffect"
 
 	If akLoot == None
 		Return None
@@ -394,6 +420,8 @@ ObjectReference Function NormalizeCandidateRef(ObjectReference akLoot, PWAL:Loot
 		Return akLoot
 	EndIf
 
+	sEffectLabel = akEffectContext.GetEffectDebugLabel()
+
 	If !akEffectContext.IsShipContainerMode()
 		Return akLoot
 	EndIf
@@ -402,7 +430,7 @@ ObjectReference Function NormalizeCandidateRef(ObjectReference akLoot, PWAL:Loot
 		If akLoot.HasKeyword(akEffectContext.SpaceshipInventoryContainer)
 			akShipRef = akLoot.GetCurrentShipRef() as ObjectReference
 			If akShipRef != None
-				LogDebug("LootProcessor", "Ship container candidate normalized from " + akLoot + " to " + akShipRef)
+				LogDebug("LootProcessor", sEffectLabel + " | Ship container candidate normalized from " + akLoot + " to " + akShipRef)
 				Return akShipRef
 			EndIf
 		EndIf
