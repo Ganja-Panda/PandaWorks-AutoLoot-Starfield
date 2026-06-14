@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:LootEffectScript Extends ActiveMagicEffect Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.2
+; Version: 1.0.3
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: LootEffectScript
@@ -37,6 +37,7 @@ Group FrameworkServices
 	PWAL:Core:RuntimeManagerScript Property RuntimeManager Auto Const Mandatory
 	PWAL:Looting:LootScannerScript Property LootScanner Auto Const Mandatory
 	PWAL:Looting:LootProcessorScript Property LootProcessor Auto Const Mandatory
+	RefCollectionAlias Property PWAL_RCAL_AsteroidCanidateInbox Auto Const
 EndGroup
 
 Group EffectProfile_Mandatory
@@ -235,14 +236,45 @@ Function ExecuteLooting()
 	RefreshRuntimeSettings()
 	theLooterRef = ResolveLooterRef()
 
+	Bool bScannerProcessed = False
 	Int iProcessed = LootScanner.Scan(Self)
-
-	If iProcessed <= 0
-		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting complete: scanner processed zero candidates.")
-		Return
+	If iProcessed > 0
+		bScannerProcessed = True
+		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting complete. Scanner processed " + (iProcessed as String) + " candidate(s).")
 	EndIf
 
-	LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting complete. Scanner processed " + (iProcessed as String) + " candidate(s).")
+	Bool bExternalProcessed = ProcessExternalCandidates()
+
+	If !bScannerProcessed && !bExternalProcessed
+		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting complete: scanner/external inbox processed zero candidates.")
+	EndIf
+EndFunction
+
+Bool Function ProcessExternalCandidates()
+	If PWAL_RCAL_AsteroidCanidateInbox == None
+		Return False
+	EndIf
+
+	ObjectReference[] candidates = PWAL_RCAL_AsteroidCanidateInbox.GetArray()
+
+	If candidates == None || candidates.Length <= 0
+		Return False
+	EndIf
+
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | External candidate inbox count=" + (candidates.Length as String))
+
+	PWAL_RCAL_AsteroidCanidateInbox.RemoveAll()
+
+	If LootProcessor == None
+		LogWarn("LootEffect", GetEffectDebugLabel() + " | Cannot process external candidates: LootProcessor is None.")
+		Return False
+	EndIf
+
+	Int iProcessed = LootProcessor.ProcessCandidates(candidates, Self)
+
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | External candidate processing complete. Processed=" + (iProcessed as String))
+
+	Return iProcessed > 0
 EndFunction
 
 ; ==============================================================

@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:AsteroidDepositBridgeScript Extends ObjectReference
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.0
+; Version: 1.0.1
 ; Created: 06-11-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: AsteroidDepositBridgeScript
@@ -29,16 +29,47 @@ ScriptName PWAL:Looting:AsteroidDepositBridgeScript Extends ObjectReference
 ; ==============================================================
 
 Keyword Property PWAL_KYWD_AsteroidDeposit Auto Const Mandatory
+RefCollectionAlias Property PWAL_RCAL_AsteroidCanidateInbox Auto Const
+Int Property ASTEROID_INBOX_TIMER_ID = 101 Auto Const
 
 Bool bKeywordAdded = False
 
 Event OnInit()
 	AddAsteroidDepositKeyword()
+	StartTimer(0.5, ASTEROID_INBOX_TIMER_ID)
 EndEvent
 
 Event OnLoad()
 	AddAsteroidDepositKeyword()
+	StartTimer(0.5, ASTEROID_INBOX_TIMER_ID)
 EndEvent
+
+Event OnTimer(Int aiTimerID)
+	If aiTimerID == ASTEROID_INBOX_TIMER_ID
+		SubmitCandidate()
+	EndIf
+EndEvent
+
+Event OnUnload()
+	If PWAL_RCAL_AsteroidCanidateInbox != None
+		PWAL_RCAL_AsteroidCanidateInbox.RemoveRef(Self)
+		Debug.Trace("[PWAL][DEBUG][AsteroidBridge] Removed asteroid candidate from inbox: " + Self)
+	EndIf
+EndEvent
+
+Function SubmitCandidate()
+	If PWAL_RCAL_AsteroidCanidateInbox == None
+		Debug.Trace("[PWAL][WARN][AsteroidBridge] PWAL_RCAL_AsteroidCanidateInbox is None.")
+		Return
+	EndIf
+
+	If PWAL_RCAL_AsteroidCanidateInbox.Find(Self) < 0
+		PWAL_RCAL_AsteroidCanidateInbox.AddRef(Self)
+		Debug.Trace("[PWAL][DEBUG][AsteroidBridge] Submitted asteroid candidate: " + Self)
+	Else
+		Debug.Trace("[PWAL][DEBUG][AsteroidBridge] Asteroid candidate already in inbox: " + Self)
+	EndIf
+EndFunction
 
 Function AddAsteroidDepositKeyword()
 	If bKeywordAdded

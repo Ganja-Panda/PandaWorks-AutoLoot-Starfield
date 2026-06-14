@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:ShipDebrisLootEffectScript Extends PWAL:Looting:LootEffe
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.0
+; Version: 1.0.1
 ; Created: 06-11-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: ShipDebrisLootEffectScript
