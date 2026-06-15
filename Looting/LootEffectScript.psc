@@ -130,7 +130,6 @@ Group RuntimeState
 	Int Property LootTimerID = 1 Auto
 	String Property sEffectDebugName = "" Auto Const
 	Float Property lootTimerDelay = 0.5 Auto 
-	Bool Property bUseDirectRemoveAll = false Auto Const
 	Bool Property bIsLooting = false Auto Hidden
 	Bool Property bAllowStealing = false Auto
 	Bool Property bStealingIsHostile = false Auto
