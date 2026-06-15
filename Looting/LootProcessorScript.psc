@@ -141,13 +141,13 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 		Return RouteCorpse(akResolvedLoot, akEffectContext)
 	EndIf
 
-	If !LootValidation.CanProcessLoot(akResolvedLoot, akEffectContext)
-		Return false
-	EndIf
-
 	If akEffectContext != None && akEffectContext.IsAsteroidDepositMode()
 		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as asteroid deposit: ref=" + akResolvedLoot + " base=" + akBaseObject)
 		Return RouteAsteroidDeposit(akResolvedLoot, akEffectContext)
+	EndIf
+
+	If !LootValidation.CanProcessLoot(akResolvedLoot, akEffectContext)
+		Return false
 	EndIf
 
 	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
