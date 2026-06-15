@@ -36,7 +36,7 @@ Group FrameworkServices_AutoFill
 	PWAL:Core:RuntimeManagerScript Property RuntimeManager Auto Const Mandatory
 	PWAL:Looting:LootValidationScript Property LootValidation Auto Const Mandatory
 	PWAL:Looting:DestinationResolverScript Property DestinationResolver Auto Const Mandatory
-	PWAL:Looting:SpaceLootProcessorScript Property SpaceLootProcessor Auto Const Mandatory
+	PWAL:Looting:AsteroidDepositProcessorScript Property AsteroidDepositProcessor Auto Const Mandatory
 	PWAL:Looting:ContainerProcessorScript Property ContainerProcessor Auto Const Mandatory
 	PWAL:Looting:CorpseProcessorScript Property CorpseProcessor Auto Const Mandatory
 	PWAL:Looting:HarvestProcessorScript Property HarvestProcessor Auto Const Mandatory
@@ -142,20 +142,15 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 	EndIf
 
 	If akEffectContext != None && akEffectContext.IsAsteroidDepositMode()
-		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as asteroid space loot: ref=" + akResolvedLoot + " base=" + akBaseObject)
-		Return RouteSpaceLoot(akResolvedLoot, akEffectContext)
-	EndIf
-
-	If akEffectContext != None && akEffectContext.IsShipContainerMode()
-		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as space container loot: ref=" + akResolvedLoot + " base=" + akBaseObject)
-		Return RouteSpaceLoot(akResolvedLoot, akEffectContext)
+		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as asteroid deposit: ref=" + akResolvedLoot + " base=" + akBaseObject)
+		Return RouteAsteroidDeposit(akResolvedLoot, akEffectContext)
 	EndIf
 
 	If !LootValidation.CanProcessLoot(akResolvedLoot, akEffectContext)
 		Return false
 	EndIf
 
-	If akEffectContext.IsContainerMode()
+	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
 		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as container: ref=" + akResolvedLoot + " base=" + akBaseObject)
 		Return RouteContainer(akResolvedLoot, akEffectContext)
 	EndIf
@@ -182,17 +177,17 @@ EndFunction
 ; Route Handlers
 ; ==============================================================
 
-Bool Function RouteSpaceLoot(ObjectReference akLootRef, PWAL:Looting:LootEffectScript akEffectContext)
-	If akLootRef == None
+Bool Function RouteAsteroidDeposit(ObjectReference akDeposit, PWAL:Looting:LootEffectScript akEffectContext)
+	If akDeposit == None
 		Return false
 	EndIf
 
-	If SpaceLootProcessor == None
-		LogWarn("LootProcessor", "RouteSpaceLoot failed: SpaceLootProcessor property is not filled.")
+	If AsteroidDepositProcessor == None
+		LogWarn("LootProcessor", "RouteAsteroidDeposit failed: AsteroidDepositProcessor property is not filled.")
 		Return false
 	EndIf
 
-	Return SpaceLootProcessor.ProcessSpaceLoot(akLootRef, akEffectContext)
+	Return AsteroidDepositProcessor.ProcessAsteroidDeposit(akDeposit, akEffectContext)
 EndFunction
 
 Bool Function RouteContainer(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
@@ -449,6 +444,9 @@ Bool Function CanRouteAsLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffec
 EndFunction
 
 ObjectReference Function NormalizeCandidateRef(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
+	ObjectReference akShipRef
+	String sEffectLabel = "UnknownEffect"
+
 	If akLoot == None
 		Return None
 	EndIf
@@ -457,8 +455,20 @@ ObjectReference Function NormalizeCandidateRef(ObjectReference akLoot, PWAL:Loot
 		Return akLoot
 	EndIf
 
-	If akEffectContext.IsShipContainerMode()
+	sEffectLabel = akEffectContext.GetEffectDebugLabel()
+
+	If !akEffectContext.IsShipContainerMode()
 		Return akLoot
+	EndIf
+
+	If akEffectContext.SpaceshipInventoryContainer != None
+		If akLoot.HasKeyword(akEffectContext.SpaceshipInventoryContainer)
+			akShipRef = akLoot.GetCurrentShipRef() as ObjectReference
+			If akShipRef != None
+				LogDebug("LootProcessor", sEffectLabel + " | Ship container candidate normalized from " + akLoot + " to " + akShipRef)
+				Return akShipRef
+			EndIf
+		EndIf
 	EndIf
 
 	Return akLoot
