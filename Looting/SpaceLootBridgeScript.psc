@@ -31,7 +31,6 @@ ScriptName PWAL:Looting:SpaceLootBridgeScript Extends ObjectReference
 RefCollectionAlias Property SpaceLootCandidateInbox Auto Const
 Int Property SPACE_LOOT_INBOX_TIMER_ID = 101 Auto Const
 
-Bool bSubmittedToInbox = False
 Int iSubmitAttempt = 0
 
 Event OnInit()
@@ -50,23 +49,20 @@ EndEvent
 
 Event OnUnload()
 	CancelTimer(SPACE_LOOT_INBOX_TIMER_ID)
+
+	If SpaceLootCandidateInbox != None
+		SpaceLootCandidateInbox.RemoveRef(Self)
+		Debug.Trace("[PWAL][DEBUG][SpaceLootBridge] Removed space-loot candidate from inbox: " + Self)
+	EndIf
 EndEvent
 
 Function StartReadinessRetry()
-	If bSubmittedToInbox
-		Return
-	EndIf
-
 	iSubmitAttempt = 0
 	CancelTimer(SPACE_LOOT_INBOX_TIMER_ID)
 	StartTimer(0.5, SPACE_LOOT_INBOX_TIMER_ID)
 EndFunction
 
 Function ProcessReadinessAttempt()
-	If bSubmittedToInbox
-		Return
-	EndIf
-
 	Bool bAlreadyInInbox = False
 	Form akBase = GetBaseObject()
 	Container akBaseContainer = akBase as Container
@@ -94,13 +90,11 @@ Function ProcessReadinessAttempt()
 	Debug.Trace("[PWAL][DEBUG][SpaceLootBridge] Readiness attempt=" + (iSubmitAttempt as String) + " ref=" + Self + " base=" + akBase + " itemCount=" + (iItemCount as String) + " alreadyInInbox=" + (bAlreadyInInbox as String))
 
 	If bAlreadyInInbox
-		bSubmittedToInbox = True
 		Return
 	EndIf
 
 	If iItemCount > 0 || iSubmitAttempt >= 5
 		SpaceLootCandidateInbox.AddRef(Self)
-		bSubmittedToInbox = True
 		Debug.Trace("[PWAL][DEBUG][SpaceLootBridge] Submitted space-loot candidate on attempt=" + (iSubmitAttempt as String) + ": " + Self)
 		Return
 	EndIf

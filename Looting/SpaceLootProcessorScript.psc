@@ -59,7 +59,11 @@ Bool Function ProcessSpaceLoot(ObjectReference akLootRef, PWAL:Looting:LootEffec
 		Return false
 	EndIf
 
-	iDestinationCode = DestinationResolver.ResolveDestinationCodeForEffect(akEffectContext.GetLootGroupCode(), akEffectContext)
+	If akEffectContext.IsAsteroidDepositMode()
+		iDestinationCode = DestinationResolver.ResolveDestinationCode(akEffectContext.GetLootGroupCode())
+	Else
+		iDestinationCode = DestinationResolver.ResolveDestinationCodeForEffect(akEffectContext.GetLootGroupCode(), akEffectContext)
+	EndIf
 	akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
 
 	If !DestinationResolver.IsVoidDestination(iDestinationCode) && akDestinationRef == None
