@@ -36,6 +36,7 @@ Group FrameworkServices_AutoFill
 	PWAL:Core:RuntimeManagerScript Property RuntimeManager Auto Const Mandatory
 	PWAL:Looting:LootValidationScript Property LootValidation Auto Const Mandatory
 	PWAL:Looting:DestinationResolverScript Property DestinationResolver Auto Const Mandatory
+	PWAL:Looting:AsteroidDepositProcessorScript Property AsteroidDepositProcessor Auto Const Mandatory
 	PWAL:Looting:ContainerProcessorScript Property ContainerProcessor Auto Const Mandatory
 	PWAL:Looting:CorpseProcessorScript Property CorpseProcessor Auto Const Mandatory
 	PWAL:Looting:HarvestProcessorScript Property HarvestProcessor Auto Const Mandatory
@@ -144,6 +145,11 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 		Return false
 	EndIf
 
+	If akEffectContext != None && akEffectContext.IsAsteroidDepositMode()
+		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as asteroid deposit: ref=" + akResolvedLoot + " base=" + akBaseObject)
+		Return RouteAsteroidDeposit(akResolvedLoot, akEffectContext)
+	EndIf
+
 	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
 		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as container: ref=" + akResolvedLoot + " base=" + akBaseObject)
 		Return RouteContainer(akResolvedLoot, akEffectContext)
@@ -170,6 +176,19 @@ EndFunction
 ; ==============================================================
 ; Route Handlers
 ; ==============================================================
+
+Bool Function RouteAsteroidDeposit(ObjectReference akDeposit, PWAL:Looting:LootEffectScript akEffectContext)
+	If akDeposit == None
+		Return false
+	EndIf
+
+	If AsteroidDepositProcessor == None
+		LogWarn("LootProcessor", "RouteAsteroidDeposit failed: AsteroidDepositProcessor property is not filled.")
+		Return false
+	EndIf
+
+	Return AsteroidDepositProcessor.ProcessAsteroidDeposit(akDeposit, akEffectContext)
+EndFunction
 
 Bool Function RouteContainer(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
 	Form akBase
