@@ -156,7 +156,7 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 		ElseIf iLootGroupCode <= 0
 			LogWarn("ContainerProcessor", "ProcessFilteredContainerItems skipped invalid cached LootGroupCode at index " + (iIndex as String))
 		Else
-			iDestinationCode = DestinationResolver.ResolveDestinationCode(iLootGroupCode)
+			iDestinationCode = DestinationResolver.ResolveDestinationCodeForEffect(iLootGroupCode, akEffectContext)
 			akCurrentDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
 
 			If akCurrentDestinationRef == None

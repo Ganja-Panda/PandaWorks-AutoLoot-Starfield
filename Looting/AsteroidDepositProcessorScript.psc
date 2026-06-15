@@ -58,7 +58,7 @@ Bool Function ProcessAsteroidDeposit(ObjectReference akDeposit, PWAL:Looting:Loo
 		Return false
 	EndIf
 
-	iDestinationCode = DestinationResolver.ResolveDestinationCode(akEffectContext.GetLootGroupCode())
+	iDestinationCode = DestinationResolver.ResolveDestinationCodeForEffect(akEffectContext.GetLootGroupCode(), akEffectContext)
 	akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
 
 	If !DestinationResolver.IsVoidDestination(iDestinationCode) && akDestinationRef == None
