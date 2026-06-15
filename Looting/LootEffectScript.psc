@@ -57,6 +57,7 @@ Group EffectBehavior_Method
 	Bool Property bLootDeadActor = false Auto
 	Bool Property bIsActivatedBySpell = false Auto
 	Bool Property bIsContainerSpace = false Auto
+	Bool Property bIsAsteroidDeposit = false Auto Const
 	Bool Property bIsNonLethalHarvest = false Auto
 EndGroup
 
@@ -473,6 +474,10 @@ Bool Function IsShipContainerMode()
 	Return bIsContainerSpace
 EndFunction
 
+Bool Function IsAsteroidDepositMode()
+	Return bIsAsteroidDeposit
+EndFunction
+
 Bool Function UsesKeywordScan()
 	Return bIsKeyword
 EndFunction
@@ -641,6 +646,7 @@ Function LogEffectProfile(String asReason)
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | iLootGroupCode=" + (iLootGroupCode as String))
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsActivator=" + (bIsActivator as String))
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsContainer=" + (bIsContainer as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsAsteroidDeposit=" + (bIsAsteroidDeposit as String))
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bLootDeadActor=" + (bLootDeadActor as String))
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsActivatedBySpell=" + (bIsActivatedBySpell as String))
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsContainerSpace=" + (bIsContainerSpace as String))
