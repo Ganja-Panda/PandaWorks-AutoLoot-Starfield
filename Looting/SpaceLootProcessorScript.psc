@@ -1,4 +1,4 @@
-ScriptName PWAL:Looting:AsteroidDepositProcessorScript Extends Quest
+ScriptName PWAL:Looting:SpaceLootProcessorScript Extends Quest
 
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
@@ -6,15 +6,15 @@ ScriptName PWAL:Looting:AsteroidDepositProcessorScript Extends Quest
 ; Version: 1.0.0
 ; Created: 06-15-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
-; Script: AsteroidDepositProcessorScript
+; Script: SpaceLootProcessorScript
 ; Type: Looting / Processor Service
 ; Purpose:
-;   Transfers generated asteroid mineral/deposit inventory refs.
+;   Transfers lootable space inventory refs.
 ;
 ; Responsibilities:
-;   - Accept generated asteroid deposit inventory refs
-;   - Resolve the configured PWAL destination
-;   - Transfer or remove the full deposit inventory
+;   - Accept lootable space inventory refs
+;   - Resolve PWAL destination through DestinationResolver
+;   - Transfer or remove the full space-loot inventory
 ;   - Report transfer diagnostics
 ;
 ; Non-Responsibilities:
@@ -22,6 +22,7 @@ ScriptName PWAL:Looting:AsteroidDepositProcessorScript Extends Quest
 ;   - No validation
 ;   - No normal container processing
 ;   - No category filtering
+;   - No RefCollectionAlias insertion/discovery
 ; ==============================================================
 
 ; ==============================================================
@@ -37,24 +38,24 @@ EndGroup
 ; Public API
 ; ==============================================================
 
-Bool Function ProcessAsteroidDeposit(ObjectReference akDeposit, PWAL:Looting:LootEffectScript akEffectContext)
+Bool Function ProcessSpaceLoot(ObjectReference akLootRef, PWAL:Looting:LootEffectScript akEffectContext)
 	Int iDestinationCode
 	Int iItemCountBefore
 	Int iItemCountAfter
 	ObjectReference akDestinationRef
 
-	If akDeposit == None
-		LogWarn("AsteroidDepositProcessor", "ProcessAsteroidDeposit failed: akDeposit is None.")
+	If akLootRef == None
+		LogWarn("SpaceLootProcessor", "ProcessSpaceLoot failed: akLootRef is None.")
 		Return false
 	EndIf
 
 	If akEffectContext == None
-		LogWarn("AsteroidDepositProcessor", "ProcessAsteroidDeposit failed: akEffectContext is None.")
+		LogWarn("SpaceLootProcessor", "ProcessSpaceLoot failed: akEffectContext is None.")
 		Return false
 	EndIf
 
 	If DestinationResolver == None
-		LogError("AsteroidDepositProcessor", "ProcessAsteroidDeposit failed: DestinationResolver property is not filled.")
+		LogError("SpaceLootProcessor", "ProcessSpaceLoot failed: DestinationResolver property is not filled.")
 		Return false
 	EndIf
 
@@ -62,22 +63,22 @@ Bool Function ProcessAsteroidDeposit(ObjectReference akDeposit, PWAL:Looting:Loo
 	akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
 
 	If !DestinationResolver.IsVoidDestination(iDestinationCode) && akDestinationRef == None
-		LogWarn("AsteroidDepositProcessor", "ProcessAsteroidDeposit failed: resolved destination ref is None. source=" + akDeposit + " destinationCode=" + (iDestinationCode as String))
+		LogWarn("SpaceLootProcessor", "ProcessSpaceLoot failed: resolved destination ref is None. source=" + akLootRef + " destinationCode=" + (iDestinationCode as String))
 		Return false
 	EndIf
 
-	iItemCountBefore = akDeposit.GetItemCount()
+	iItemCountBefore = akLootRef.GetItemCount()
 	If iItemCountBefore <= 0
-		LogDebug("AsteroidDepositProcessor", "ProcessAsteroidDeposit deferred: source has no items yet. source=" + akDeposit)
+		LogDebug("SpaceLootProcessor", "ProcessSpaceLoot deferred: source has no items yet. source=" + akLootRef)
 		Return false
 	EndIf
 
-	LogDebug("AsteroidDepositProcessor", "Transfer begin: source=" + akDeposit + " destination=" + akDestinationRef + " destinationCode=" + (iDestinationCode as String) + " before=" + (iItemCountBefore as String))
+	LogDebug("SpaceLootProcessor", "Transfer begin: source=" + akLootRef + " destination=" + akDestinationRef + " destinationCode=" + (iDestinationCode as String) + " before=" + (iItemCountBefore as String))
 
-	akDeposit.RemoveAllItems(akDestinationRef, false, false)
+	akLootRef.RemoveAllItems(akDestinationRef, false, false)
 
-	iItemCountAfter = akDeposit.GetItemCount()
-	LogDebug("AsteroidDepositProcessor", "Transfer complete: source=" + akDeposit + " destination=" + akDestinationRef + " destinationCode=" + (iDestinationCode as String) + " before=" + (iItemCountBefore as String) + " after=" + (iItemCountAfter as String))
+	iItemCountAfter = akLootRef.GetItemCount()
+	LogDebug("SpaceLootProcessor", "Transfer complete: source=" + akLootRef + " destination=" + akDestinationRef + " destinationCode=" + (iDestinationCode as String) + " before=" + (iItemCountBefore as String) + " after=" + (iItemCountAfter as String))
 
 	Return true
 EndFunction
