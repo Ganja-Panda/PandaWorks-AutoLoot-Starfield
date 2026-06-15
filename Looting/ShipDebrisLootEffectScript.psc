@@ -3,19 +3,19 @@ ScriptName PWAL:Looting:ShipDebrisLootEffectScript Extends PWAL:Looting:LootEffe
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.1
+; Version: 1.0.2
 ; Created: 06-11-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: ShipDebrisLootEffectScript
 ; Type: Looting / Ship Debris Effect Adapter
 ; Purpose:
-;   Handles ship-debris-specific orbital gating before handing
+;   Handles ship-debris-specific in-space gating before handing
 ;   discovery and processing back to the standard PWAL loot framework.
 ;
 ; Responsibilities:
-;   - Confirm the player is in a valid ship-debris orbit
-;   - Check Bethesda's SQ_ShipDebris orbital keyword when available
-;   - Run the configured ship-debris scan profile
+;   - Confirm the player ship is currently in space
+;   - Log Bethesda's SQ_ShipDebris orbital keyword when available
+;   - Run the configured ship-debris scan profile once the player ship is in space
 ;   - Delegate scanning, validation, processing, and routing to PWAL
 ;
 ; Non-Responsibilities:
@@ -36,7 +36,7 @@ Function ExecuteLooting()
 	LogDebug("ShipDebris", GetEffectDebugLabel() + " | ShipDebris ExecuteLooting entered.")
 
 	If !IsPlayerInShipDebrisOrbit()
-		LogDebug("ShipDebris", GetEffectDebugLabel() + " | ShipDebris ExecuteLooting skipped: player is not in a ship-debris orbit.")
+		LogDebug("ShipDebris", GetEffectDebugLabel() + " | ShipDebris ExecuteLooting skipped: player ship is not in space.")
 		Return
 	EndIf
 
@@ -48,17 +48,23 @@ EndFunction
 
 Bool Function IsPlayerInShipDebrisOrbit()
 	SpaceshipReference playerShipRef = None
-	Location currentLocation = None
-	Bool bHasKeyword = false
-	ObjectReference akPlayerRef = None
+	Location shipLoc = None
+	Location playerLoc = None
+	Actor playerActorRef = None
+	Bool bInSpace = false
 
 	LogDebug("ShipDebris", GetEffectDebugLabel() + " | IsPlayerInShipDebrisOrbit entered.")
 
-	akPlayerRef = Game.GetPlayer()
-	LogDebug("ShipDebris", GetEffectDebugLabel() + " | Game.GetPlayer result=" + akPlayerRef)
+	playerActorRef = Game.GetPlayer()
+	LogDebug("ShipDebris", GetEffectDebugLabel() + " | player=" + playerActorRef)
 
-	playerShipRef = akPlayerRef.GetCurrentShipRef() as SpaceshipReference
-	LogDebug("ShipDebris", GetEffectDebugLabel() + " | GetCurrentShipRef result=" + playerShipRef)
+	If playerActorRef == None
+		LogWarn("ShipDebris", GetEffectDebugLabel() + " | IsPlayerInShipDebrisOrbit failed: player is None.")
+		Return false
+	EndIf
+
+	playerShipRef = playerActorRef.GetCurrentShipRef() as SpaceshipReference
+	LogDebug("ShipDebris", GetEffectDebugLabel() + " | playerShipRef=" + playerShipRef)
 
 	If playerShipRef == None
 		playerShipRef = GetPlayerHomeShipRef() as SpaceshipReference
@@ -66,37 +72,31 @@ Bool Function IsPlayerInShipDebrisOrbit()
 	EndIf
 
 	If playerShipRef == None
-		LogDebug("ShipDebris", GetEffectDebugLabel() + " | Player ship ref is None.")
+		LogWarn("ShipDebris", GetEffectDebugLabel() + " | IsPlayerInShipDebrisOrbit failed: player ship is None.")
 		Return false
 	EndIf
 
-	LogDebug("ShipDebris", GetEffectDebugLabel() + " | ship.IsInSpace=" + (playerShipRef.IsInSpace() as String))
-	If !playerShipRef.IsInSpace()
+	bInSpace = playerShipRef.IsInSpace()
+	shipLoc = playerShipRef.GetCurrentLocation()
+	playerLoc = playerActorRef.GetCurrentLocation()
+
+	LogDebug("ShipDebris", GetEffectDebugLabel() + " | ship.IsInSpace=" + (bInSpace as String))
+	LogDebug("ShipDebris", GetEffectDebugLabel() + " | ship.location=" + shipLoc)
+	LogDebug("ShipDebris", GetEffectDebugLabel() + " | player.location=" + playerLoc)
+
+	If SQ_ShipDebrisKeyword == None
+		LogDebug("ShipDebris", GetEffectDebugLabel() + " | SQ_ShipDebrisKeyword is not filled; skipping encounter-keyword diagnostic.")
+	ElseIf shipLoc == None
+		LogDebug("ShipDebris", GetEffectDebugLabel() + " | ship.location is None; skipping SQ_ShipDebrisKeyword diagnostic.")
+	Else
+		LogDebug("ShipDebris", GetEffectDebugLabel() + " | ship.location.HasKeyword(SQ_ShipDebrisKeyword)=" + (shipLoc.HasKeyword(SQ_ShipDebrisKeyword) as String))
+	EndIf
+
+	If !bInSpace
 		LogDebug("ShipDebris", GetEffectDebugLabel() + " | IsPlayerInShipDebrisOrbit failed: player ship is not in space.")
 		Return false
 	EndIf
 
-	If SQ_ShipDebrisKeyword == None
-		LogWarn("ShipDebris", GetEffectDebugLabel() + " | IsPlayerInShipDebrisOrbit failed: SQ_ShipDebrisKeyword is not filled.")
-		Return false
-	EndIf
-
-	currentLocation = playerShipRef.GetCurrentLocation()
-	LogDebug("ShipDebris", GetEffectDebugLabel() + " | currentLocation=" + currentLocation)
-
-	If currentLocation == None
-		LogDebug("ShipDebris", GetEffectDebugLabel() + " | IsPlayerInShipDebrisOrbit failed: current location is None.")
-		Return false
-	EndIf
-
-	bHasKeyword = currentLocation.HasKeyword(SQ_ShipDebrisKeyword)
-	LogDebug("ShipDebris", GetEffectDebugLabel() + " | currentLocation.HasKeyword(SQ_ShipDebrisKeyword)=" + (bHasKeyword as String))
-
-	If bHasKeyword
-		LogDebug("ShipDebris", GetEffectDebugLabel() + " | IsPlayerInShipDebrisOrbit result=true")
-		Return true
-	EndIf
-
-	LogDebug("ShipDebris", GetEffectDebugLabel() + " | IsPlayerInShipDebrisOrbit result=false")
-	Return false
+	LogDebug("ShipDebris", GetEffectDebugLabel() + " | IsPlayerInShipDebrisOrbit result=true")
+	Return true
 EndFunction

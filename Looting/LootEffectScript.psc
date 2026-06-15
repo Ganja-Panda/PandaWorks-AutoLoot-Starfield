@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:LootEffectScript Extends ActiveMagicEffect Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.3
+; Version: 1.0.4
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: LootEffectScript
@@ -263,14 +263,34 @@ Bool Function ProcessExternalCandidates()
 
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | External candidate inbox count=" + (candidates.Length as String))
 
-	PWAL_RCAL_AsteroidCanidateInbox.RemoveAll()
-
 	If LootProcessor == None
 		LogWarn("LootEffect", GetEffectDebugLabel() + " | Cannot process external candidates: LootProcessor is None.")
 		Return False
 	EndIf
 
-	Int iProcessed = LootProcessor.ProcessCandidates(candidates, Self)
+	ObjectReference[] singleCandidate = new ObjectReference[1]
+	Int iIndex = 0
+	Int iProcessed = 0
+	Int iCandidateProcessed
+
+	While iIndex < candidates.Length
+		If candidates[iIndex] == None
+			LogDebug("LootEffect", GetEffectDebugLabel() + " | Ignored None external candidate at index=" + (iIndex as String))
+		Else
+			singleCandidate[0] = candidates[iIndex]
+			iCandidateProcessed = LootProcessor.ProcessCandidates(singleCandidate, Self)
+
+			If iCandidateProcessed > 0
+				PWAL_RCAL_AsteroidCanidateInbox.RemoveRef(candidates[iIndex])
+				iProcessed += iCandidateProcessed
+				LogDebug("LootEffect", GetEffectDebugLabel() + " | External candidate processed and removed from inbox: " + candidates[iIndex])
+			Else
+				LogDebug("LootEffect", GetEffectDebugLabel() + " | External candidate retained in inbox for retry: " + candidates[iIndex])
+			EndIf
+		EndIf
+
+		iIndex += 1
+	EndWhile
 
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | External candidate processing complete. Processed=" + (iProcessed as String))
 
