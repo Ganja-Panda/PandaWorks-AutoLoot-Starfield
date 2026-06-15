@@ -209,13 +209,31 @@ Function ExecuteLooting()
 		Return
 	EndIf
 
-	If LootScanner == None
-		LogError("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: LootScanner property is not filled.")
+	If LootProcessor == None
+		LogError("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: LootProcessor property is not filled.")
 		Return
 	EndIf
 
-	If LootProcessor == None
-		LogError("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: LootProcessor property is not filled.")
+	If !RuntimeManager.CanRunLooting()
+		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: RuntimeManager denied looting.")
+		Return
+	EndIf
+
+	RefreshRuntimeSettings()
+	theLooterRef = ResolveLooterRef()
+
+	If IsAsteroidDepositMode() || IsShipContainerMode()
+		Bool bFastSpaceLootProcessed = ProcessSpaceLootCandidates()
+
+		If !bFastSpaceLootProcessed
+			LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting complete: space-loot inbox processed zero candidates.")
+		EndIf
+
+		Return
+	EndIf
+
+	If LootScanner == None
+		LogError("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: LootScanner property is not filled.")
 		Return
 	EndIf
 
@@ -228,14 +246,6 @@ Function ExecuteLooting()
 		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: ActiveLootList is empty.")
 		Return
 	EndIf
-
-	If !RuntimeManager.CanRunLooting()
-		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: RuntimeManager denied looting.")
-		Return
-	EndIf
-
-	RefreshRuntimeSettings()
-	theLooterRef = ResolveLooterRef()
 
 	Bool bScannerProcessed = False
 	Int iProcessed = LootScanner.Scan(Self)
@@ -252,6 +262,10 @@ Function ExecuteLooting()
 EndFunction
 
 Bool Function ProcessSpaceLootCandidates()
+	If !IsAsteroidDepositMode() && !IsShipContainerMode()
+		Return False
+	EndIf
+
 	If SpaceLootCandidateInbox == None
 		Return False
 	EndIf
@@ -269,31 +283,31 @@ Bool Function ProcessSpaceLootCandidates()
 		Return False
 	EndIf
 
-	ObjectReference[] singleSpaceLootCandidate = new ObjectReference[1]
 	Int iIndex = 0
 	Int iProcessed = 0
-	Int iCandidateProcessed
+	Int iDrained = 0
+	Bool bCandidateProcessed
 
 	While iIndex < spaceLootCandidates.Length
 		If spaceLootCandidates[iIndex] == None
 			LogDebug("LootEffect", GetEffectDebugLabel() + " | Ignored None space-loot candidate at index=" + (iIndex as String))
 		Else
-			singleSpaceLootCandidate[0] = spaceLootCandidates[iIndex]
-			iCandidateProcessed = LootProcessor.ProcessCandidates(singleSpaceLootCandidate, Self)
+			bCandidateProcessed = LootProcessor.RouteSpaceLoot(spaceLootCandidates[iIndex], Self)
+			SpaceLootCandidateInbox.RemoveRef(spaceLootCandidates[iIndex])
+			iDrained += 1
 
-			If iCandidateProcessed > 0
-				SpaceLootCandidateInbox.RemoveRef(spaceLootCandidates[iIndex])
-				iProcessed += iCandidateProcessed
-				LogDebug("LootEffect", GetEffectDebugLabel() + " | Space-loot candidate processed and removed from inbox: " + spaceLootCandidates[iIndex])
+			If bCandidateProcessed
+				iProcessed += 1
+				LogDebug("LootEffect", GetEffectDebugLabel() + " | Space-loot candidate transferred and removed from inbox: " + spaceLootCandidates[iIndex])
 			Else
-				LogDebug("LootEffect", GetEffectDebugLabel() + " | Space-loot candidate retained in inbox for retry: " + spaceLootCandidates[iIndex])
+				LogDebug("LootEffect", GetEffectDebugLabel() + " | Space-loot candidate removed from inbox after transfer attempt: " + spaceLootCandidates[iIndex])
 			EndIf
 		EndIf
 
 		iIndex += 1
 	EndWhile
 
-	LogDebug("LootEffect", GetEffectDebugLabel() + " | Space-loot candidate processing complete. Processed=" + (iProcessed as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Space-loot candidate fast drain complete. Drained=" + (iDrained as String) + " Transferred=" + (iProcessed as String))
 
 	Return iProcessed > 0
 EndFunction
