@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:LootProcessorScript Extends Quest Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.3
+; Version: 1.0.4
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: LootProcessorScript
@@ -172,7 +172,23 @@ EndFunction
 ; ==============================================================
 
 Bool Function RouteContainer(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
+	Form akBase
+	Container akBaseContainer
+	String sEffectLabel = "UnknownEffect"
+
 	If akContainer == None
+		Return false
+	EndIf
+
+	If akEffectContext != None
+		sEffectLabel = akEffectContext.GetEffectDebugLabel()
+	EndIf
+
+	akBase = akContainer.GetBaseObject()
+	akBaseContainer = akBase as Container
+
+	If akBaseContainer == None
+		LogDebug("LootProcessor", sEffectLabel + " | RouteContainer rejected non-container base: ref=" + akContainer + " base=" + akBase)
 		Return false
 	EndIf
 
@@ -182,7 +198,7 @@ Bool Function RouteContainer(ObjectReference akContainer, PWAL:Looting:LootEffec
 	EndIf
 
 	ContainerProcessor.ProcessContainer(akContainer, akEffectContext)
-	LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | Container routed: " + akContainer)
+	LogDebug("LootProcessor", sEffectLabel + " | Container routed: " + akContainer)
 	Return true
 EndFunction
 
