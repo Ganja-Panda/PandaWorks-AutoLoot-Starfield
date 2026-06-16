@@ -37,7 +37,7 @@ Group FrameworkServices
 	PWAL:Core:RuntimeManagerScript Property RuntimeManager Auto Const Mandatory
 	PWAL:Looting:LootScannerScript Property LootScanner Auto Const Mandatory
 	PWAL:Looting:LootProcessorScript Property LootProcessor Auto Const Mandatory
-	RefCollectionAlias Property PWAL_RCAL_AsteroidCanidateInbox Auto Const
+	RefCollectionAlias Property PWAL_RCAL_AsteroidCandidateInbox Auto Const
 	RefCollectionAlias Property PWAL_RCAL_ShipDebrisCandidateInbox Auto Const
 EndGroup
 
@@ -254,11 +254,11 @@ Function ExecuteLooting()
 EndFunction
 
 Bool Function ProcessExternalCandidates()
-	If PWAL_RCAL_AsteroidCanidateInbox == None
+	If PWAL_RCAL_AsteroidCandidateInbox == None
 		Return False
 	EndIf
 
-	ObjectReference[] candidates = PWAL_RCAL_AsteroidCanidateInbox.GetArray()
+	ObjectReference[] candidates = PWAL_RCAL_AsteroidCandidateInbox.GetArray()
 
 	If candidates == None || candidates.Length <= 0
 		Return False
@@ -284,7 +284,7 @@ Bool Function ProcessExternalCandidates()
 			iCandidateProcessed = LootProcessor.ProcessCandidates(singleCandidate, Self)
 
 			If iCandidateProcessed > 0
-				PWAL_RCAL_AsteroidCanidateInbox.RemoveRef(candidates[iIndex])
+				PWAL_RCAL_AsteroidCandidateInbox.RemoveRef(candidates[iIndex])
 				iProcessed += iCandidateProcessed
 				LogDebug("LootEffect", GetEffectDebugLabel() + " | External candidate processed and removed from inbox: " + candidates[iIndex])
 			Else
