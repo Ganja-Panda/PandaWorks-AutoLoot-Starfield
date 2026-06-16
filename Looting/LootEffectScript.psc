@@ -38,6 +38,7 @@ Group FrameworkServices
 	PWAL:Looting:LootScannerScript Property LootScanner Auto Const Mandatory
 	PWAL:Looting:LootProcessorScript Property LootProcessor Auto Const Mandatory
 	RefCollectionAlias Property PWAL_RCAL_AsteroidCanidateInbox Auto Const
+	RefCollectionAlias Property PWAL_RCAL_ShipDebrisCandidateInbox Auto Const
 EndGroup
 
 Group EffectProfile_Mandatory
@@ -245,9 +246,10 @@ Function ExecuteLooting()
 	EndIf
 
 	Bool bExternalProcessed = ProcessExternalCandidates()
+	Bool bShipDebrisProcessed = ProcessShipDebrisCandidates()
 
-	If !bScannerProcessed && !bExternalProcessed
-		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting complete: scanner/external inbox processed zero candidates.")
+	If !bScannerProcessed && !bExternalProcessed && !bShipDebrisProcessed
+		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting complete: scanner/external/ship debris inbox processed zero candidates.")
 	EndIf
 EndFunction
 
@@ -294,6 +296,51 @@ Bool Function ProcessExternalCandidates()
 	EndWhile
 
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | External candidate processing complete. Processed=" + (iProcessed as String))
+
+	Return iProcessed > 0
+EndFunction
+
+Bool Function ProcessShipDebrisCandidates()
+	If PWAL_RCAL_ShipDebrisCandidateInbox == None
+		Return False
+	EndIf
+
+	ObjectReference[] candidates = PWAL_RCAL_ShipDebrisCandidateInbox.GetArray()
+
+	If candidates == None || candidates.Length <= 0
+		Return False
+	EndIf
+
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Ship debris candidate inbox count=" + (candidates.Length as String))
+
+	If LootProcessor == None
+		LogWarn("LootEffect", GetEffectDebugLabel() + " | Cannot process ship debris candidates: LootProcessor is None.")
+		Return False
+	EndIf
+
+	Int iIndex = 0
+	Int iProcessed = 0
+	Bool bCandidateProcessed
+
+	While iIndex < candidates.Length
+		If candidates[iIndex] == None
+			LogDebug("LootEffect", GetEffectDebugLabel() + " | Ignored None ship debris candidate at index=" + (iIndex as String))
+		Else
+			bCandidateProcessed = LootProcessor.RouteShipDebris(candidates[iIndex], Self)
+
+			If bCandidateProcessed
+				PWAL_RCAL_ShipDebrisCandidateInbox.RemoveRef(candidates[iIndex])
+				iProcessed += 1
+				LogDebug("LootEffect", GetEffectDebugLabel() + " | Ship debris candidate processed and removed from inbox: " + candidates[iIndex])
+			Else
+				LogDebug("LootEffect", GetEffectDebugLabel() + " | Ship debris candidate retained in inbox for retry: " + candidates[iIndex])
+			EndIf
+		EndIf
+
+		iIndex += 1
+	EndWhile
+
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Ship debris candidate processing complete. Processed=" + (iProcessed as String))
 
 	Return iProcessed > 0
 EndFunction
