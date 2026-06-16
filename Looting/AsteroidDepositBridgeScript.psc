@@ -29,7 +29,7 @@ ScriptName PWAL:Looting:AsteroidDepositBridgeScript Extends ObjectReference
 ; ==============================================================
 
 Keyword Property PWAL_KYWD_AsteroidDeposit Auto Const Mandatory
-RefCollectionAlias Property PWAL_RCAL_AsteroidCanidateInbox Auto Const
+RefCollectionAlias Property PWAL_RCAL_AsteroidCandidateInbox Auto Const
 Int Property ASTEROID_INBOX_TIMER_ID = 101 Auto Const
 
 Bool bKeywordAdded = False
@@ -54,8 +54,8 @@ EndEvent
 Event OnUnload()
 	CancelTimer(ASTEROID_INBOX_TIMER_ID)
 
-	If PWAL_RCAL_AsteroidCanidateInbox != None
-		PWAL_RCAL_AsteroidCanidateInbox.RemoveRef(Self)
+	If PWAL_RCAL_AsteroidCandidateInbox != None
+		PWAL_RCAL_AsteroidCandidateInbox.RemoveRef(Self)
 		Debug.Trace("[PWAL][DEBUG][AsteroidBridge] Removed asteroid candidate from inbox: " + Self)
 	EndIf
 EndEvent
@@ -80,7 +80,7 @@ Function ProcessReadinessAttempt()
 
 	iSubmitAttempt += 1
 
-	If PWAL_RCAL_AsteroidCanidateInbox == None
+	If PWAL_RCAL_AsteroidCandidateInbox == None
 		Debug.Trace("[PWAL][WARN][AsteroidBridge] Readiness attempt=" + (iSubmitAttempt as String) + " ref=" + Self + " base=" + akBase + " itemCount=" + (iItemCount as String) + " alreadyInInbox=False inbox=None")
 
 		If iSubmitAttempt < 5
@@ -90,7 +90,7 @@ Function ProcessReadinessAttempt()
 		Return
 	EndIf
 
-	bAlreadyInInbox = PWAL_RCAL_AsteroidCanidateInbox.Find(Self) >= 0
+	bAlreadyInInbox = PWAL_RCAL_AsteroidCandidateInbox.Find(Self) >= 0
 	Debug.Trace("[PWAL][DEBUG][AsteroidBridge] Readiness attempt=" + (iSubmitAttempt as String) + " ref=" + Self + " base=" + akBase + " itemCount=" + (iItemCount as String) + " alreadyInInbox=" + (bAlreadyInInbox as String))
 
 	If bAlreadyInInbox
@@ -98,7 +98,7 @@ Function ProcessReadinessAttempt()
 	EndIf
 
 	If iItemCount > 0 || iSubmitAttempt >= 5
-		PWAL_RCAL_AsteroidCanidateInbox.AddRef(Self)
+		PWAL_RCAL_AsteroidCandidateInbox.AddRef(Self)
 		Debug.Trace("[PWAL][DEBUG][AsteroidBridge] Submitted asteroid candidate on attempt=" + (iSubmitAttempt as String) + ": " + Self)
 		Return
 	EndIf
