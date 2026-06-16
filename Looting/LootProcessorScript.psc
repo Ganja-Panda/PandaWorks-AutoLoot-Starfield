@@ -38,6 +38,7 @@ Group FrameworkServices_AutoFill
 	PWAL:Looting:DestinationResolverScript Property DestinationResolver Auto Const Mandatory
 	PWAL:Looting:AsteroidDepositProcessorScript Property AsteroidDepositProcessor Auto Const Mandatory
 	PWAL:Looting:ShipDebrisProcessorScript Property ShipDebrisProcessor Auto Const Mandatory
+	PWAL:Looting:SpaceCargoProcessorScript Property SpaceCargoProcessor Auto Const Mandatory
 	PWAL:Looting:ContainerProcessorScript Property ContainerProcessor Auto Const Mandatory
 	PWAL:Looting:CorpseProcessorScript Property CorpseProcessor Auto Const Mandatory
 	PWAL:Looting:HarvestProcessorScript Property HarvestProcessor Auto Const Mandatory
@@ -202,6 +203,19 @@ Bool Function RouteShipDebris(ObjectReference akDebris, PWAL:Looting:LootEffectS
 	EndIf
 
 	Return ShipDebrisProcessor.ProcessShipDebris(akDebris, akEffectContext)
+EndFunction
+
+Bool Function RouteSpaceCargo(ObjectReference akCargo, PWAL:Looting:LootEffectScript akEffectContext)
+	If akCargo == None
+		Return false
+	EndIf
+
+	If SpaceCargoProcessor == None
+		LogWarn("LootProcessor", "RouteSpaceCargo failed: SpaceCargoProcessor property is not filled.")
+		Return false
+	EndIf
+
+	Return SpaceCargoProcessor.ProcessSpaceCargo(akCargo, akEffectContext)
 EndFunction
 
 Bool Function RouteContainer(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)

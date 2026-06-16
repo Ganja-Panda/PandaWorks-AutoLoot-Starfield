@@ -28,7 +28,7 @@ ScriptName PWAL:Looting:ShipDebrisBridgeScript Extends ObjectReference
 ; ==============================================================
 
 RefCollectionAlias Property PWAL_RCAL_ShipDebrisCandidateInbox Auto Const
-Int Property SHIP_DEBRIS_INBOX_TIMER_ID = 102 Auto Const
+Int Property SHIP_DEBRIS_INBOX_TIMER_ID = 101 Auto Const
 
 Int iSubmitAttempt = 0
 
