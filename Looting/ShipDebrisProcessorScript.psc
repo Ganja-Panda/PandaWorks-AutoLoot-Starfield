@@ -9,12 +9,12 @@ ScriptName PWAL:Looting:ShipDebrisProcessorScript Extends Quest
 ; Script: ShipDebrisProcessorScript
 ; Type: Looting / Processor Service
 ; Purpose:
-;   Transfers generated ship debris inventory refs.
+;   Transfers inventory from watched destroyed SpaceshipReference refs.
 ;
 ; Responsibilities:
-;   - Accept generated ship debris inventory refs
+;   - Accept watched destroyed SpaceshipReference refs
 ;   - Resolve the configured PWAL destination
-;   - Transfer or remove the full debris inventory
+;   - Transfer or remove the full destroyed ship inventory
 ;   - Report transfer diagnostics
 ;
 ; Non-Responsibilities:
@@ -22,6 +22,9 @@ ScriptName PWAL:Looting:ShipDebrisProcessorScript Extends Quest
 ;   - No validation
 ;   - No normal container processing
 ;   - No category filtering
+;   - No visual SMOD/MSTT debris processing
+;   - No physical cargo/fuel module CONT processing
+;   - Physical space cargo containers belong to SpaceCargoProcessorScript
 ; ==============================================================
 
 ; ==============================================================
@@ -45,8 +48,10 @@ Bool Function ProcessShipDebris(ObjectReference akDebris, PWAL:Looting:LootEffec
 
 	If akDebris == None
 		LogWarn("ShipDebrisProcessor", "ProcessShipDebris failed: akDebris is None.")
-		Return false
+		Return true
 	EndIf
+
+	SpaceshipReference shipRef = akDebris as SpaceshipReference
 
 	If akEffectContext == None
 		LogWarn("ShipDebrisProcessor", "ProcessShipDebris failed: akEffectContext is None.")
@@ -58,26 +63,36 @@ Bool Function ProcessShipDebris(ObjectReference akDebris, PWAL:Looting:LootEffec
 		Return false
 	EndIf
 
+	If shipRef == None
+		LogWarn("ShipDebrisProcessor", "ProcessShipDebris rejected non-ship candidate. source=" + akDebris + " baseObject=" + akDebris.GetBaseObject())
+		Return true
+	EndIf
+
+	If !shipRef.IsDead()
+		LogDebug("ShipDebrisProcessor", "ProcessShipDebris deferred: ship is still alive. source=" + shipRef)
+		Return false
+	EndIf
+
+	iItemCountBefore = shipRef.GetItemCount()
+	If iItemCountBefore <= 0
+		LogDebug("ShipDebrisProcessor", "ProcessShipDebris deferred: dead ship has no inventory yet. source=" + shipRef)
+		Return false
+	EndIf
+
 	iDestinationCode = DestinationResolver.ResolveDestinationCodeForEffect(akEffectContext.GetLootGroupCode(), akEffectContext)
 	akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
 
 	If !DestinationResolver.IsVoidDestination(iDestinationCode) && akDestinationRef == None
-		LogWarn("ShipDebrisProcessor", "ProcessShipDebris failed: resolved destination ref is None. source=" + akDebris + " destinationCode=" + (iDestinationCode as String))
+		LogWarn("ShipDebrisProcessor", "ProcessShipDebris failed: resolved destination ref is None. source=" + shipRef + " destinationCode=" + (iDestinationCode as String))
 		Return false
 	EndIf
 
-	iItemCountBefore = akDebris.GetItemCount()
-	If iItemCountBefore <= 0
-		LogDebug("ShipDebrisProcessor", "ProcessShipDebris deferred: source has no items yet. source=" + akDebris)
-		Return false
-	EndIf
+	LogDebug("ShipDebrisProcessor", "Destroyed ship transfer begin: source=" + shipRef + " destination=" + akDestinationRef + " destinationCode=" + (iDestinationCode as String) + " before=" + (iItemCountBefore as String))
 
-	LogDebug("ShipDebrisProcessor", "Transfer begin: source=" + akDebris + " destination=" + akDestinationRef + " destinationCode=" + (iDestinationCode as String) + " before=" + (iItemCountBefore as String))
+	shipRef.RemoveAllItems(akDestinationRef, false, false)
 
-	akDebris.RemoveAllItems(akDestinationRef, false, false)
-
-	iItemCountAfter = akDebris.GetItemCount()
-	LogDebug("ShipDebrisProcessor", "Transfer complete: source=" + akDebris + " destination=" + akDestinationRef + " destinationCode=" + (iDestinationCode as String) + " before=" + (iItemCountBefore as String) + " after=" + (iItemCountAfter as String))
+	iItemCountAfter = shipRef.GetItemCount()
+	LogDebug("ShipDebrisProcessor", "Destroyed ship transfer complete: source=" + shipRef + " destination=" + akDestinationRef + " destinationCode=" + (iDestinationCode as String) + " before=" + (iItemCountBefore as String) + " after=" + (iItemCountAfter as String))
 
 	Return true
 EndFunction

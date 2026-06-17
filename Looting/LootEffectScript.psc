@@ -226,11 +226,6 @@ Function ExecuteLooting()
 		Return
 	EndIf
 
-	If ActiveLootList.GetSize() <= 0
-		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: ActiveLootList is empty.")
-		Return
-	EndIf
-
 	If !RuntimeManager.CanRunLooting()
 		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting aborted: RuntimeManager denied looting.")
 		Return
@@ -240,22 +235,26 @@ Function ExecuteLooting()
 	theLooterRef = ResolveLooterRef()
 
 	Bool bScannerProcessed = False
-	Int iProcessed = LootScanner.Scan(Self)
-	If iProcessed > 0
-		bScannerProcessed = True
-		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting complete. Scanner processed " + (iProcessed as String) + " candidate(s).")
+	If ActiveLootList.GetSize() > 0
+		Int iProcessed = LootScanner.Scan(Self)
+		If iProcessed > 0
+			bScannerProcessed = True
+			LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting complete. Scanner processed " + (iProcessed as String) + " candidate(s).")
+		EndIf
+	Else
+		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting scanner skipped: ActiveLootList is empty.")
 	EndIf
 
-	Bool bExternalProcessed = ProcessExternalCandidates()
+	Bool bAsteroidProcessed = ProcessAsteroidCandidates()
 	Bool bShipDebrisProcessed = ProcessShipDebrisCandidates()
 	Bool bSpaceCargoProcessed = ProcessSpaceCargoCandidates()
 
-	If !bScannerProcessed && !bExternalProcessed && !bShipDebrisProcessed && !bSpaceCargoProcessed
-		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting complete: scanner/external/ship debris/space cargo inbox processed zero candidates.")
+	If !bScannerProcessed && !bAsteroidProcessed && !bShipDebrisProcessed && !bSpaceCargoProcessed
+		LogDebug("LootEffect", GetEffectDebugLabel() + " | ExecuteLooting complete: scanner/asteroid/ship debris/space cargo inbox processed zero candidates.")
 	EndIf
 EndFunction
 
-Bool Function ProcessExternalCandidates()
+Bool Function ProcessAsteroidCandidates()
 	If PWAL_RCAL_AsteroidCandidateInbox == None
 		Return False
 	EndIf
@@ -266,10 +265,10 @@ Bool Function ProcessExternalCandidates()
 		Return False
 	EndIf
 
-	LogDebug("LootEffect", GetEffectDebugLabel() + " | External candidate inbox count=" + (candidates.Length as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Asteroid candidate inbox count=" + (candidates.Length as String))
 
 	If LootProcessor == None
-		LogWarn("LootEffect", GetEffectDebugLabel() + " | Cannot process external candidates: LootProcessor is None.")
+		LogWarn("LootEffect", GetEffectDebugLabel() + " | Cannot process asteroid candidates: LootProcessor is None.")
 		Return False
 	EndIf
 
@@ -280,7 +279,7 @@ Bool Function ProcessExternalCandidates()
 
 	While iIndex < candidates.Length
 		If candidates[iIndex] == None
-			LogDebug("LootEffect", GetEffectDebugLabel() + " | Ignored None external candidate at index=" + (iIndex as String))
+			LogDebug("LootEffect", GetEffectDebugLabel() + " | Ignored None asteroid candidate at index=" + (iIndex as String))
 		Else
 			singleCandidate[0] = candidates[iIndex]
 			iCandidateProcessed = LootProcessor.ProcessCandidates(singleCandidate, Self)
@@ -288,16 +287,16 @@ Bool Function ProcessExternalCandidates()
 			If iCandidateProcessed > 0
 				PWAL_RCAL_AsteroidCandidateInbox.RemoveRef(candidates[iIndex])
 				iProcessed += iCandidateProcessed
-				LogDebug("LootEffect", GetEffectDebugLabel() + " | External candidate processed and removed from inbox: " + candidates[iIndex])
+				LogDebug("LootEffect", GetEffectDebugLabel() + " | Asteroid candidate processed and removed from inbox: " + candidates[iIndex])
 			Else
-				LogDebug("LootEffect", GetEffectDebugLabel() + " | External candidate retained in inbox for retry: " + candidates[iIndex])
+				LogDebug("LootEffect", GetEffectDebugLabel() + " | Asteroid candidate retained in inbox for retry: " + candidates[iIndex])
 			EndIf
 		EndIf
 
 		iIndex += 1
 	EndWhile
 
-	LogDebug("LootEffect", GetEffectDebugLabel() + " | External candidate processing complete. Processed=" + (iProcessed as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Asteroid candidate processing complete. Processed=" + (iProcessed as String))
 
 	Return iProcessed > 0
 EndFunction
@@ -313,7 +312,7 @@ Bool Function ProcessShipDebrisCandidates()
 		Return False
 	EndIf
 
-	LogDebug("LootEffect", GetEffectDebugLabel() + " | Ship debris candidate inbox count=" + (candidates.Length as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Destroyed ship watch inbox count=" + (candidates.Length as String))
 
 	If LootProcessor == None
 		LogWarn("LootEffect", GetEffectDebugLabel() + " | Cannot process ship debris candidates: LootProcessor is None.")
@@ -333,16 +332,16 @@ Bool Function ProcessShipDebrisCandidates()
 			If bCandidateProcessed
 				PWAL_RCAL_ShipDebrisCandidateInbox.RemoveRef(candidates[iIndex])
 				iProcessed += 1
-				LogDebug("LootEffect", GetEffectDebugLabel() + " | Ship debris candidate processed and removed from inbox: " + candidates[iIndex])
+				LogDebug("LootEffect", GetEffectDebugLabel() + " | Destroyed ship candidate processed and removed from inbox: " + candidates[iIndex])
 			Else
-				LogDebug("LootEffect", GetEffectDebugLabel() + " | Ship debris candidate retained in inbox for retry: " + candidates[iIndex])
+				LogDebug("LootEffect", GetEffectDebugLabel() + " | Destroyed ship candidate retained in inbox for retry: " + candidates[iIndex])
 			EndIf
 		EndIf
 
 		iIndex += 1
 	EndWhile
 
-	LogDebug("LootEffect", GetEffectDebugLabel() + " | Ship debris candidate processing complete. Processed=" + (iProcessed as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Destroyed ship candidate processing complete. Processed=" + (iProcessed as String))
 
 	Return iProcessed > 0
 EndFunction
