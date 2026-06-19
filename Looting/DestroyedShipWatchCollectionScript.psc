@@ -7,13 +7,14 @@ ScriptName PWAL:Looting:DestroyedShipWatchCollectionScript Extends RefCollection
 ; Created: 06-19-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: DestroyedShipWatchCollectionScript
-; Type: Looting / RefCollectionAlias Diagnostics
+; Type: Looting / RefCollectionAlias Death Listener
 ; Purpose:
-;   Provides lightweight diagnostics for the destroyed ship watch inbox.
+;   Provides lightweight death diagnostics for the destroyed ship watch inbox.
 ;
 ; Responsibilities:
 ;   - Run on PWAL_RCAL_DestroyedShipWatchInbox
 ;   - Report collection script initialization
+;   - Report ship death/dying events received by the watched collection
 ;
 ; Non-Responsibilities:
 ;   - No manual AddRef behavior
@@ -36,7 +37,22 @@ PWAL:Core:LoggerScript Property Logger Auto
 ; ==============================================================
 
 Event OnInit()
-	LogDebug("DestroyedShipWatchCollection", "Destroyed ship watch collection script initialized." + Self)
+	LogDebug("DestroyedShipWatchCollection", "Destroyed ship watch collection script initialized: " + Self)
+EndEvent
+
+Event OnDeath(ObjectReference akSenderRef, ObjectReference akKiller)
+	ObjectReference[] watchedRefs = GetArray()
+	Int iCollectionCount = 0
+
+	If watchedRefs != None
+		iCollectionCount = watchedRefs.Length
+	EndIf
+
+	LogDebug("DestroyedShipWatchCollection", "OnDeath received. sender=" + akSenderRef + " killer=" + akKiller + " collectionCount=" + (iCollectionCount as String))
+EndEvent
+
+Event OnDying(ObjectReference akSenderRef, ObjectReference akKiller)
+	LogDebug("DestroyedShipWatchCollection", "OnDying received. sender=" + akSenderRef + " killer=" + akKiller)
 EndEvent
 
 ; ==============================================================
