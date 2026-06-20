@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:LootScannerScript Extends Quest Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.1
+; Version: 1.00
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: LootScannerScript
@@ -53,30 +53,28 @@ Int Function Scan(PWAL:Looting:LootEffectScript akEffectContext)
 	EndIf
 
 	akLootList = akEffectContext.ActiveLootList
-	LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | Scan entered. ActiveLootList=" + akEffectContext.ActiveLootList)
-
 	If akLootList == None
-		LogWarn("LootScanner", akEffectContext.GetEffectDebugLabel() + " | Scan aborted: ActiveLootList is None.")
+		LogWarn("LootScanner", "Scan aborted: ActiveLootList is None.")
 		Return 0
 	EndIf
 
 	If akLootList.GetSize() <= 0
-		LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | Scan skipped: ActiveLootList is empty.")
+		LogDebug("LootScanner", "Scan skipped: ActiveLootList is empty.")
 		Return 0
 	EndIf
 
 	If akEffectContext.UsesMultipleKeywordScan()
-		LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | Scan mode resolved: multiple keyword.")
+		LogDebug("LootScanner", "Scan mode resolved: multiple keyword.")
 		Return LocateLootByKeywordList(akLootList, akEffectContext)
 	EndIf
 
 	If akEffectContext.UsesKeywordScan()
-		LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | Scan mode resolved: single keyword.")
+		LogDebug("LootScanner", "Scan mode resolved: single keyword.")
 		akLootArray = LocateLootBySingleKeyword(akLootList, akEffectContext)
 		Return ProcessLocatedArray(akLootArray, akEffectContext)
 	EndIf
 
-	LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | Scan mode resolved: form type.")
+	LogDebug("LootScanner", "Scan mode resolved: form type.")
 	akLootArray = LocateLootByFormType(akLootList, akEffectContext)
 	Return ProcessLocatedArray(akLootArray, akEffectContext)
 EndFunction
@@ -95,17 +93,14 @@ ObjectReference[] Function LocateLootBySingleKeyword(FormList akLootList, PWAL:L
 
 	akKeyword = akLootList.GetAt(0) as Keyword
 	If akKeyword == None
-		LogWarn("LootScanner", akEffectContext.GetEffectDebugLabel() + " | LocateLootBySingleKeyword failed: first list entry is not a Keyword.")
+		LogWarn("LootScanner", "LocateLootBySingleKeyword failed: first list entry is not a Keyword.")
 		Return None
 	EndIf
 
-	LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | SingleKeyword scan: keyword=" + akKeyword + " radius=" + (akEffectContext.GetRadius() as String))
 	akLootArray = GetPlayerRefSafe().FindAllReferencesWithKeyword(akKeyword, akEffectContext.GetRadius())
 
-	If akLootArray == None
-		LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | SingleKeyword scan returned None.")
-	Else
-		LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | SingleKeyword scan candidate count=" + (akLootArray.Length as String))
+	If akLootArray != None
+		LogDebug("LootScanner", "LocateLootBySingleKeyword found " + akLootArray.Length + " candidate(s).")
 	EndIf
 
 	Return akLootArray
@@ -121,17 +116,14 @@ ObjectReference[] Function LocateLootByFormType(FormList akLootList, PWAL:Lootin
 
 	akScanForm = akLootList as Form
 	If akScanForm == None
-		LogWarn("LootScanner", akEffectContext.GetEffectDebugLabel() + " | LocateLootByFormType failed: ActiveLootList could not be cast to Form.")
+		LogWarn("LootScanner", "LocateLootByFormType failed: ActiveLootList could not be cast to Form.")
 		Return None
 	EndIf
 
-	LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | FormType scan: form=" + akScanForm + " radius=" + (akEffectContext.GetRadius() as String))
 	akLootArray = GetPlayerRefSafe().FindAllReferencesOfType(akScanForm, akEffectContext.GetRadius())
 
-	If akLootArray == None
-		LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | FormType scan returned None.")
-	Else
-		LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | FormType scan candidate count=" + (akLootArray.Length as String))
+	If akLootArray != None
+		LogDebug("LootScanner", "LocateLootByFormType found " + akLootArray.Length + " candidate(s).")
 	EndIf
 
 	Return akLootArray
@@ -156,13 +148,10 @@ Int Function LocateLootByKeywordList(FormList akLootList, PWAL:Looting:LootEffec
 		akKeyword = akLootList.GetAt(iIndex) as Keyword
 
 		If akKeyword != None
-			LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | MultiKeyword scan index=" + (iIndex as String) + " keyword=" + akKeyword + " radius=" + (fRadius as String))
 			akLootArray = GetPlayerRefSafe().FindAllReferencesWithKeyword(akKeyword, fRadius)
 
-			If akLootArray == None
-				LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | MultiKeyword scan index=" + (iIndex as String) + " returned None.")
-			Else
-				LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | MultiKeyword scan index=" + (iIndex as String) + " candidate count=" + (akLootArray.Length as String))
+			If akLootArray != None
+				LogDebug("LootScanner", "LocateLootByKeywordList found " + akLootArray.Length + " candidate(s) at keyword index " + iIndex)
 			EndIf
 
 			If akLootArray != None && akLootArray.Length > 0
@@ -171,7 +160,7 @@ Int Function LocateLootByKeywordList(FormList akLootList, PWAL:Looting:LootEffec
 				EndIf
 			EndIf
 		Else
-			LogWarn("LootScanner", akEffectContext.GetEffectDebugLabel() + " | LocateLootByKeywordList skipped invalid keyword at index " + iIndex)
+			LogWarn("LootScanner", "LocateLootByKeywordList skipped invalid keyword at index " + iIndex)
 		EndIf
 
 		iIndex += 1
@@ -194,11 +183,10 @@ Int Function ProcessLocatedArray(ObjectReference[] akLootArray, PWAL:Looting:Loo
 	EndIf
 
 	If LootProcessor == None
-		LogWarn("LootScanner", akEffectContext.GetEffectDebugLabel() + " | ProcessLocatedArray aborted: LootProcessor is None.")
+		LogWarn("LootScanner", "ProcessLocatedArray aborted: LootProcessor is None.")
 		Return 0
 	EndIf
 
-	LogDebug("LootScanner", akEffectContext.GetEffectDebugLabel() + " | ProcessLocatedArray forwarding " + (akLootArray.Length as String) + " candidate(s) to processor.")
 	Return LootProcessor.ProcessCandidates(akLootArray, akEffectContext)
 EndFunction
 

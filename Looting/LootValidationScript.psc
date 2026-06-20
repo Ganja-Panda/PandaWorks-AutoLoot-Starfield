@@ -1,9 +1,9 @@
 ScriptName PWAL:Looting:LootValidationScript Extends Quest Hidden
 
 ; ==============================================================
-; PandaWorks Studios - PandaWorks Auto Loot
+; Pandworks Studios - PandaWork Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.2
+; Version: 1.0.1
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: LootValidationScript
@@ -50,101 +50,75 @@ LocationAlias Property HomeShipInteriorLocation Auto Const
 ; Public API
 ; ==============================================================
 
-String Function BuildLootValidationContext(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
-	String sContext = "ref=" + akLoot
-	Form akBaseObject = None
-	ObjectReference akContainerRef = None
-	String sEffectLabel = "UnknownEffect"
-
-	If akEffectContext != None
-		sEffectLabel = akEffectContext.GetEffectDebugLabel()
-	EndIf
-
-	If akLoot != None
-		akBaseObject = akLoot.GetBaseObject()
-		akContainerRef = akLoot.GetContainer()
-		sContext = sContext + " base=" + akBaseObject + " container=" + akContainerRef
-	EndIf
-
-	Return sEffectLabel + " | " + sContext
-EndFunction
-
 Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
 	Actor akPlayerActor
-	String sEffectLabel = "UnknownEffect"
 
-	If akEffectContext != None
-		sEffectLabel = akEffectContext.GetEffectDebugLabel()
-	EndIf
-
-	LogDebug("LootValidation", sEffectLabel + " | CanProcessLoot called.")
+	LogDebug("LootValidation", "CanProcessLoot called.")
 
 	If akLoot == None
-		LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: loot reference is None.")
+		LogDebug("LootValidation", "Rejected: loot reference is None.")
 		Return false
 	EndIf
 
 	If akEffectContext == None
-		LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: effect context is None.")
+		LogDebug("LootValidation", "Rejected: effect context is None.")
 		Return false
 	EndIf
 	
 	If IsBlockedPlayerInventoryRef(akLoot, akEffectContext)
-		LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: candidate belongs to PlayerRef inventory/container.")
+		LogDebug("LootValidation", "Rejected: candidate belongs to PlayerRef inventory/container.")
 		Return false
 	EndIf
 
 	If !IsLootLoaded(akLoot)
-		LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: loot is not loaded or is disabled/deleted.")
+		LogDebug("LootValidation", "Rejected: loot is not loaded or is disabled/deleted.")
 		Return false
 	EndIf
 
 	If !IsPlayerAvailable()
-		LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: player is not available.")
+		LogDebug("LootValidation", "Rejected: player is not available.")
 		Return false
 	EndIf
 
 	If IsActorOutsideCorpseOrHarvestMode(akLoot, akEffectContext)
-		LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: actor candidate outside corpse/harvest mode.")
+		LogDebug("LootValidation", "Rejected: actor candidate outside corpse/harvest mode.")
 		Return false
 	EndIf
 
 	If IsProtectedSourceRef(akLoot, akEffectContext)
-		LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: protected source reference.")
+		LogDebug("LootValidation", "Rejected: protected source reference.")
 		Return false
 	EndIf
 
 	If IsAlreadyLooted(akLoot, akEffectContext)
-		LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: target is already marked as looted.")
+		LogDebug("LootValidation", "Rejected: target is already marked as looted.")
 		Return false
 	EndIf
 
 	If IsInBlockedOwnedArea(akEffectContext)
-		LogDebug("LootValidation", sEffectLabel + " | Rejected: blocked owned area.")
+		LogDebug("LootValidation", "Rejected: blocked owned area.")
 		Return false
 	EndIf
 
-	If akEffectContext.IsShipInteriorMode() || akEffectContext.IsSpaceCargoMode() || akEffectContext.IsShipDebrisMode()
-		If !CanLootShipSpaceContent(akEffectContext)
-			LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: ship looting is disabled.")
-			Return false
-		EndIf
+	If akEffectContext.IsShipContainerMode() && !CanLootShipSpaceContent(akEffectContext)
+		LogDebug("LootValidation", "Rejected: ship looting is disabled.")
+		Return false
 	EndIf
 
 	akPlayerActor = akEffectContext.GetPlayerActor()
 	If akPlayerActor != None
 		If akPlayerActor.WouldBeStealing(akLoot) && !akEffectContext.CanSteal()
-			LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: WouldBeStealing and stealing is not allowed.")
+			LogDebug("LootValidation", "Rejected: WouldBeStealing and stealing is not allowed.")
 			Return false
 		EndIf
 	EndIf
 
 	If IsPlayerStealing(akLoot, akEffectContext) && !akEffectContext.CanSteal()
-		LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: IsPlayerStealing and stealing is not allowed.")
+		LogDebug("LootValidation", "Rejected: IsPlayerStealing and stealing is not allowed.")
 		Return false
 	EndIf
 
-	LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Accepted: loot passed validation.")
+	LogDebug("LootValidation", "Accepted: loot passed validation.")
 	Return true
 EndFunction
 
@@ -203,9 +177,9 @@ Bool Function IsPlayerShipProtectedSource(ObjectReference akLoot, PWAL:Looting:L
 		Return false
 	EndIf
 
-	; This protection is only for the ship interior container scan path.
+	; This protection is only for the ship/space container scan path.
 	; Do not let it block normal corpses, loose loot, or regular containers.
-	If !akEffectContext.IsShipInteriorMode()
+	If !akEffectContext.IsShipContainerMode()
 		Return false
 	EndIf
 
@@ -224,21 +198,22 @@ Bool Function IsPlayerShipProtectedSource(ObjectReference akLoot, PWAL:Looting:L
 	; Direct cargo/inventory alias protection.
 	If akShipInventoryRef != None
 		If akLoot == akShipInventoryRef
-			LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Protected player ship source matched PlayerShipSpaceshipInventory alias.")
+			LogDebug("LootValidation", "Protected player ship source matched PlayerShipSpaceshipInventory alias.")
 			Return true
 		EndIf
 	EndIf
 
+	; Cargo hold path may normalize directly to the player/home ship ref.
 	If akPlayerShipRef != None
 		If akLoot == akPlayerShipRef
-			LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Protected player ship source matched PlayerShip alias.")
+			LogDebug("LootValidation", "Protected player ship source matched PlayerShip alias.")
 			Return true
 		EndIf
 	EndIf
 
 	If akHomeShipRef != None
 		If akLoot == akHomeShipRef
-			LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Protected player ship source matched HomeShip alias.")
+			LogDebug("LootValidation", "Protected player ship source matched HomeShip alias.")
 			Return true
 		EndIf
 	EndIf
@@ -249,14 +224,14 @@ Bool Function IsPlayerShipProtectedSource(ObjectReference akLoot, PWAL:Looting:L
 	If akCurrentShipRef != None
 		If akPlayerShipRef != None
 			If akCurrentShipRef == akPlayerShipRef
-				LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Protected player ship source matched current ship ref to PlayerShip alias.")
+				LogDebug("LootValidation", "Protected player ship source matched current ship ref to PlayerShip alias.")
 				Return true
 			EndIf
 		EndIf
 
 		If akHomeShipRef != None
 			If akCurrentShipRef == akHomeShipRef
-				LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Protected player ship source matched current ship ref to HomeShip alias.")
+				LogDebug("LootValidation", "Protected player ship source matched current ship ref to HomeShip alias.")
 				Return true
 			EndIf
 		EndIf
@@ -285,7 +260,7 @@ Bool Function IsActorOutsideCorpseOrHarvestMode(ObjectReference akLoot, PWAL:Loo
 		Return false
 	EndIf
 
-	If akEffectContext.IsContainerMode() || akEffectContext.IsShipInteriorMode()
+	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
 		Return false
 	EndIf
 
@@ -298,7 +273,7 @@ Bool Function CanLootShipSpaceContent(PWAL:Looting:LootEffectScript akEffectCont
 	EndIf
 
 	If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Ships == None
-		LogDebug("LootValidation", akEffectContext.GetEffectDebugLabel() + " | CanLootShipSpaceContent: AllowLooting_Ships global missing. Defaulting to false.")
+		LogDebug("LootValidation", "CanLootShipSpaceContent: AllowLooting_Ships global missing. Defaulting to false.")
 		Return false
 	EndIf
 
@@ -319,17 +294,15 @@ Bool Function IsProtectedSourceRef(ObjectReference akLoot, PWAL:Looting:LootEffe
 	EndIf
 
 	If akLoot == akEffectContext.GetLodgeSafeRef()
-		LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: protected source reference matched LodgeSafeRef.")
 		Return true
 	EndIf
 
 	If akLoot == akEffectContext.GetPWALInventoryContainerRef()
-		LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: protected source reference matched PWAL inventory container.")
 		Return true
 	EndIf
 
 	If IsPlayerShipProtectedSource(akLoot, akEffectContext)
-		LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: protected player/home ship source.")
+		LogDebug("LootValidation", "Rejected: protected player/home ship source.")
 		Return true
 	EndIf
 
@@ -366,7 +339,7 @@ Bool Function IsInBlockedOwnedArea(PWAL:Looting:LootEffectScript akEffectContext
 
 	akPlayerRef = akEffectContext.GetPlayerRef()
 	If akPlayerRef == None
-		LogDebug("LootValidation", akEffectContext.GetEffectDebugLabel() + " | IsInBlockedOwnedArea: PlayerRef is None. Treating as blocked.")
+		LogDebug("LootValidation", "IsInBlockedOwnedArea: PlayerRef is None. Treating as blocked.")
 		Return true
 	EndIf
 
@@ -379,12 +352,12 @@ Bool Function IsInBlockedOwnedArea(PWAL:Looting:LootEffectScript akEffectContext
 	If LocTypePlayerHouse != None
 		If akPlayerLocation.HasKeyword(LocTypePlayerHouse)
 			If akEffectContext.PWAL_GLOB_Settings_AllowLooting_PlayerHomes == None
-				LogDebug("LootValidation", akEffectContext.GetEffectDebugLabel() + " | Rejected: blocked owned area. player home looting global missing.")
+				LogDebug("LootValidation", "Blocked: player home looting global missing.")
 				Return true
 			EndIf
 
 			If akEffectContext.PWAL_GLOB_Settings_AllowLooting_PlayerHomes.GetValueInt() == 0
-				LogDebug("LootValidation", akEffectContext.GetEffectDebugLabel() + " | Rejected: blocked owned area. player home looting is disabled.")
+				LogDebug("LootValidation", "Blocked: player home looting is disabled.")
 				Return true
 			EndIf
 		EndIf
@@ -394,12 +367,12 @@ Bool Function IsInBlockedOwnedArea(PWAL:Looting:LootEffectScript akEffectContext
 	If CityNewAtlantisLodgeLocation != None
 		If akPlayerRef.IsInLocation(CityNewAtlantisLodgeLocation)
 			If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Lodge == None
-				LogDebug("LootValidation", akEffectContext.GetEffectDebugLabel() + " | Rejected: blocked owned area. lodge looting global missing.")
+				LogDebug("LootValidation", "Blocked: lodge looting global missing.")
 				Return true
 			EndIf
 
 			If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Lodge.GetValueInt() == 0
-				LogDebug("LootValidation", akEffectContext.GetEffectDebugLabel() + " | Rejected: blocked owned area. lodge looting is disabled.")
+				LogDebug("LootValidation", "Blocked: lodge looting is disabled.")
 				Return true
 			EndIf
 		EndIf
@@ -409,12 +382,12 @@ Bool Function IsInBlockedOwnedArea(PWAL:Looting:LootEffectScript akEffectContext
 	If LocTypeOutpost != None
 		If akPlayerLocation.HasKeyword(LocTypeOutpost)
 			If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Outposts == None
-				LogDebug("LootValidation", akEffectContext.GetEffectDebugLabel() + " | Rejected: blocked owned area. outpost looting global missing.")
+				LogDebug("LootValidation", "Blocked: outpost looting global missing.")
 				Return true
 			EndIf
 
 			If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Outposts.GetValueInt() == 0
-				LogDebug("LootValidation", akEffectContext.GetEffectDebugLabel() + " | Rejected: blocked owned area. outpost looting is disabled.")
+				LogDebug("LootValidation", "Blocked: outpost looting is disabled.")
 				Return true
 			EndIf
 		EndIf

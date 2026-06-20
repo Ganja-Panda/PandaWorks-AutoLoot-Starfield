@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:ContainerProcessorScript Extends Quest Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.3
+; Version: 1.0.1
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: ContainerProcessorScript
@@ -104,32 +104,14 @@ EndFunction
 Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
 	FormList akCurrentList
 	ObjectReference akCurrentDestinationRef
-	Form akBase
-	Container akBaseContainer
 	Int iIndex
 	Int iCount
 	Int iLootGroupCode
 	Int iDestinationCode
-	Int iInventoryBefore
-	Int iInventoryAfter
-	Int iMovedTotal
-	Int iSkippedTotal
-	Int iMatched
-	Int iMoved
 
 	If akContainer == None || akEffectContext == None
 		LogWarn("ContainerProcessor", "ProcessFilteredContainerItems aborted: invalid input.")
 		Return
-	EndIf
-
-	akBase = akContainer.GetBaseObject()
-	akBaseContainer = akBase as Container
-
-	If akBaseContainer == None
-		If !IsShipInteriorInventorySource(akContainer, akEffectContext)
-			LogWarn("ContainerProcessor", "ProcessFilteredContainerItems rejected non-container base: ref=" + akContainer + " base=" + akBase)
-			Return
-		EndIf
 	EndIf
 
 	If DestinationResolver == None
@@ -144,9 +126,6 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 		Return
 	EndIf
 
-	iInventoryBefore = akContainer.GetItemCount()
-	LogDebug("ContainerProcessor", "Transfer begin: source=" + akContainer + " base=" + akBase + " totalItems=" + (iInventoryBefore as String) + " cachedLists=" + (iCount as String))
-
 	iIndex = 0
 
 	While iIndex < iCount
@@ -158,58 +137,20 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 		ElseIf iLootGroupCode <= 0
 			LogWarn("ContainerProcessor", "ProcessFilteredContainerItems skipped invalid cached LootGroupCode at index " + (iIndex as String))
 		Else
-			iDestinationCode = DestinationResolver.ResolveDestinationCodeForEffect(iLootGroupCode, akEffectContext)
+			iDestinationCode = DestinationResolver.ResolveDestinationCode(iLootGroupCode)
 			akCurrentDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
 
 			If akCurrentDestinationRef == None
 				LogWarn("ContainerProcessor", "ProcessFilteredContainerItems skipped index " + (iIndex as String) + ": destination ref resolved to None. LootGroupCode=" + (iLootGroupCode as String) + " DestinationCode=" + (iDestinationCode as String))
 			Else
-				iMatched = akContainer.GetItemCount(akCurrentList as Form)
-				LogDebug("ContainerProcessor", "Category probe: index=" + (iIndex as String) \
-					+ " list=" + akCurrentList \
-					+ " matched=" + (iMatched as String) \
-					+ " lootGroup=" + (iLootGroupCode as String) \
-					+ " destinationCode=" + (iDestinationCode as String) \
-					+ " destination=" + akCurrentDestinationRef)
-
-				iMoved = akContainer.RemoveItem(akCurrentList as Form, -1, true, akCurrentDestinationRef)
-				iMovedTotal += iMoved
-
-				If iMoved <= 0
-					iSkippedTotal += iMatched
-				EndIf
-
-				LogDebug("ContainerProcessor", "Category result: list=" + akCurrentList \
-					+ " matchedBefore=" + (iMatched as String) \
-					+ " moved=" + (iMoved as String))
+				akContainer.RemoveItem(akCurrentList as Form, -1, true, akCurrentDestinationRef)
 			EndIf
 		EndIf
 
 		iIndex += 1
 	EndWhile
 
-	iInventoryAfter = akContainer.GetItemCount()
-	LogDebug("ContainerProcessor", "Transfer complete: source=" + akContainer \
-		+ " before=" + (iInventoryBefore as String) \
-		+ " after=" + (iInventoryAfter as String) \
-		+ " movedTotal=" + (iMovedTotal as String) \
-		+ " skippedMatched=" + (iSkippedTotal as String))
 	LogDebug("ContainerProcessor", "ProcessFilteredContainerItems complete.")
-EndFunction
-
-Bool Function IsShipInteriorInventorySource(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
-	SpaceshipReference akShipRef
-
-	If akContainer == None || akEffectContext == None
-		Return false
-	EndIf
-
-	If !akEffectContext.IsShipInteriorMode()
-		Return false
-	EndIf
-
-	akShipRef = akContainer as SpaceshipReference
-	Return akShipRef != None
 EndFunction
 
 ; ==============================================================

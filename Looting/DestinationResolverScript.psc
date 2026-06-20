@@ -249,21 +249,6 @@ Int Function ResolveDestinationCode(Int aiLootGroupCode = 0)
 	Return iDefaultCode
 EndFunction
 
-Int Function ResolveDestinationCodeForEffect(Int aiLootGroupCode, PWAL:Looting:LootEffectScript akEffectContext)
-	If akEffectContext != None && akEffectContext.IsAsteroidDepositMode()
-		LogDebug("DestinationResolver", "Asteroid deposit loot is hard-routed to player ship cargo.")
-		Return DEST_PLAYER_SHIP
-	ElseIf akEffectContext != None && akEffectContext.IsSpaceCargoMode()
-		LogDebug("DestinationResolver", "Space cargo loot is hard-routed to player ship cargo.")
-		Return DEST_PLAYER_SHIP
-	ElseIf akEffectContext != None && akEffectContext.IsShipDebrisMode()
-		LogDebug("DestinationResolver", "Ship debris loot is hard-routed to player ship cargo.")
-		Return DEST_PLAYER_SHIP
-	EndIf
-
-	Return ResolveDestinationCode(aiLootGroupCode)
-EndFunction
-
 Int Function ResolveDefaultDestinationCode()
 	If PWAL_GLOB_Settings_Dest == None
 		LogError("DestinationResolver", "ResolveDefaultDestinationCode failed: PWAL_GLOB_Settings_Dest property is not filled.")
@@ -405,6 +390,10 @@ Bool Function IsForcedPlayerLootGroup(Int aiLootGroupCode)
 	EndIf
 
 	If aiLootGroupCode == LG_COLL_ACTIONFIGURES
+		Return true
+	EndIf
+
+	If aiLootGroupCode == LG_COLL_PLUSHIES
 		Return true
 	EndIf
 

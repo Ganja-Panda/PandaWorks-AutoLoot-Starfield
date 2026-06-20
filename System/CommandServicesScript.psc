@@ -58,13 +58,6 @@ Group TransferLists_Optional
 	FormList Property PWAL_FLST_Script_Valuables Auto Const
 EndGroup
 
-Group Message
-	Message Property PWAL_MSG_Looting_Enabled Auto Const
-	Message Property PWAL_MSG_Looting_Disabled Auto Const
-	Message Property PWAL_MSG_Logging_Enabled Auto Const
-	Message Property PWAL_MSG_Logging_Disabled Auto Const
-EndGroup
-
 ; ==============================================================
 ; Static Accessor
 ; ==============================================================
@@ -107,14 +100,8 @@ Bool Function ToggleLooting()
 
 	If PWAL_GLOB_Utilities_Toggle_Looting.GetValueInt() > 0
 		PWAL_GLOB_Utilities_Toggle_Looting.SetValueInt(0)
-		If PWAL_MSG_Looting_Disabled != None
-			PWAL_MSG_Looting_Disabled.Show()
-		EndIf
 	Else
 		PWAL_GLOB_Utilities_Toggle_Looting.SetValueInt(1)
-		If PWAL_MSG_Looting_Enabled != None
-			PWAL_MSG_Looting_Enabled.Show()
-		EndIf
 	EndIf
 
 	LogDebug("CommandServices", "Looting toggle is now " + (PWAL_GLOB_Utilities_Toggle_Looting.GetValueInt() as String))
@@ -131,14 +118,8 @@ Bool Function ToggleLogging()
 
 	If PWAL_GLOB_Utilities_Toggle_Logging.GetValueInt() > 0
 		PWAL_GLOB_Utilities_Toggle_Logging.SetValueInt(0)
-		If PWAL_MSG_Logging_Disabled != None
-			PWAL_MSG_Logging_Disabled.Show()
-		EndIf
 	Else
 		PWAL_GLOB_Utilities_Toggle_Logging.SetValueInt(1)
-		If PWAL_MSG_Logging_Enabled != None
-			PWAL_MSG_Logging_Enabled.Show()
-		EndIf
 	EndIf
 
 	LogDebug("CommandServices", "Logging toggle is now " + (PWAL_GLOB_Utilities_Toggle_Logging.GetValueInt() as String))
