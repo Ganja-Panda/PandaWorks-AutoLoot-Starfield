@@ -126,8 +126,10 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 	akBaseContainer = akBase as Container
 
 	If akBaseContainer == None
-		LogWarn("ContainerProcessor", "ProcessFilteredContainerItems rejected non-container base: ref=" + akContainer + " base=" + akBase)
-		Return
+		If !IsShipInteriorInventorySource(akContainer, akEffectContext)
+			LogWarn("ContainerProcessor", "ProcessFilteredContainerItems rejected non-container base: ref=" + akContainer + " base=" + akBase)
+			Return
+		EndIf
 	EndIf
 
 	If DestinationResolver == None
@@ -193,6 +195,21 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 		+ " movedTotal=" + (iMovedTotal as String) \
 		+ " skippedMatched=" + (iSkippedTotal as String))
 	LogDebug("ContainerProcessor", "ProcessFilteredContainerItems complete.")
+EndFunction
+
+Bool Function IsShipInteriorInventorySource(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
+	SpaceshipReference akShipRef
+
+	If akContainer == None || akEffectContext == None
+		Return false
+	EndIf
+
+	If !akEffectContext.IsShipInteriorMode()
+		Return false
+	EndIf
+
+	akShipRef = akContainer as SpaceshipReference
+	Return akShipRef != None
 EndFunction
 
 ; ==============================================================

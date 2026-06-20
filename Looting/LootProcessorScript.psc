@@ -258,8 +258,10 @@ Bool Function RouteContainer(ObjectReference akContainer, PWAL:Looting:LootEffec
 	akBaseContainer = akBase as Container
 
 	If akBaseContainer == None
-		LogDebug("LootProcessor", sEffectLabel + " | RouteContainer rejected non-container base: ref=" + akContainer + " base=" + akBase)
-		Return false
+		If !IsShipInteriorInventorySource(akContainer, akEffectContext)
+			LogDebug("LootProcessor", sEffectLabel + " | RouteContainer rejected non-container base: ref=" + akContainer + " base=" + akBase)
+			Return false
+		EndIf
 	EndIf
 
 	If ContainerProcessor == None
@@ -495,11 +497,46 @@ Bool Function CanRouteAsLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffec
 EndFunction
 
 ObjectReference Function NormalizeCandidateRef(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
+	ObjectReference akShipRef
+
 	If akLoot == None
 		Return None
 	EndIf
 
+	If akEffectContext == None
+		Return akLoot
+	EndIf
+
+	If !akEffectContext.IsShipInteriorMode()
+		Return akLoot
+	EndIf
+
+	If akEffectContext.SpaceshipInventoryContainer != None
+		If akLoot.HasKeyword(akEffectContext.SpaceshipInventoryContainer)
+			akShipRef = akLoot.GetCurrentShipRef() as ObjectReference
+			If akShipRef != None
+				LogDebug("LootProcessor", akEffectContext.GetEffectDebugLabel() + " | Ship interior inventory candidate normalized from " + akLoot + " to " + akShipRef)
+				Return akShipRef
+			EndIf
+		EndIf
+	EndIf
+
 	Return akLoot
+EndFunction
+
+Bool Function IsShipInteriorInventorySource(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
+	SpaceshipReference akShipRef
+
+	If akContainer == None || akEffectContext == None
+		Return false
+	EndIf
+
+	If !akEffectContext.IsShipInteriorMode()
+		Return false
+	EndIf
+
+	akShipRef = akContainer as SpaceshipReference
+	Return akShipRef != None
 EndFunction
 
 ; ==============================================================
