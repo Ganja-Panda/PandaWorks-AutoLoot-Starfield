@@ -177,19 +177,32 @@ Event OnTimer(Int aiTimerID)
 		Return
 	EndIf
 
+	Float fLoopStart = Utility.GetCurrentRealTime()
+	Float fExecuteStart = 0.0
+	Float fExecuteDuration = 0.0
+	Bool bExecuteReturned = false
+	Bool bTimerRearmed = false
+
 	If bIsLooting
 		LogDebug("LootEffect", "OnTimer skipped: looting already in progress.")
 		CancelTimer(LootTimerID)
 		StartTimer(lootTimerDelay, LootTimerID)
+		bTimerRearmed = true
+		LogTimingSummary(aiTimerID, Utility.GetCurrentRealTime() - fLoopStart, fExecuteDuration, bExecuteReturned, bTimerRearmed)
 		Return
 	EndIf
 
 	bIsLooting = true
+	fExecuteStart = Utility.GetCurrentRealTime()
 	ExecuteLooting()
+	fExecuteDuration = Utility.GetCurrentRealTime() - fExecuteStart
+	bExecuteReturned = true
 	bIsLooting = false
 
 	CancelTimer(LootTimerID)
 	StartTimer(lootTimerDelay, LootTimerID)
+	bTimerRearmed = true
+	LogTimingSummary(aiTimerID, Utility.GetCurrentRealTime() - fLoopStart, fExecuteDuration, bExecuteReturned, bTimerRearmed)
 EndEvent
 
 ; ==============================================================
@@ -582,6 +595,44 @@ Function LogEffectProfile(String asReason)
 	LogDebug("LootEffect", "Profile | bIsNonLethalHarvest=" + (bIsNonLethalHarvest as String))
 	LogDebug("LootEffect", "Profile | bIsKeyword=" + (bIsKeyword as String))
 	LogDebug("LootEffect", "Profile | bIsMultipleKeyword=" + (bIsMultipleKeyword as String))
+EndFunction
+
+Function LogTimingSummary(Int aiTimerID, Float afTotalDuration, Float afExecuteDuration, Bool abExecuteReturned, Bool abTimerRearmed)
+	Int iActiveLootListCount = 0
+
+	If !ShouldLogTiming()
+		Return
+	EndIf
+
+	If ActiveLootList != None
+		iActiveLootListCount = ActiveLootList.GetSize()
+	EndIf
+
+	LogDebug("LootEffect", "PWAL TIMING | " + GetEffectDebugLabel() + " | Timer=" + (aiTimerID as String) + " | Total=" + (afTotalDuration as String) + " | Execute=" + (afExecuteDuration as String) + " | ActiveList=" + (iActiveLootListCount as String) + " | CachedList=" + (CachedLootingListCount as String) + " | ExecuteReturned=" + (abExecuteReturned as String) + " | Rearmed=" + (abTimerRearmed as String))
+EndFunction
+
+Bool Function ShouldLogTiming()
+	If Logger != None
+		Return Logger.IsLoggingEnabled()
+	EndIf
+
+	If PWAL_GLOB_Utilities_Toggle_Logging == None
+		Return true
+	EndIf
+
+	Return PWAL_GLOB_Utilities_Toggle_Logging.GetValueInt() != 0
+EndFunction
+
+String Function GetEffectDebugLabel()
+	If ActiveLootSpell != None
+		Return "" + ActiveLootSpell
+	EndIf
+
+	If ActivePerk != None
+		Return "" + ActivePerk
+	EndIf
+
+	Return "LootEffect"
 EndFunction
 
 Bool Function GetGlobalBool(GlobalVariable akGlobal)
