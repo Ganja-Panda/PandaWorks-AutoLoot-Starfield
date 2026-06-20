@@ -163,6 +163,7 @@ Event OnEffectStart(ObjectReference akTarget, Actor akCaster, MagicEffect akBase
 	LogEffectProfile("OnEffectStart")
 
 	RefreshRuntimeSettings()
+	EnsureLootingListCacheReady()
 	theLooterRef = ResolveLooterRef()
 	bIsLooting = false
 
@@ -235,6 +236,7 @@ Function ExecuteLooting()
 	EndIf
 
 	RefreshRuntimeSettings()
+	EnsureLootingListCacheReady()
 	theLooterRef = ResolveLooterRef()
 
 	Bool bScannerProcessed = False
@@ -403,8 +405,6 @@ Function RefreshRuntimeSettings()
 	bStealingIsHostile = GetGlobalBool(PWAL_GLOB_Settings_Stealing_IsHostile)
 	bTakeAllContainer = GetGlobalBool(PWAL_GLOB_Settings_Container_TakeAll)
 	bTakeAllCorpse = GetGlobalBool(PWAL_GLOB_Settings_Corpses_TakeAll)
-
-	RefreshLootingListCache()
 EndFunction
 
 ; ==============================================================
@@ -416,6 +416,14 @@ Function ClearLootingListCache()
 	CachedLootGroupCodes = None
 	CachedLootingListCount = 0
 	bLootingListCacheReady = false
+EndFunction
+
+
+Function EnsureLootingListCacheReady()
+	If !bLootingListCacheReady
+		LogDebug("LootEffect", GetEffectDebugLabel() + " | Rebuilding looting list cache: cache is not ready.")
+		RefreshLootingListCache()
+	EndIf
 EndFunction
 
 
