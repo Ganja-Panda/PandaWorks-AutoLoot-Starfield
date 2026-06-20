@@ -124,9 +124,11 @@ Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	If akEffectContext.IsShipContainerMode() && !CanLootShipSpaceContent(akEffectContext)
-		LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: ship looting is disabled.")
-		Return false
+	If akEffectContext.IsShipInteriorMode() || akEffectContext.IsSpaceCargoMode() || akEffectContext.IsShipDebrisMode()
+		If !CanLootShipSpaceContent(akEffectContext)
+			LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Rejected: ship looting is disabled.")
+			Return false
+		EndIf
 	EndIf
 
 	akPlayerActor = akEffectContext.GetPlayerActor()
@@ -201,9 +203,9 @@ Bool Function IsPlayerShipProtectedSource(ObjectReference akLoot, PWAL:Looting:L
 		Return false
 	EndIf
 
-	; This protection is only for the ship/space container scan path.
+	; This protection is only for the ship interior container scan path.
 	; Do not let it block normal corpses, loose loot, or regular containers.
-	If !akEffectContext.IsShipContainerMode()
+	If !akEffectContext.IsShipInteriorMode()
 		Return false
 	EndIf
 
@@ -227,7 +229,6 @@ Bool Function IsPlayerShipProtectedSource(ObjectReference akLoot, PWAL:Looting:L
 		EndIf
 	EndIf
 
-	; Cargo hold path may normalize directly to the player/home ship ref.
 	If akPlayerShipRef != None
 		If akLoot == akPlayerShipRef
 			LogDebug("LootValidation", BuildLootValidationContext(akLoot, akEffectContext) + " | Protected player ship source matched PlayerShip alias.")
@@ -284,7 +285,7 @@ Bool Function IsActorOutsideCorpseOrHarvestMode(ObjectReference akLoot, PWAL:Loo
 		Return false
 	EndIf
 
-	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
+	If akEffectContext.IsContainerMode() || akEffectContext.IsShipInteriorMode()
 		Return false
 	EndIf
 

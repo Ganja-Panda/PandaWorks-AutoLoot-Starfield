@@ -60,6 +60,9 @@ Group EffectBehavior_Method
 	Bool Property bIsActivatedBySpell = false Auto
 	Bool Property bIsContainerSpace = false Auto
 	Bool Property bIsAsteroidDeposit = false Auto Const
+	Bool Property bIsShipInterior = false Auto Const
+	Bool Property bIsSpaceCargo = false Auto Const
+	Bool Property bIsShipDebris = false Auto Const
 	Bool Property bIsNonLethalHarvest = false Auto
 EndGroup
 
@@ -564,11 +567,23 @@ Bool Function IsSpellActivationMode()
 EndFunction
 
 Bool Function IsShipContainerMode()
-	Return bIsContainerSpace
+	Return bIsShipInterior
 EndFunction
 
 Bool Function IsAsteroidDepositMode()
 	Return bIsAsteroidDeposit
+EndFunction
+
+Bool Function IsShipInteriorMode()
+	Return bIsShipInterior
+EndFunction
+
+Bool Function IsSpaceCargoMode()
+	Return bIsSpaceCargo
+EndFunction
+
+Bool Function IsShipDebrisMode()
+	Return bIsShipDebris
 EndFunction
 
 Bool Function UsesKeywordScan()
@@ -608,7 +623,7 @@ Bool Function RemoveCorpsesEnabled()
 EndFunction
 
 Float Function GetRadius()
-	If bIsContainerSpace
+	If bIsSpaceCargo || bIsShipDebris
 		Float fShipDistance = Game.GetGameSettingFloat("fMaxShipTransferDistance")
 
 		If fShipDistance > 0.0
@@ -740,6 +755,9 @@ Function LogEffectProfile(String asReason)
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsActivator=" + (bIsActivator as String))
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsContainer=" + (bIsContainer as String))
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsAsteroidDeposit=" + (bIsAsteroidDeposit as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsShipInterior=" + (bIsShipInterior as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsSpaceCargo=" + (bIsSpaceCargo as String))
+	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsShipDebris=" + (bIsShipDebris as String))
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bLootDeadActor=" + (bLootDeadActor as String))
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsActivatedBySpell=" + (bIsActivatedBySpell as String))
 	LogDebug("LootEffect", GetEffectDebugLabel() + " | Profile | bIsContainerSpace=" + (bIsContainerSpace as String))

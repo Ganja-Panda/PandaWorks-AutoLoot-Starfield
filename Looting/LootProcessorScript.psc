@@ -148,11 +148,26 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 		Return RouteAsteroidDeposit(akResolvedLoot, akEffectContext)
 	EndIf
 
+	If akEffectContext.IsShipDebrisMode()
+		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as ship debris: ref=" + akResolvedLoot + " base=" + akBaseObject)
+		Return RouteShipDebris(akResolvedLoot, akEffectContext)
+	EndIf
+
+	If akEffectContext.IsSpaceCargoMode()
+		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as space cargo: ref=" + akResolvedLoot + " base=" + akBaseObject)
+		Return RouteSpaceCargo(akResolvedLoot, akEffectContext)
+	EndIf
+
 	If !LootValidation.CanProcessLoot(akResolvedLoot, akEffectContext)
 		Return false
 	EndIf
 
-	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
+	If akEffectContext.IsShipInteriorMode()
+		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as ship interior container: ref=" + akResolvedLoot + " base=" + akBaseObject)
+		Return RouteShipInterior(akResolvedLoot, akEffectContext)
+	EndIf
+
+	If akEffectContext.IsContainerMode()
 		LogDebug("LootProcessor", sEffectLabel + " | Routing candidate as container: ref=" + akResolvedLoot + " base=" + akBaseObject)
 		Return RouteContainer(akResolvedLoot, akEffectContext)
 	EndIf
@@ -216,6 +231,14 @@ Bool Function RouteSpaceCargo(ObjectReference akCargo, PWAL:Looting:LootEffectSc
 	EndIf
 
 	Return SpaceCargoProcessor.ProcessSpaceCargo(akCargo, akEffectContext)
+EndFunction
+
+Bool Function RouteShipInterior(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
+	If akContainer == None
+		Return false
+	EndIf
+
+	Return RouteContainer(akContainer, akEffectContext)
 EndFunction
 
 Bool Function RouteContainer(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
@@ -435,7 +458,7 @@ Bool Function CanRouteAsLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffec
 	EndIf
 
 	; Container and corpse effect profiles should route through their processors.
-	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
+	If akEffectContext.IsContainerMode() || akEffectContext.IsShipInteriorMode()
 		LogDebug("LootProcessor", "Rejected loose-loot route: effect is container mode.")
 		Return false
 	EndIf
@@ -472,31 +495,8 @@ Bool Function CanRouteAsLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffec
 EndFunction
 
 ObjectReference Function NormalizeCandidateRef(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
-	ObjectReference akShipRef
-	String sEffectLabel = "UnknownEffect"
-
 	If akLoot == None
 		Return None
-	EndIf
-
-	If akEffectContext == None
-		Return akLoot
-	EndIf
-
-	sEffectLabel = akEffectContext.GetEffectDebugLabel()
-
-	If !akEffectContext.IsShipContainerMode()
-		Return akLoot
-	EndIf
-
-	If akEffectContext.SpaceshipInventoryContainer != None
-		If akLoot.HasKeyword(akEffectContext.SpaceshipInventoryContainer)
-			akShipRef = akLoot.GetCurrentShipRef() as ObjectReference
-			If akShipRef != None
-				LogDebug("LootProcessor", sEffectLabel + " | Ship container candidate normalized from " + akLoot + " to " + akShipRef)
-				Return akShipRef
-			EndIf
-		EndIf
 	EndIf
 
 	Return akLoot

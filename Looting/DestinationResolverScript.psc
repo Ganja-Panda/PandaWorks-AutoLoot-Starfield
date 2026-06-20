@@ -253,8 +253,11 @@ Int Function ResolveDestinationCodeForEffect(Int aiLootGroupCode, PWAL:Looting:L
 	If akEffectContext != None && akEffectContext.IsAsteroidDepositMode()
 		LogDebug("DestinationResolver", "Asteroid deposit loot is hard-routed to player ship cargo.")
 		Return DEST_PLAYER_SHIP
-	ElseIf akEffectContext != None && akEffectContext.IsShipContainerMode()
-		LogDebug("DestinationResolver", "External space container loot is hard-routed to player ship cargo.")
+	ElseIf akEffectContext != None && akEffectContext.IsSpaceCargoMode()
+		LogDebug("DestinationResolver", "Space cargo loot is hard-routed to player ship cargo.")
+		Return DEST_PLAYER_SHIP
+	ElseIf akEffectContext != None && akEffectContext.IsShipDebrisMode()
+		LogDebug("DestinationResolver", "Ship debris loot is hard-routed to player ship cargo.")
 		Return DEST_PLAYER_SHIP
 	EndIf
 
