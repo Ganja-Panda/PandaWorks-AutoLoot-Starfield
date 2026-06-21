@@ -102,6 +102,8 @@ Function ProcessTakeAllContainer(ObjectReference akContainer, ObjectReference ak
 EndFunction
 
 Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
+	Form akBase
+	Container akBaseContainer
 	FormList akCurrentList
 	ObjectReference akCurrentDestinationRef
 	Int iIndex
@@ -112,6 +114,18 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 	If akContainer == None || akEffectContext == None
 		LogWarn("ContainerProcessor", "ProcessFilteredContainerItems aborted: invalid input.")
 		Return
+	EndIf
+
+	akBase = akContainer.GetBaseObject()
+	akBaseContainer = akBase as Container
+
+	If akBaseContainer == None
+		If !IsNormalizedShipInventorySource(akContainer, akEffectContext)
+			LogWarn("ContainerProcessor", "ProcessFilteredContainerItems rejected non-container base: ref=" + akContainer + " base=" + akBase)
+			Return
+		EndIf
+
+		LogDebug("ContainerProcessor", "ProcessFilteredContainerItems allowed ship interior inventory source: ref=" + akContainer + " base=" + akBase)
 	EndIf
 
 	If DestinationResolver == None
@@ -151,6 +165,25 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 	EndWhile
 
 	LogDebug("ContainerProcessor", "ProcessFilteredContainerItems complete.")
+EndFunction
+
+; ==============================================================
+; Internal Helpers
+; ==============================================================
+
+Bool Function IsNormalizedShipInventorySource(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
+	SpaceshipReference akShipRef
+
+	If akContainer == None || akEffectContext == None
+		Return false
+	EndIf
+
+	If !akEffectContext.IsShipContainerMode()
+		Return false
+	EndIf
+
+	akShipRef = akContainer as SpaceshipReference
+	Return akShipRef != None
 EndFunction
 
 ; ==============================================================
