@@ -393,7 +393,7 @@ Bool Function IsSpellActivationMode()
 EndFunction
 
 Bool Function IsShipContainerMode()
-	Return bIsContainerSpace
+	Return bIsShipInterior
 EndFunction
 
 Bool Function UsesKeywordScan()
