@@ -70,29 +70,12 @@ Function ProcessContainer(ObjectReference akContainer, PWAL:Looting:LootEffectSc
 		Return
 	EndIf
 
-	If akEffectContext.TakeAllContainers()
-		ProcessFilteredContainerItems(akContainer, None, akEffectContext)
-	Else
-		ProcessFilteredContainerItems(akContainer, None, akEffectContext)
-	EndIf
+	ProcessFilteredContainerItems(akContainer, None, akEffectContext)
 EndFunction
 
 ; ==============================================================
 ; Processing Paths
 ; ==============================================================
-
-Function ProcessTakeAllContainer(ObjectReference akContainer, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
-	Bool bKeepOwnership
-
-	If akContainer == None || akDestinationRef == None || akEffectContext == None
-		Return
-	EndIf
-
-	bKeepOwnership = akEffectContext.IsStealingHostile()
-
-	; abKeepOwnership = bKeepOwnership, abRemoveQuestItems = true
-	akContainer.RemoveAllItems(akDestinationRef, bKeepOwnership, true)
-EndFunction
 
 Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
 	Form akBase
