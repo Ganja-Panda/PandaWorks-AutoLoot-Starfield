@@ -52,17 +52,14 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 
 	akCorpseActor = akCorpse as Actor
 	If akCorpseActor == None
-		LogDebug("CorpseProcessor", "ProcessCorpse skipped: candidate is not an Actor.")
 		Return
 	EndIf
 
 	If !akCorpseActor.IsDead()
-		LogDebug("CorpseProcessor", "ProcessCorpse skipped: actor is not dead.")
 		Return
 	EndIf
 
 	If IsCorpseAlreadyLooted(akCorpse, akEffectContext)
-		LogDebug("CorpseProcessor", "ProcessCorpse skipped: corpse already marked looted.")
 		Return
 	EndIf
 
@@ -82,7 +79,6 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 	If akEffectContext.TakeAllCorpses()
 		Int iDestinationCode
 		iDestinationCode = DestinationResolver.ResolveDestinationCode(DestinationResolver.LG_CORPSES)
-		LogDebug("CorpseProcessor", "Resolved corpse destination code " + (iDestinationCode as String) + " for take-all corpse contents.")
 
 		akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
 		If akDestinationRef == None
@@ -96,7 +92,6 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 	EndIf
 
 	If !bTransferSucceeded
-		LogDebug("CorpseProcessor", "ProcessCorpse aborted: transfer did not succeed.")
 		Return
 	EndIf
 
@@ -110,8 +105,6 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 	If akEffectContext.RemoveCorpsesEnabled()
 		HandleCorpseCleanup(akCorpse, akEffectContext)
 	EndIf
-
-	LogDebug("CorpseProcessor", "ProcessCorpse complete: " + akCorpse)
 EndFunction
 
 ; ==============================================================
@@ -134,8 +127,6 @@ Function ApplyHumanCorpseSkin(Actor akCorpseActor, PWAL:Looting:LootEffectScript
 
 	akCorpseActor.EquipItem(akCorpseSkin as Form, false, false)
 	Utility.Wait(0.05) ; Small delay to ensure the skin is applied before any further processing.
-
-	LogDebug("CorpseProcessor", "Applied human corpse skin: " + akCorpseSkin)
 EndFunction
 
 
@@ -189,7 +180,6 @@ Bool Function ProcessTakeAllCorpse(ObjectReference akCorpse, ObjectReference akD
 	; abKeepOwnership = bKeepOwnership, abRemoveQuestItems = false
 	akCorpse.RemoveAllItems(akDestinationRef, bKeepOwnership, false)
 
-	LogDebug("CorpseProcessor", "ProcessTakeAllCorpse transferred all contents.")
 	Return true
 EndFunction
 
@@ -215,7 +205,6 @@ Bool Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReferen
 	iCount = akEffectContext.GetCachedLootingListCount()
 
 	If iCount <= 0
-		LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems skipped: cached looting list is empty.")
 		Return false
 	EndIf
 
@@ -244,7 +233,6 @@ Bool Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReferen
 		iIndex += 1
 	EndWhile
 
-	LogDebug("CorpseProcessor", "ProcessFilteredCorpseItems complete.")
 	Return bTransferAttempted
 EndFunction
 
@@ -301,8 +289,6 @@ Function HandleCorpseCleanup(ObjectReference akCorpse, PWAL:Looting:LootEffectSc
 	EndIf
 
 	akCorpse.DisableNoWait(true)
-
-	LogDebug("CorpseProcessor", "HandleCorpseCleanup disabled corpse.")
 EndFunction
 
 ; ==============================================================

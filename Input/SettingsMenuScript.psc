@@ -106,7 +106,6 @@ Event OnTerminalMenuEnter(TerminalMenu akTerminalBase, ObjectReference akTermina
 		Return
 	EndIf
 
-	LogDebug("SettingsMenu", "OnTerminalMenuEnter triggered.")
 	RefreshPageTokens(akTerminalRef)
 EndEvent
 
@@ -147,8 +146,6 @@ Function RunGeneralMenuItem(Int aiMenuItemID)
 		ToggleBoolGlobal(PWAL_GLOB_Settings_AllowLooting_PlayerHomes, "PlayerHomes")
 	ElseIf aiMenuItemID == 6
 		ToggleBoolGlobal(PWAL_GLOB_Settings_AllowLooting_Ships, "Ships")
-	Else
-		LogDebug("SettingsMenu", "Ignoring unmapped General menu item ID: " + (aiMenuItemID as String))
 	EndIf
 EndFunction
 
@@ -159,8 +156,6 @@ Function RunContainersCorpsesMenuItem(Int aiMenuItemID)
 		ToggleBoolGlobal(PWAL_GLOB_Settings_Unlock_SkillCheck, "AutoUnlockSkill")
 	ElseIf aiMenuItemID == 2
 		ToggleBoolGlobal(PWAL_GLOB_Settings_Corpses_Remove, "Corpses")
-	Else
-		LogDebug("SettingsMenu", "Ignoring unmapped Containers/Corpses menu item ID: " + (aiMenuItemID as String))
 	EndIf
 EndFunction
 
@@ -176,10 +171,7 @@ Function RunStealingMenuItem(Int aiMenuItemID)
 			ToggleBoolGlobal(PWAL_GLOB_Settings_Stealing_IsHostile, "Hostile")
 		Else
 			SetBoolGlobal(PWAL_GLOB_Settings_Stealing_IsHostile, false, "Hostile")
-			LogDebug("SettingsMenu", "Hostile stealing forced off because stealing is disabled.")
 		EndIf
-	Else
-		LogDebug("SettingsMenu", "Ignoring unmapped Stealing menu item ID: " + (aiMenuItemID as String))
 	EndIf
 EndFunction
 
@@ -198,7 +190,7 @@ Function CycleInternalRadius()
 
 	PWAL_GLOB_Settings_Radius_Internal.SetValueInt(iNewValue)
 
-	LogDebug("SettingsMenu", "InternalRadius changed from " + (iCurrentValue as String) + " to " + (iNewValue as String))
+	LogInfo("SettingsMenu", "InternalRadius changed from " + (iCurrentValue as String) + " to " + (iNewValue as String))
 EndFunction
 
 Function CycleCityRadius()
@@ -212,7 +204,7 @@ Function CycleCityRadius()
 
 	PWAL_GLOB_Settings_Radius_City.SetValueInt(iNewValue)
 
-	LogDebug("SettingsMenu", "CityRadius changed from " + (iCurrentValue as String) + " to " + (iNewValue as String))
+	LogInfo("SettingsMenu", "CityRadius changed from " + (iCurrentValue as String) + " to " + (iNewValue as String))
 EndFunction
 
 Function CycleWildernessRadius()
@@ -226,7 +218,7 @@ Function CycleWildernessRadius()
 
 	PWAL_GLOB_Settings_Radius_Wilderness.SetValueInt(iNewValue)
 
-	LogDebug("SettingsMenu", "Wilderness changed from " + (iCurrentValue as String) + " to " + (iNewValue as String))
+	LogInfo("SettingsMenu", "Wilderness changed from " + (iCurrentValue as String) + " to " + (iNewValue as String))
 EndFunction
 
 Int Function GetNextInternalRadius(Int aiCurrentValue)
@@ -327,7 +319,6 @@ Function RefreshRadiusToken(ObjectReference akTerminalRef, String asTokenName, G
 	EndIf
 
 	akTerminalRef.AddTextReplacementValue(asTokenName, akRadiusGlobal.GetValue())
-	LogDebug("SettingsMenu", "Radius token refreshed: " + asTokenName)
 EndFunction
 
 Function RefreshBoolToken(ObjectReference akTerminalRef, String asTokenName, GlobalVariable akSettingGlobal)
@@ -347,7 +338,6 @@ Function RefreshBoolToken(ObjectReference akTerminalRef, String asTokenName, Glo
 	EndIf
 
 	akTerminalRef.AddTextReplacementData(asTokenName, akReplacementMessage as Form)
-	LogDebug("SettingsMenu", "Bool token refreshed: " + asTokenName)
 EndFunction
 
 ; ==============================================================
@@ -368,7 +358,7 @@ Int Function ToggleBoolGlobal(GlobalVariable akGlobal, String asLabel)
 
 	akGlobal.SetValueInt(iNewValue)
 
-	LogDebug("SettingsMenu", asLabel + " changed to " + (iNewValue as String))
+	LogInfo("SettingsMenu", asLabel + " changed to " + (iNewValue as String))
 
 	Return iNewValue
 EndFunction
@@ -385,7 +375,7 @@ Function SetBoolGlobal(GlobalVariable akGlobal, Bool abValue, String asLabel)
 		akGlobal.SetValueInt(VALUE_OFF)
 	EndIf
 
-	LogDebug("SettingsMenu", asLabel + " forced to " + (abValue as String))
+	LogInfo("SettingsMenu", asLabel + " forced to " + (abValue as String))
 EndFunction
 
 Bool Function GetGlobalBool(GlobalVariable akGlobal)

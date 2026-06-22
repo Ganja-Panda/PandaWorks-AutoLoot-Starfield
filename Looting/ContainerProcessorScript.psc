@@ -63,23 +63,18 @@ Function ProcessContainer(ObjectReference akContainer, PWAL:Looting:LootEffectSc
 	EndIf
 
 	If !LootValidation.CanProcessLoot(akContainer, akEffectContext)
-		LogDebug("ContainerProcessor", "ProcessContainer skipped: LootValidation rejected container.")
 		Return
 	EndIf
 
 	If !UnlockingService.EnsureContainerAccess(akContainer, akEffectContext)
-		LogDebug("ContainerProcessor", "ProcessContainer skipped: container access could not be established.")
 		Return
 	EndIf
 
 	If akEffectContext.TakeAllContainers()
-		LogDebug("ContainerProcessor", "TakeAllContainers suppressed for quest safety; using filtered container transfer.")
 		ProcessFilteredContainerItems(akContainer, None, akEffectContext)
 	Else
 		ProcessFilteredContainerItems(akContainer, None, akEffectContext)
 	EndIf
-
-	LogDebug("ContainerProcessor", "ProcessContainer complete: " + akContainer)
 EndFunction
 
 ; ==============================================================
@@ -97,8 +92,6 @@ Function ProcessTakeAllContainer(ObjectReference akContainer, ObjectReference ak
 
 	; abKeepOwnership = bKeepOwnership, abRemoveQuestItems = true
 	akContainer.RemoveAllItems(akDestinationRef, bKeepOwnership, true)
-
-	LogDebug("ContainerProcessor", "ProcessTakeAllContainer transferred all contents.")
 EndFunction
 
 Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
@@ -124,8 +117,6 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 			LogWarn("ContainerProcessor", "ProcessFilteredContainerItems rejected non-container base: ref=" + akContainer + " base=" + akBase)
 			Return
 		EndIf
-
-		LogDebug("ContainerProcessor", "ProcessFilteredContainerItems allowed ship interior inventory source: ref=" + akContainer + " base=" + akBase)
 	EndIf
 
 	If DestinationResolver == None
@@ -136,7 +127,6 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 	iCount = akEffectContext.GetCachedLootingListCount()
 
 	If iCount <= 0
-		LogDebug("ContainerProcessor", "ProcessFilteredContainerItems skipped: cached looting list is empty.")
 		Return
 	EndIf
 
@@ -163,8 +153,6 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 
 		iIndex += 1
 	EndWhile
-
-	LogDebug("ContainerProcessor", "ProcessFilteredContainerItems complete.")
 EndFunction
 
 ; ==============================================================

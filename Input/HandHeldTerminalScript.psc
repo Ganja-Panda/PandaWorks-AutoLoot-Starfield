@@ -54,7 +54,6 @@ EndGroup
 ; ==============================================================
 
 Event OnAliasInit()
-	LogDebug("HandHeldTerminal", "OnAliasInit triggered.")
 	ValidateProperties()
 
 	bTerminalInputReady = false
@@ -63,8 +62,6 @@ Event OnAliasInit()
 EndEvent
 
 Event OnPlayerLoadGame()
-	LogDebug("HandHeldTerminal", "OnPlayerLoadGame triggered.")
-
 	bTerminalInputReady = false
 	CancelTimer(TIMER_ENABLE_TERMINAL_INPUT)
 	StartTimer(fTerminalInputDelay, TIMER_ENABLE_TERMINAL_INPUT)
@@ -73,7 +70,6 @@ EndEvent
 Event OnTimer(Int aiTimerID)
 	If aiTimerID == TIMER_ENABLE_TERMINAL_INPUT
 		bTerminalInputReady = true
-		LogDebug("HandHeldTerminal", "Terminal input is now ready.")
 	EndIf
 EndEvent
 
@@ -87,8 +83,6 @@ Event OnItemEquipped(Form akBaseObject, ObjectReference akReference)
 	EndIf
 
 	If !bTerminalInputReady
-		LogDebug("HandHeldTerminal", "Terminal equipped before input ready. Suppressing auto-open.")
-
 		If PlayerRef != None
 			PlayerRef.UnequipItem(PWAL_WEAP_Terminal as Form, false, true)
 		EndIf
@@ -97,11 +91,8 @@ Event OnItemEquipped(Form akBaseObject, ObjectReference akReference)
 	EndIf
 
 	If !(Game.IsMenuControlsEnabled() || Game.IsFavoritesControlsEnabled())
-		LogDebug("HandHeldTerminal", "Terminal equipped, but menu/favorites controls are disabled. Ignoring.")
 		Return
 	EndIf
-
-	LogDebug("HandHeldTerminal", "PWAL terminal control weapon equipped; opening terminal.")
 
 	If CommandServices == None
 		LogError("HandHeldTerminal", "CommandServices property is not filled.")

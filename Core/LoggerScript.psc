@@ -34,6 +34,7 @@ ScriptName PWAL:Core:LoggerScript extends Quest
 
 Group LoggingSettings
 	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto
+	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_DebugVerbose Auto
 	String Property sLogPrefix = "[PWAL]" Auto
 	String Property sUserLogName = "PandaWorks AutoLoot" Auto Const
 	Bool Property bMirrorToPapyrusLog = false Auto Const
@@ -56,10 +57,18 @@ Function Error(String asSource, String asMessage)
 EndFunction
 
 Function DebugLog(String asSource, String asMessage)
+	If !IsDebugLoggingEnabled()
+		Return
+	EndIf
+
 	Log("DEBUG", asSource, asMessage, false)
 EndFunction
 
 Function TraceDecision(String asSource, String asContext, Bool abDecision, String asReason)
+	If !IsDebugLoggingEnabled()
+		Return
+	EndIf
+
 	String sDecision = "false"
 
 	If abDecision
@@ -70,6 +79,10 @@ Function TraceDecision(String asSource, String asContext, Bool abDecision, Strin
 EndFunction
 
 Function TraceValue(String asSource, String asLabel, String asValue)
+	If !IsDebugLoggingEnabled()
+		Return
+	EndIf
+
 	Log("DEBUG", asSource, NormalizeMessage(asLabel) + " = " + NormalizeMessage(asValue), false)
 EndFunction
 
@@ -83,6 +96,14 @@ Bool Function IsLoggingEnabled()
 	EndIf
 
 	Return (PWAL_GLOB_Utilities_Toggle_Logging.GetValueInt() != 0)
+EndFunction
+
+Bool Function IsDebugLoggingEnabled()
+	If PWAL_GLOB_Utilities_Toggle_DebugVerbose == None
+		Return false
+	EndIf
+
+	Return (PWAL_GLOB_Utilities_Toggle_DebugVerbose.GetValueInt() != 0)
 EndFunction
 
 ; ==============================================================

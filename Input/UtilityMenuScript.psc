@@ -67,7 +67,6 @@ Event OnTerminalMenuEnter(TerminalMenu akTerminalBase, ObjectReference akTermina
 		Return
 	EndIf
 
-	LogDebug("UtilityMenu", "OnTerminalMenuEnter triggered.")
 	RefreshUtilityTokens(akTerminalRef)
 EndEvent
 
@@ -77,17 +76,13 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 	EndIf
 
 	If auiMenuItemID == 0
-		LogDebug("UtilityMenu", "Inventories submenu selected; CK handles navigation.")
 		Return
 	ElseIf auiMenuItemID == 1
-		LogDebug("UtilityMenu", "Transfer Items submenu selected; CK handles navigation.")
 		Return
 	ElseIf auiMenuItemID == 2
 		RunToggleLooting()
 	ElseIf auiMenuItemID == 3
 		RunToggleLogging()
-	Else
-		LogDebug("UtilityMenu", "Ignoring unmapped menu item ID: " + (auiMenuItemID as String))
 	EndIf
 
 	RefreshUtilityTokens(akTerminalRef)
@@ -136,7 +131,6 @@ Function RefreshBoolToken(ObjectReference akTerminalRef, String asTokenName, Glo
 	EndIf
 
 	akTerminalRef.AddTextReplacementData(asTokenName, akReplacementMessage as Form)
-	LogDebug("UtilityMenu", "Bool token refreshed: " + asTokenName)
 EndFunction
 
 ; ==============================================================
@@ -157,7 +151,7 @@ Int Function ToggleBoolGlobal(GlobalVariable akGlobal, String asLabel)
 
 	akGlobal.SetValueInt(iNewValue)
 
-	LogDebug("UtilityMenu", asLabel + " changed to " + (iNewValue as String))
+	LogInfo("UtilityMenu", asLabel + " changed to " + (iNewValue as String))
 
 	Return iNewValue
 EndFunction

@@ -72,7 +72,6 @@ Event OnTerminalMenuEnter(TerminalMenu akTerminalBase, ObjectReference akTermina
 		Return
 	EndIf
 
-	LogDebug("LoreDestinationMenu", "OnTerminalMenuEnter triggered.")
 	RefreshLoreToken(akTerminalRef)
 EndEvent
 
@@ -82,15 +81,12 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 	EndIf
 
 	If auiMenuItemID != 0
-		LogDebug("LoreDestinationMenu", "Ignoring unmapped menu item ID: " + auiMenuItemID)
 		Return
 	EndIf
 
 	If !HasValidLoreDestinationGlobal()
 		Return
 	EndIf
-
-	LogDebug("LoreDestinationMenu", "Lore destination selected.")
 
 	CycleLoreDestination()
 	RefreshLoreToken(akTerminalRef)
@@ -118,7 +114,7 @@ Function CycleLoreDestination()
 
 	PWAL_GLOB_Settings_Dest_BOOK_Dataslates.SetValueInt(iNewValue)
 
-	LogDebug("LoreDestinationMenu", "DataSlates destination changed from " + iCurrentValue + " to " + iNewValue)
+	LogInfo("LoreDestinationMenu", "DataSlates destination changed from " + iCurrentValue + " to " + iNewValue)
 EndFunction
 
 ; ==============================================================
@@ -138,8 +134,6 @@ Function RefreshLoreToken(ObjectReference akTerminalRef)
 	Message akReplacementMessage = GetDestinationMessage(PWAL_GLOB_Settings_Dest_BOOK_Dataslates.GetValueInt())
 
 	akTerminalRef.AddTextReplacementData("Lore", akReplacementMessage as Form)
-
-	LogDebug("LoreDestinationMenu", "Token refreshed: Lore")
 EndFunction
 
 Message Function GetDestinationMessage(Int aiValue)

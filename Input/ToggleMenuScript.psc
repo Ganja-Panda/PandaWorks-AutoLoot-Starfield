@@ -65,8 +65,6 @@ Event OnTerminalMenuEnter(TerminalMenu akTerminalBase, ObjectReference akTermina
 		Return
 	EndIf
 
-	LogDebug("ToggleMenu", "OnTerminalMenuEnter triggered.")
-
 	; Menu entry must not mutate toggle globals.
 	RefreshAllTokens(akTerminalRef)
 EndEvent
@@ -81,7 +79,6 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 	EndIf
 
 	If !IsMappedMenuItem(auiMenuItemID)
-		LogDebug("ToggleMenu", "Ignoring unmapped menu item ID: " + auiMenuItemID)
 		Return
 	EndIf
 
@@ -93,10 +90,8 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 	EndIf
 
 	If bHasToggleAll && auiMenuItemID == 0
-		LogDebug("ToggleMenu", "ToggleAll selected.")
 		RunToggleAll(akClickedGlobal)
 	Else
-		LogDebug("ToggleMenu", "State" + auiMenuItemID + " selected.")
 		RunSingleToggle(akClickedGlobal)
 
 		If bHasToggleAll
@@ -113,7 +108,6 @@ EndEvent
 
 Function RunToggleAll(GlobalVariable akToggleAllGlobal)
 	If !bHasToggleAll
-		LogDebug("ToggleMenu", "RunToggleAll skipped: this menu has no Toggle All row.")
 		Return
 	EndIf
 
@@ -152,6 +146,7 @@ Int Function ToggleBoolGlobal(GlobalVariable akGlobal)
 	EndIf
 
 	akGlobal.SetValueInt(iNewValue)
+	LogInfo("ToggleMenu", "Toggle value changed from " + (iCurrentValue as String) + " to " + (iNewValue as String))
 	Return iNewValue
 EndFunction
 

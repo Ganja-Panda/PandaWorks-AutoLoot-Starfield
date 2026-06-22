@@ -70,7 +70,6 @@ Event OnTerminalMenuEnter(TerminalMenu akTerminalBase, ObjectReference akTermina
 		Return
 	EndIf
 
-	LogDebug("DestinationMenu", "OnTerminalMenuEnter triggered.")
 	RefreshAllTokens(akTerminalRef)
 EndEvent
 
@@ -84,7 +83,6 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 	EndIf
 
 	If !IsMappedMenuItem(auiMenuItemID)
-		LogDebug("DestinationMenu", "Ignoring unmapped menu item ID: " + (auiMenuItemID as String))
 		Return
 	EndIf
 
@@ -96,10 +94,8 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 	EndIf
 
 	If auiMenuItemID == 0
-		LogDebug("DestinationMenu", "SendAll selected.")
 		RunSendAll(akClickedGlobal)
 	Else
-		LogDebug("DestinationMenu", "State" + auiMenuItemID + " selected.")
 		RunSingleDestination(akClickedGlobal)
 	EndIf
 
@@ -140,6 +136,7 @@ Int Function CycleDestinationGlobal(GlobalVariable akGlobal)
 	Int iNewValue = GetNextDestinationValue(iCurrentValue)
 
 	akGlobal.SetValueInt(iNewValue)
+	LogInfo("DestinationMenu", "Destination changed from " + (iCurrentValue as String) + " to " + (iNewValue as String))
 	Return iNewValue
 EndFunction
 
@@ -182,7 +179,6 @@ Function RefreshToken(Int aiIndex, ObjectReference akTerminalRef)
 	String sTokenName = GetTokenName(aiIndex)
 
 	akTerminalRef.AddTextReplacementData(sTokenName, akReplacementMessage as Form)
-	LogDebug("DestinationMenu", "Token refreshed: " + sTokenName)
 EndFunction
 
 Message Function GetDestinationMessage(Int aiValue)

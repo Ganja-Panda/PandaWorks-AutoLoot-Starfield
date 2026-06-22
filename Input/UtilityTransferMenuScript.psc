@@ -88,8 +88,6 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 		RunSendResourcesToShip()
 	ElseIf auiMenuItemID == ITEM_SEND_VALUABLES_TO_PLAYER
 		RunSendValuablesToPlayer()
-	Else
-		LogDebug("UtilityTransferMenu", "Ignoring unmapped menu item ID: " + (auiMenuItemID as String))
 	EndIf
 EndEvent
 
@@ -99,7 +97,7 @@ EndEvent
 ; ==============================================================
 
 Function RunSendCargoHoldToPandaWorks()
-	LogDebug("UtilityTransferMenu", "RunSendCargoHoldToPandaWorks triggered.")
+	LogInfo("UtilityTransferMenu", "Cargo Hold to PandaWorks transfer requested.")
 
 	Bool bMovedAnything = CommandServices.SendCargoHoldToPandaWorks()
 
@@ -112,7 +110,7 @@ EndFunction
 
 
 Function RunSendPandaWorksToShip()
-	LogDebug("UtilityTransferMenu", "RunSendPandaWorksToShip triggered.")
+	LogInfo("UtilityTransferMenu", "PandaWorks to Ship transfer requested.")
 
 	Bool bMovedAnything = CommandServices.SendPandaWorksToShip()
 
@@ -125,7 +123,7 @@ EndFunction
 
 
 Function RunSendPandaWorksToLodge()
-	LogDebug("UtilityTransferMenu", "RunSendPandaWorksToLodge triggered.")
+	LogInfo("UtilityTransferMenu", "PandaWorks to Lodge transfer requested.")
 
 	Bool bMovedAnything = CommandServices.SendPandaWorksToLodge()
 
@@ -138,7 +136,7 @@ EndFunction
 
 
 Function RunSendResourcesToShip()
-	LogDebug("UtilityTransferMenu", "RunSendResourcesToShip triggered.")
+	LogInfo("UtilityTransferMenu", "Resources to Ship transfer requested.")
 
 	Bool bMovedAnything = CommandServices.SendResourcesToShip()
 
@@ -151,7 +149,7 @@ EndFunction
 
 
 Function RunSendValuablesToPlayer()
-	LogDebug("UtilityTransferMenu", "RunSendValuablesToPlayer triggered.")
+	LogInfo("UtilityTransferMenu", "Valuables to Player transfer requested.")
 
 	Bool bMovedAnything = CommandServices.SendValuablesToPlayer()
 

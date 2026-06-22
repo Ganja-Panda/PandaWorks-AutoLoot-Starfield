@@ -147,13 +147,9 @@ EndGroup
 ; ==============================================================
 
 Event OnInit()
-	LogDebug("LootEffect", "OnInit triggered.")
 EndEvent
 
 Event OnEffectStart(ObjectReference akTarget, Actor akCaster, MagicEffect akBaseEffect, Float afMagnitude, Float afDuration)
-	LogDebug("LootEffect", "OnEffectStart triggered.")
-	LogEffectProfile("OnEffectStart")
-
 	RefreshRuntimeSettings()
 	theLooterRef = ResolveLooterRef()
 	bIsLooting = false
@@ -163,8 +159,6 @@ Event OnEffectStart(ObjectReference akTarget, Actor akCaster, MagicEffect akBase
 EndEvent
 
 Event OnEffectFinish(ObjectReference akTarget, Actor akCaster, MagicEffect akBaseEffect, Float afMagnitude, Float afDuration)
-	LogDebug("LootEffect", "OnEffectFinish triggered.")
-
 	CancelTimer(LootTimerID)
 
 	bIsLooting = false
@@ -178,7 +172,6 @@ Event OnTimer(Int aiTimerID)
 	EndIf
 
 	If bIsLooting
-		LogDebug("LootEffect", "OnTimer skipped: looting already in progress.")
 		CancelTimer(LootTimerID)
 		StartTimer(lootTimerDelay, LootTimerID)
 		Return
@@ -218,12 +211,10 @@ Function ExecuteLooting()
 	EndIf
 
 	If ActiveLootList.GetSize() <= 0
-		LogDebug("LootEffect", "ExecuteLooting skipped: ActiveLootList is empty.")
 		Return
 	EndIf
 
 	If !RuntimeManager.CanRunLooting()
-		LogDebug("LootEffect", "ExecuteLooting skipped: RuntimeManager denied looting.")
 		Return
 	EndIf
 
@@ -233,11 +224,8 @@ Function ExecuteLooting()
 	Int iProcessed = LootScanner.Scan(Self)
 
 	If iProcessed <= 0
-		LogDebug("LootEffect", "ExecuteLooting complete: scanner processed zero candidates.")
 		Return
 	EndIf
-
-	LogDebug("LootEffect", "ExecuteLooting complete. Scanner processed " + (iProcessed as String) + " candidate(s). LootGroupCode=" + (iLootGroupCode as String))
 EndFunction
 
 ; ==============================================================
@@ -305,7 +293,6 @@ Function RefreshLootingListCache()
 	EndIf
 
 	If iMaxSize <= 0
-		LogDebug("LootEffect", "RefreshLootingListCache skipped: no looting registry entries configured.")
 		Return
 	EndIf
 
@@ -502,7 +489,6 @@ Bool Function IsCityLocation(Location akLocation)
 	EndIf
 
 	If PWAL_FLST_Script_Locations_Cities == None
-		LogDebug("LootEffect", "IsCityLocation fallback: PWAL_FLST_Script_Locations_Cities is not filled.")
 		Return false
 	EndIf
 
@@ -569,19 +555,6 @@ EndFunction
 ; ==============================================================
 
 Function LogEffectProfile(String asReason)
-	LogDebug("LootEffect", "Profile dump requested by " + asReason)
-	LogDebug("LootEffect", "Profile | ActivePerk=" + ActivePerk)
-	LogDebug("LootEffect", "Profile | ActiveLootList=" + ActiveLootList)
-	LogDebug("LootEffect", "Profile | ActiveLootSpell=" + ActiveLootSpell)
-	LogDebug("LootEffect", "Profile | iLootGroupCode=" + (iLootGroupCode as String))
-	LogDebug("LootEffect", "Profile | bIsActivator=" + (bIsActivator as String))
-	LogDebug("LootEffect", "Profile | bIsContainer=" + (bIsContainer as String))
-	LogDebug("LootEffect", "Profile | bLootDeadActor=" + (bLootDeadActor as String))
-	LogDebug("LootEffect", "Profile | bIsActivatedBySpell=" + (bIsActivatedBySpell as String))
-	LogDebug("LootEffect", "Profile | bIsContainerSpace=" + (bIsContainerSpace as String))
-	LogDebug("LootEffect", "Profile | bIsNonLethalHarvest=" + (bIsNonLethalHarvest as String))
-	LogDebug("LootEffect", "Profile | bIsKeyword=" + (bIsKeyword as String))
-	LogDebug("LootEffect", "Profile | bIsMultipleKeyword=" + (bIsMultipleKeyword as String))
 EndFunction
 
 Bool Function GetGlobalBool(GlobalVariable akGlobal)

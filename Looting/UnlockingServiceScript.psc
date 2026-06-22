@@ -49,23 +49,19 @@ Bool Function EnsureContainerAccess(ObjectReference akContainer, PWAL:Looting:Lo
 	EndIf
 
 	If !akContainer.IsLocked()
-		LogDebug("UnlockingService", "EnsureContainerAccess: container already unlocked.")
 		Return true
 	EndIf
 
 	If !akEffectContext.CanAutoUnlock()
-		LogDebug("UnlockingService", "EnsureContainerAccess denied: auto unlock is disabled.")
 		Return false
 	EndIf
 
 	TryUnlock(akContainer, akEffectContext)
 
 	If akContainer.IsLocked()
-		LogDebug("UnlockingService", "EnsureContainerAccess failed: container remains locked.")
 		Return false
 	EndIf
 
-	LogDebug("UnlockingService", "EnsureContainerAccess succeeded: container unlocked.")
 	Return true
 EndFunction
 
@@ -83,8 +79,6 @@ Function TryUnlock(ObjectReference akContainer, PWAL:Looting:LootEffectScript ak
 	If akContainer == None || akEffectContext == None
 		Return
 	EndIf
-
-	LogDebug("UnlockingService", "TryUnlock called with container: " + akContainer)
 
 	bLockSkillCheck = akEffectContext.UseAutoUnlockSkillCheck()
 	bIsOwned = akContainer.HasOwner()
@@ -108,7 +102,6 @@ Function TryUnlock(ObjectReference akContainer, PWAL:Looting:LootEffectScript ak
 EndFunction
 
 Function HandleInaccessibleLock()
-	LogDebug("UnlockingService", "HandleInaccessibleLock called.")
 EndFunction
 
 Function HandleRequiresKey(ObjectReference akContainer, Bool bIsOwned, PWAL:Looting:LootEffectScript akEffectContext)
@@ -118,22 +111,15 @@ Function HandleRequiresKey(ObjectReference akContainer, Bool bIsOwned, PWAL:Loot
 		Return
 	EndIf
 
-	LogDebug("UnlockingService", "HandleRequiresKey called with container: " + akContainer)
-
 	akKey = akContainer.GetKey()
 	If akKey == None
-		LogDebug("UnlockingService", "Locked container ignored: requires key but container returned no key.")
 		Return
 	EndIf
 
 	FindKey(akKey, akEffectContext)
 
 	If akEffectContext.GetPlayerRef().GetItemCount(akKey as Form) > 0
-		LogDebug("UnlockingService", "Key found.")
 		akContainer.Unlock(bIsOwned)
-		LogDebug("UnlockingService", "Container unlocked with key.")
-	Else
-		LogDebug("UnlockingService", "Locked container ignored: requires key.")
 	EndIf
 EndFunction
 
@@ -143,8 +129,6 @@ Function HandleDigipickUnlock(ObjectReference akContainer, Bool bIsOwned, Bool b
 	If akContainer == None || akEffectContext == None
 		Return
 	EndIf
-
-	LogDebug("UnlockingService", "HandleDigipickUnlock called with container: " + akContainer)
 
 	akPlayerRef = akEffectContext.GetPlayerRef()
 	If akPlayerRef == None
@@ -168,13 +152,8 @@ Function HandleDigipickUnlock(ObjectReference akContainer, Bool bIsOwned, Bool b
 			If !akContainer.IsLocked()
 				Game.RewardPlayerXP(10, false)
 				akPlayerRef.RemoveItem(akEffectContext.Digipick as Form, 1, false, None)
-				LogDebug("UnlockingService", "Container unlocked with digipick.")
 			EndIf
-		Else
-			LogDebug("UnlockingService", "Locked container ignored: failed skill check.")
 		EndIf
-	Else
-		LogDebug("UnlockingService", "Locked container ignored: no digipick.")
 	EndIf
 EndFunction
 
@@ -196,8 +175,6 @@ Function FindDigipick(PWAL:Looting:LootEffectScript akEffectContext)
 		Return
 	EndIf
 
-	LogDebug("UnlockingService", "FindDigipick called.")
-
 	akSearchLocations = new ObjectReference[2]
 	akSearchLocations[0] = akEffectContext.GetPWALInventoryContainerRef()
 	akSearchLocations[1] = akEffectContext.GetLodgeSafeRef()
@@ -206,7 +183,6 @@ Function FindDigipick(PWAL:Looting:LootEffectScript akEffectContext)
 	While iIndex < akSearchLocations.Length
 		If akSearchLocations[iIndex] != None
 			If akSearchLocations[iIndex].GetItemCount(akEffectContext.Digipick as Form) > 0
-				LogDebug("UnlockingService", "Digipick found in " + akSearchLocations[iIndex])
 				akSearchLocations[iIndex].RemoveItem(akEffectContext.Digipick as Form, -1, true, akPlayerRef)
 				Return
 			EndIf
@@ -229,8 +205,6 @@ Function FindKey(Key akKey, PWAL:Looting:LootEffectScript akEffectContext)
 		Return
 	EndIf
 
-	LogDebug("UnlockingService", "FindKey called with key: " + akKey)
-
 	akSearchLocations = new ObjectReference[2]
 	akSearchLocations[0] = akEffectContext.GetPWALInventoryContainerRef()
 	akSearchLocations[1] = akEffectContext.GetLodgeSafeRef()
@@ -239,7 +213,6 @@ Function FindKey(Key akKey, PWAL:Looting:LootEffectScript akEffectContext)
 	While iIndex < akSearchLocations.Length
 		If akSearchLocations[iIndex] != None
 			If akSearchLocations[iIndex].GetItemCount(akKey as Form) > 0
-				LogDebug("UnlockingService", "Key found in " + akSearchLocations[iIndex])
 				akSearchLocations[iIndex].RemoveItem(akKey as Form, -1, true, akPlayerRef)
 				Return
 			EndIf
@@ -262,8 +235,6 @@ Bool Function CanUnlock(ObjectReference akContainer, PWAL:Looting:LootEffectScri
 	If akContainer == None || akEffectContext == None
 		Return false
 	EndIf
-
-	LogDebug("UnlockingService", "CanUnlock called with container: " + akContainer)
 
 	akPlayerRef = akEffectContext.GetPlayerRef()
 	If akPlayerRef == None
@@ -297,13 +268,11 @@ Bool Function CanUnlock(ObjectReference akContainer, PWAL:Looting:LootEffectScri
 	iIndex = 0
 	While iIndex < aiLockLevels.Length
 		If iLockLevel == aiLockLevels[iIndex]
-			LogDebug("UnlockingService", "CanUnlock: " + abCanUnlock[iIndex])
 			Return abCanUnlock[iIndex]
 		EndIf
 		iIndex += 1
 	EndWhile
 
-	LogDebug("UnlockingService", "CanUnlock: false")
 	Return false
 EndFunction
 

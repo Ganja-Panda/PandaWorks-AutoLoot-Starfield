@@ -228,24 +228,20 @@ Int Property LG_COLL_SNOWGLOBES = 1105 Auto Const
 
 Int Function ResolveDestinationCode(Int aiLootGroupCode = 0)
 	If IsForcedPlayerLootGroup(aiLootGroupCode)
-		LogDebug("DestinationResolver", "Loot group is hard-routed to player: " + aiLootGroupCode)
 		Return DEST_PLAYER
 	EndIf
 
 	If IsForcedLodgeSafeLootGroup(aiLootGroupCode)
-		LogDebug("DestinationResolver", "Loot group is hard-routed to Lodge Safe: " + aiLootGroupCode)
 		Return DEST_LODGE_SAFE
 	EndIf
 
 	Int iLootGroupCode = ResolveLootGroupDestinationCode(aiLootGroupCode)
 
 	If iLootGroupCode > 0
-		LogDebug("DestinationResolver", "Using loot-group destination override code: " + iLootGroupCode)
 		Return iLootGroupCode
 	EndIf
 
 	Int iDefaultCode = ResolveDefaultDestinationCode()
-	LogDebug("DestinationResolver", "Using default destination code: " + iDefaultCode)
 	Return iDefaultCode
 EndFunction
 

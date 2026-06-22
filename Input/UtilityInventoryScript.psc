@@ -66,7 +66,6 @@ Event OnTerminalMenuEnter(TerminalMenu akTerminalBase, ObjectReference akTermina
 		Return
 	EndIf
 
-	LogDebug("UtilityInventory", "OnTerminalMenuEnter triggered.")
 EndEvent
 
 Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, ObjectReference akTerminalRef)
@@ -80,8 +79,6 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 		RunOpenPandaWorksInventory()
 	ElseIf auiMenuItemID == ITEM_CARGO_HOLD
 		RunOpenShipCargo()
-	Else
-		LogDebug("UtilityInventory", "Ignoring unmapped menu item ID: " + (auiMenuItemID as String))
 	EndIf
 EndEvent
 

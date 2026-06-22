@@ -211,31 +211,25 @@ EndFunction
 
 Bool Function CanRunLooting()
 	If !bRuntimeInitialized
-		LogDecision("CanRunLooting", false, "Runtime is not initialized.")
 		Return false
 	EndIf
 
 	If !bFrameworkReady
-		LogDecision("CanRunLooting", false, "Framework is not ready.")
 		Return false
 	EndIf
 
 	If bStartupInProgress
-		LogDecision("CanRunLooting", false, "Startup is in progress.")
 		Return false
 	EndIf
 
 	If bMigrationsRunning
-		LogDecision("CanRunLooting", false, "Migration is currently running.")
 		Return false
 	EndIf
 
 	If bUninstallPending
-		LogDecision("CanRunLooting", false, "Uninstall preparation is pending.")
 		Return false
 	EndIf
 
-	LogDecision("CanRunLooting", true, "Framework state allows looting.")
 	Return true
 EndFunction
 
@@ -252,12 +246,10 @@ Int Function RequestLootingLoopBudget(Int aiRequested)
 	Int iLootingAvailable = iLoopBudgetLootingMax - iLoopBudgetLootingInUse
 
 	If iGlobalAvailable <= 0
-		LogDebug("RuntimeManager", "RequestLootingLoopBudget denied: no global loop budget available.")
 		Return 0
 	EndIf
 
 	If iLootingAvailable <= 0
-		LogDebug("RuntimeManager", "RequestLootingLoopBudget denied: no looting loop budget available.")
 		Return 0
 	EndIf
 
@@ -273,7 +265,6 @@ Int Function RequestLootingLoopBudget(Int aiRequested)
 
 	iLoopBudgetLootingInUse += iGranted
 
-	LogDebug("RuntimeManager", "Granted looting loop budget: " + iGranted)
 	Return iGranted
 EndFunction
 
@@ -287,8 +278,6 @@ Function ReleaseLootingLoopBudget(Int aiGranted)
 	If iLoopBudgetLootingInUse < 0
 		iLoopBudgetLootingInUse = 0
 	EndIf
-
-	LogDebug("RuntimeManager", "Released looting loop budget: " + aiGranted)
 EndFunction
 
 Int Function RequestZoologyLoopBudget(Int aiRequested)
@@ -300,12 +289,10 @@ Int Function RequestZoologyLoopBudget(Int aiRequested)
 	Int iZoologyAvailable = iLoopBudgetZoologyMax - iLoopBudgetZoologyInUse
 
 	If iGlobalAvailable <= 0
-		LogDebug("RuntimeManager", "RequestZoologyLoopBudget denied: no global loop budget available.")
 		Return 0
 	EndIf
 
 	If iZoologyAvailable <= 0
-		LogDebug("RuntimeManager", "RequestZoologyLoopBudget denied: no zoology loop budget available.")
 		Return 0
 	EndIf
 
@@ -321,7 +308,6 @@ Int Function RequestZoologyLoopBudget(Int aiRequested)
 
 	iLoopBudgetZoologyInUse += iGranted
 
-	LogDebug("RuntimeManager", "Granted zoology loop budget: " + iGranted)
 	Return iGranted
 EndFunction
 
@@ -335,8 +321,6 @@ Function ReleaseZoologyLoopBudget(Int aiGranted)
 	If iLoopBudgetZoologyInUse < 0
 		iLoopBudgetZoologyInUse = 0
 	EndIf
-
-	LogDebug("RuntimeManager", "Released zoology loop budget: " + aiGranted)
 EndFunction
 
 ; ==============================================================
@@ -344,8 +328,6 @@ EndFunction
 ; ==============================================================
 
 Bool Function RunStartupFlow()
-	LogDebug("RuntimeManager", "RunStartupFlow entered.")
-
 	If !RunStartupValidationPhase()
 		Return false
 	EndIf
@@ -379,7 +361,6 @@ Bool Function RunStartupValidationPhase()
 		Return false
 	EndIf
 
-	LogDebug("RuntimeManager", "Startup validation phase completed successfully.")
 	LogInfo("RuntimeManager", "Startup phase: validation complete.")
 	Return true
 EndFunction
@@ -398,7 +379,6 @@ Bool Function RunVersionCheckPhase()
 		Return false
 	EndIf
 
-	LogDebug("RuntimeManager", "Version check phase completed successfully.")
 	LogInfo("RuntimeManager", "Startup phase: version check complete.")
 	Return true
 EndFunction
@@ -417,7 +397,6 @@ Bool Function RunInstallCheckPhase()
 		Return false
 	EndIf
 
-	LogDebug("RuntimeManager", "Install check phase completed successfully.")
 	LogInfo("RuntimeManager", "Startup phase: install check complete.")
 	Return true
 EndFunction
@@ -431,7 +410,6 @@ Bool Function RunFinalizeStartupPhase()
 	; - Any post-install / post-migration runtime sync
 	; - Final gating verification before ready state
 
-	LogDebug("RuntimeManager", "Finalize startup phase currently operating as a runtime stub.")
 	LogInfo("RuntimeManager", "Startup phase: finalization complete.")
 	Return true
 EndFunction
@@ -459,28 +437,21 @@ EndFunction
 ; ==============================================================
 
 Function LogRuntimeSnapshot(String asContext)
-	LogDebug("RuntimeManager", asContext + " | State=" + iCurrentFrameworkState)
-	LogDebug("RuntimeManager", asContext + " | iLoopBudgetLootingInUse=" + iLoopBudgetLootingInUse)
-	LogDebug("RuntimeManager", asContext + " | iLoopBudgetZoologyInUse=" + iLoopBudgetZoologyInUse)
-	LogDecision(asContext + " | bStartupInProgress", bStartupInProgress, "Current startup flag snapshot.")
-	LogDecision(asContext + " | bRuntimeInitialized", bRuntimeInitialized, "Current initialized flag snapshot.")
-	LogDecision(asContext + " | bFrameworkReady", bFrameworkReady, "Current ready flag snapshot.")
-	LogDecision(asContext + " | bMigrationsRunning", bMigrationsRunning, "Current migration flag snapshot.")
-	LogDecision(asContext + " | bUninstallPending", bUninstallPending, "Current uninstall flag snapshot.")
 EndFunction
 
 Function LogDecision(String asContext, Bool abDecision, String asReason)
 	String sDecision = "false"
 
+	If Logger
+		Logger.TraceDecision("RuntimeManager", asContext, abDecision, asReason)
+		Return
+	EndIf
+
 	If abDecision
 		sDecision = "true"
 	EndIf
 
-	If Logger
-		Logger.TraceDecision("RuntimeManager", asContext, abDecision, asReason)
-	Else
-		Debug.Trace("[PWAL][DEBUG][RuntimeManager] " + asContext + " => " + sDecision + " | " + asReason)
-	EndIf
+	Debug.Trace("[PWAL][DEBUG][RuntimeManager] " + asContext + " => " + sDecision + " | " + asReason)
 EndFunction
 
 ; ==============================================================

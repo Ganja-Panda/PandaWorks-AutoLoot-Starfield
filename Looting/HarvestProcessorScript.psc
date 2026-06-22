@@ -44,7 +44,6 @@ Bool Function ProcessNonLethalHarvest(ObjectReference akTarget, PWAL:Looting:Loo
 	ConditionForm akHarvestCondition
 
 	If akTarget == None
-		LogDebug("HarvestProcessor", "ProcessNonLethalHarvest skipped: akTarget is None.")
 		Return false
 	EndIf
 
@@ -54,12 +53,10 @@ Bool Function ProcessNonLethalHarvest(ObjectReference akTarget, PWAL:Looting:Loo
 	EndIf
 
 	If !Game.IsActivateControlsEnabled()
-		LogDebug("HarvestProcessor", "ProcessNonLethalHarvest skipped: activate controls are disabled.")
 		Return false
 	EndIf
 
 	If !IsHarvestTargetLoaded(akTarget)
-		LogDebug("HarvestProcessor", "ProcessNonLethalHarvest skipped: target is not loaded or valid.")
 		Return false
 	EndIf
 
@@ -89,16 +86,12 @@ Bool Function ProcessNonLethalHarvest(ObjectReference akTarget, PWAL:Looting:Loo
 	EndIf
 
 	If !akHarvestCondition.IsTrue(akTarget, akPlayerRef)
-		LogDebug("HarvestProcessor", "ProcessNonLethalHarvest skipped: vanilla Zoology condition returned false.")
 		Return false
 	EndIf
-
-	LogDebug("HarvestProcessor", "Nonlethal harvest target accepted: " + akTarget)
 
 	akHarvestSpell.RemoteCast(akPlayerRef, akPlayerActor, akTarget)
 	akTarget.Activate(akPlayerRef, false)
 
-	LogDebug("HarvestProcessor", "Nonlethal harvest processed: " + akTarget)
 	Return true
 EndFunction
 
