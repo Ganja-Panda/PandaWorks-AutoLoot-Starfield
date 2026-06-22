@@ -171,6 +171,12 @@ Int Function ProcessLocatedArray(ObjectReference[] akLootArray, PWAL:Looting:Loo
 		Return 0
 	EndIf
 
+	If akEffectContext != None
+		If akEffectContext.IsShipContainerMode()
+			LogWarn("LootScanner", "TEMP_SHIPLOCKER_DIAG scanner found " + (akLootArray.Length as String) + " ship-container candidate(s). ActiveLootList=" + akEffectContext.ActiveLootList)
+		EndIf
+	EndIf
+
 	Return LootProcessor.ProcessCandidates(akLootArray, akEffectContext)
 EndFunction
 
