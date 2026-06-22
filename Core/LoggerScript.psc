@@ -10,7 +10,7 @@ ScriptName PWAL:Core:LoggerScript extends Quest
 ; Type: Core / Diagnostic Utility
 ; Purpose:
 ;   Central diagnostic and logging utility for the PWAL framework.
-;   Provides standardized info, warning, error, and verbose debug
+;   Provides standardized info, warning, error, and debug
 ;   trace output when the PWAL logging utility toggle is enabled.
 ;
 ; Responsibilities:
@@ -19,7 +19,6 @@ ScriptName PWAL:Core:LoggerScript extends Quest
 ;   - Write PWAL logs to a dedicated user log file
 ;   - Provide centralized diagnostic trace helpers
 ;   - Normalize log source/message values
-;   - Support verbose runtime inspection during development/testing
 ;
 ; Non-Responsibilities:
 ;   - No install/update logic
@@ -34,7 +33,6 @@ ScriptName PWAL:Core:LoggerScript extends Quest
 
 Group LoggingSettings
 	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto
-	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_DebugVerbose Auto
 	String Property sLogPrefix = "[PWAL]" Auto
 	String Property sUserLogName = "PandaWorks AutoLoot" Auto Const
 	Bool Property bMirrorToPapyrusLog = false Auto Const
@@ -57,33 +55,17 @@ Function Error(String asSource, String asMessage)
 EndFunction
 
 Function DebugLog(String asSource, String asMessage)
-	If !IsDebugLoggingEnabled()
-		Return
-	EndIf
-
 	Log("DEBUG", asSource, asMessage, false)
 EndFunction
 
 Function TraceDecision(String asSource, String asContext, Bool abDecision, String asReason)
-	If !IsDebugLoggingEnabled()
-		Return
-	EndIf
-
 	String sDecision = "false"
 
 	If abDecision
 		sDecision = "true"
 	EndIf
 
-	Log("DEBUG", asSource, asContext + " => " + sDecision + " | " + NormalizeMessage(asReason), false)
-EndFunction
-
-Function TraceValue(String asSource, String asLabel, String asValue)
-	If !IsDebugLoggingEnabled()
-		Return
-	EndIf
-
-	Log("DEBUG", asSource, NormalizeMessage(asLabel) + " = " + NormalizeMessage(asValue), false)
+	DebugLog(asSource, asContext + " => " + sDecision + " | " + NormalizeMessage(asReason))
 EndFunction
 
 ; ==============================================================
@@ -96,14 +78,6 @@ Bool Function IsLoggingEnabled()
 	EndIf
 
 	Return (PWAL_GLOB_Utilities_Toggle_Logging.GetValueInt() != 0)
-EndFunction
-
-Bool Function IsDebugLoggingEnabled()
-	If PWAL_GLOB_Utilities_Toggle_DebugVerbose == None
-		Return false
-	EndIf
-
-	Return (PWAL_GLOB_Utilities_Toggle_DebugVerbose.GetValueInt() != 0)
 EndFunction
 
 ; ==============================================================
