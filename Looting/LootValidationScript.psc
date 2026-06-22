@@ -61,70 +61,68 @@ Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 	
-	If akEffectContext.IsShipContainerMode()
+	If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 		LogWarn("LootValidation", "TEMP_SHIPLOCKER_DIAG validate ship candidate ref=" + akLoot + " base=" + akLoot.GetBaseObject() + " currentShip=" + (akLoot.GetCurrentShipRef() as ObjectReference) + " container=" + akLoot.GetContainer())
 	EndIf
 
 	If IsBlockedPlayerInventoryRef(akLoot, akEffectContext)
-		If akEffectContext.IsShipContainerMode()
+		If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 			LogWarn("LootValidation", "TEMP_SHIPLOCKER_DIAG rejected ship candidate: blocked player inventory ref=" + akLoot)
 		EndIf
 		Return false
 	EndIf
 
 	If !IsLootLoaded(akLoot)
-		If akEffectContext.IsShipContainerMode()
+		If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 			LogWarn("LootValidation", "TEMP_SHIPLOCKER_DIAG rejected ship candidate: not loaded/disabled/deleted ref=" + akLoot)
 		EndIf
 		Return false
 	EndIf
 
 	If !IsPlayerAvailable()
-		If akEffectContext.IsShipContainerMode()
+		If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 			LogWarn("LootValidation", "TEMP_SHIPLOCKER_DIAG rejected ship candidate: player unavailable ref=" + akLoot)
 		EndIf
 		Return false
 	EndIf
 
 	If IsActorOutsideCorpseOrHarvestMode(akLoot, akEffectContext)
-		If akEffectContext.IsShipContainerMode()
+		If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 			LogWarn("LootValidation", "TEMP_SHIPLOCKER_DIAG rejected ship candidate: actor outside corpse/harvest mode ref=" + akLoot)
 		EndIf
 		Return false
 	EndIf
 
 	If IsProtectedSourceRef(akLoot, akEffectContext)
-		If akEffectContext.IsShipContainerMode()
+		If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 			LogWarn("LootValidation", "TEMP_SHIPLOCKER_DIAG rejected ship candidate: protected source ref=" + akLoot)
 		EndIf
 		Return false
 	EndIf
 
 	If IsAlreadyLooted(akLoot, akEffectContext)
-		If akEffectContext.IsShipContainerMode()
+		If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 			LogWarn("LootValidation", "TEMP_SHIPLOCKER_DIAG rejected ship candidate: already looted ref=" + akLoot)
 		EndIf
 		Return false
 	EndIf
 
 	If IsInBlockedOwnedArea(akEffectContext)
-		If akEffectContext.IsShipContainerMode()
+		If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 			LogWarn("LootValidation", "TEMP_SHIPLOCKER_DIAG rejected ship candidate: blocked owned area ref=" + akLoot)
 		EndIf
 		Return false
 	EndIf
 
-	If akEffectContext.IsShipContainerMode() && !CanLootShipSpaceContent(akEffectContext)
-		If akEffectContext.IsShipContainerMode()
-			LogWarn("LootValidation", "TEMP_SHIPLOCKER_DIAG rejected ship candidate: ship looting disabled ref=" + akLoot)
-		EndIf
+	If (akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()) && !CanLootShipSpaceContent(akEffectContext)
+		LogWarn("LootValidation", "TEMP_SHIPLOCKER_DIAG rejected ship candidate: ship looting disabled ref=" + akLoot)
 		Return false
 	EndIf
 
 	akPlayerActor = akEffectContext.GetPlayerActor()
 	If akPlayerActor != None
 		If akPlayerActor.WouldBeStealing(akLoot) && !akEffectContext.CanSteal()
-			If akEffectContext.IsShipContainerMode()
+			If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 				LogWarn("LootValidation", "TEMP_SHIPLOCKER_DIAG rejected ship candidate: stealing blocked ref=" + akLoot)
 			EndIf
 			Return false
@@ -132,13 +130,13 @@ Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 	EndIf
 
 	If IsPlayerStealing(akLoot, akEffectContext) && !akEffectContext.CanSteal()
-		If akEffectContext.IsShipContainerMode()
+		If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 			LogWarn("LootValidation", "TEMP_SHIPLOCKER_DIAG rejected ship candidate: stealing blocked ref=" + akLoot)
 		EndIf
 		Return false
 	EndIf
 
-	If akEffectContext.IsShipContainerMode()
+	If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 		LogWarn("LootValidation", "TEMP_SHIPLOCKER_DIAG accepted ship candidate ref=" + akLoot)
 	EndIf
 
@@ -202,7 +200,7 @@ Bool Function IsPlayerShipProtectedSource(ObjectReference akLoot, PWAL:Looting:L
 
 	; This protection is only for the ship/space container scan path.
 	; Do not let it block normal corpses, loose loot, or regular containers.
-	If !akEffectContext.IsShipContainerMode()
+	If !akEffectContext.IsShipInteriorMode() && !akEffectContext.IsShipContainerMode()
 		Return false
 	EndIf
 
@@ -278,7 +276,7 @@ Bool Function IsActorOutsideCorpseOrHarvestMode(ObjectReference akLoot, PWAL:Loo
 		Return false
 	EndIf
 
-	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
+	If akEffectContext.IsContainerMode() || akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 		Return false
 	EndIf
 

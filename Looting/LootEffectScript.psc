@@ -56,6 +56,7 @@ Group EffectBehavior_Method
 	Bool Property bLootDeadActor = false Auto
 	Bool Property bIsActivatedBySpell = false Auto
 	Bool Property bIsContainerSpace = false Auto
+	Bool Property bIsShipInterior = false Auto Const
 	Bool Property bIsNonLethalHarvest = false Auto
 EndGroup
 
@@ -373,6 +374,10 @@ EndFunction
 
 Bool Function IsContainerMode()
 	Return bIsContainer
+EndFunction
+
+Bool Function IsShipInteriorMode()
+	Return bIsShipInterior
 EndFunction
 
 Bool Function IsCorpseMode()

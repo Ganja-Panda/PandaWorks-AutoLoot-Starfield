@@ -95,7 +95,7 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 	akBase = akContainer.GetBaseObject()
 	akBaseContainer = akBase as Container
 
-	If akEffectContext.IsShipContainerMode()
+	If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 		LogWarn("ContainerProcessor", "TEMP_SHIPLOCKER_DIAG processing ship container ref=" + akContainer + " base=" + akBase + " baseIsContainer=" + ((akBaseContainer != None) as String))
 	EndIf
 
@@ -105,7 +105,7 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 			Return
 		EndIf
 
-		If akEffectContext.IsShipContainerMode()
+		If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 			LogWarn("ContainerProcessor", "TEMP_SHIPLOCKER_DIAG allowed normalized ship inventory source ref=" + akContainer + " base=" + akBase)
 		EndIf
 	EndIf
@@ -157,7 +157,7 @@ Bool Function IsNormalizedShipInventorySource(ObjectReference akContainer, PWAL:
 		Return false
 	EndIf
 
-	If !akEffectContext.IsShipContainerMode()
+	If !akEffectContext.IsShipInteriorMode()
 		Return false
 	EndIf
 

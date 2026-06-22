@@ -107,7 +107,7 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 		Return false
 	EndIf
 
-	If akEffectContext.IsShipContainerMode()
+	If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 		LogWarn("LootProcessor", "TEMP_SHIPLOCKER_DIAG candidate raw=" + akLoot + " rawBase=" + akLoot.GetBaseObject() + " resolved=" + akResolvedLoot + " resolvedBase=" + akResolvedLoot.GetBaseObject())
 	EndIf
 
@@ -123,7 +123,7 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 		Return false
 	EndIf
 
-	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
+	If akEffectContext.IsContainerMode() || akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 		Return RouteContainer(akResolvedLoot, akEffectContext)
 	EndIf
 
@@ -324,7 +324,7 @@ Bool Function CanRouteAsLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffec
 	EndIf
 
 	; Container and corpse effect profiles should route through their processors.
-	If akEffectContext.IsContainerMode() || akEffectContext.IsShipContainerMode()
+	If akEffectContext.IsContainerMode() || akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 		Return false
 	EndIf
 
@@ -365,7 +365,7 @@ ObjectReference Function NormalizeCandidateRef(ObjectReference akLoot, PWAL:Loot
 		Return akLoot
 	EndIf
 
-	If !akEffectContext.IsShipContainerMode()
+	If !akEffectContext.IsShipInteriorMode()
 		Return akLoot
 	EndIf
 
