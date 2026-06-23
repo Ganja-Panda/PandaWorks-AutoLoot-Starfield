@@ -158,6 +158,7 @@ EndFunction
 
 Bool Function RouteCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript akEffectContext)
 	Actor akCorpseActor
+	Keyword akLootedKeyword
 
 	If akCorpse == None || akEffectContext == None
 		Return false
@@ -170,6 +171,13 @@ Bool Function RouteCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScrip
 
 	If !akCorpseActor.IsDead()
 		Return false
+	EndIf
+
+	akLootedKeyword = akEffectContext.GetCorpseLootedKeyword()
+	If akLootedKeyword != None
+		If akCorpse.HasKeyword(akLootedKeyword)
+			Return false
+		EndIf
 	EndIf
 
 	If LootValidation != None

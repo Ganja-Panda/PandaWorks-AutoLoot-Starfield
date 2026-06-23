@@ -188,6 +188,10 @@ EndEvent
 ; ==============================================================
 
 Function ExecuteLooting()
+	; TEMP PROFILING CODE:
+	; Effect-level timing for performance testing only.
+	; Logs only successful processed runs.
+	; Remove this block after profiling is complete.
 	Float fPerfStart
 	Float fPerfBeforeScan
 	Float fPerfAfterScan
@@ -230,6 +234,10 @@ Function ExecuteLooting()
 	fPerfBeforeScan = Utility.GetCurrentRealTime()
 	iProcessed = LootScanner.Scan(Self)
 	fPerfAfterScan = Utility.GetCurrentRealTime()
+
+	If iProcessed <= 0
+		Return
+	EndIf
 
 	fPerfEnd = Utility.GetCurrentRealTime()
 	LogInfo("LootEffectPerf", "PERF_EFFECT_RUN effect=" + GetEffectDebugLabel() \
