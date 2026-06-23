@@ -9,15 +9,14 @@ ScriptName PWAL:Looting:AsteroidDepositBridgeScript Extends ObjectReference
 ; Script: AsteroidDepositBridgeScript
 ; Type: Looting / Space Loot Bridge
 ; Purpose:
-;   Marks generated asteroid deposit containers so the PWAL space
-;   loot scanner can discover them through the normal framework path.
+;   Submits generated asteroid deposit containers to the PWAL asteroid
+;   candidate inbox so the active space looting effect can process them.
 ;
 ; Responsibilities:
 ;   - Run on generated asteroid deposit container references
-;   - Add the PWAL asteroid-deposit detection keyword
+;   - Submit ready refs to the asteroid candidate inbox
 ;   - Avoid direct inventory transfer
 ;   - Avoid destination routing
-;   - Exit after the deposit has been marked
 ;
 ; Non-Responsibilities:
 ;   - No scanning
@@ -28,20 +27,16 @@ ScriptName PWAL:Looting:AsteroidDepositBridgeScript Extends ObjectReference
 ;   - No direct ship cargo routing
 ; ==============================================================
 
-Keyword Property PWAL_KYWD_AsteroidDeposit Auto Const Mandatory
 RefCollectionAlias Property PWAL_RCAL_AsteroidCandidateInbox Auto Const
 Int Property ASTEROID_INBOX_TIMER_ID = 101 Auto Const
 
-Bool bKeywordAdded = False
 Int iSubmitAttempt = 0
 
 Event OnInit()
-	AddAsteroidDepositKeyword()
 	StartReadinessRetry()
 EndEvent
 
 Event OnLoad()
-	AddAsteroidDepositKeyword()
 	StartReadinessRetry()
 EndEvent
 
@@ -56,7 +51,6 @@ Event OnUnload()
 
 	If PWAL_RCAL_AsteroidCandidateInbox != None
 		PWAL_RCAL_AsteroidCandidateInbox.RemoveRef(Self)
-		Debug.Trace("[PWAL][DEBUG][AsteroidBridge] Removed asteroid candidate from inbox: " + Self)
 	EndIf
 EndEvent
 
@@ -91,7 +85,6 @@ Function ProcessReadinessAttempt()
 	EndIf
 
 	bAlreadyInInbox = PWAL_RCAL_AsteroidCandidateInbox.Find(Self) >= 0
-	Debug.Trace("[PWAL][DEBUG][AsteroidBridge] Readiness attempt=" + (iSubmitAttempt as String) + " ref=" + Self + " base=" + akBase + " itemCount=" + (iItemCount as String) + " alreadyInInbox=" + (bAlreadyInInbox as String))
 
 	If bAlreadyInInbox
 		Return
@@ -99,25 +92,8 @@ Function ProcessReadinessAttempt()
 
 	If iItemCount > 0 || iSubmitAttempt >= 5
 		PWAL_RCAL_AsteroidCandidateInbox.AddRef(Self)
-		Debug.Trace("[PWAL][DEBUG][AsteroidBridge] Submitted asteroid candidate on attempt=" + (iSubmitAttempt as String) + ": " + Self)
 		Return
 	EndIf
 
 	StartTimer(0.5, ASTEROID_INBOX_TIMER_ID)
-EndFunction
-
-Function AddAsteroidDepositKeyword()
-	If bKeywordAdded
-		Return
-	EndIf
-
-	If PWAL_KYWD_AsteroidDeposit == None
-		Return
-	EndIf
-
-	If !HasKeyword(PWAL_KYWD_AsteroidDeposit)
-		AddKeyword(PWAL_KYWD_AsteroidDeposit)
-	EndIf
-
-	bKeywordAdded = True
 EndFunction
