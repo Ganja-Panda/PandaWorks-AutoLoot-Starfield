@@ -66,6 +66,28 @@ Function ProcessContainer(ObjectReference akContainer, PWAL:Looting:LootEffectSc
 		Return
 	EndIf
 
+	ProcessValidatedContainer(akContainer, akEffectContext)
+EndFunction
+
+Function ProcessValidatedContainer(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
+	If akContainer == None
+		Return
+	EndIf
+
+	If akEffectContext == None
+		Return
+	EndIf
+
+	If DestinationResolver == None
+		LogError("ContainerProcessor", "ProcessValidatedContainer failed: DestinationResolver property is not filled.")
+		Return
+	EndIf
+
+	If UnlockingService == None
+		LogError("ContainerProcessor", "ProcessValidatedContainer failed: UnlockingService property is not filled.")
+		Return
+	EndIf
+
 	If !UnlockingService.EnsureContainerAccess(akContainer, akEffectContext)
 		Return
 	EndIf

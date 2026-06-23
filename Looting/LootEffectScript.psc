@@ -188,18 +188,6 @@ EndEvent
 ; ==============================================================
 
 Function ExecuteLooting()
-	; TEMP PROFILING CODE:
-	; Effect-level timing for performance testing only.
-	; Logs only successful processed runs.
-	; Remove this block after profiling is complete.
-	Float fPerfStart
-	Float fPerfBeforeScan
-	Float fPerfAfterScan
-	Float fPerfEnd
-	Int iProcessed
-
-	fPerfStart = Utility.GetCurrentRealTime()
-
 	If RuntimeManager == None
 		LogError("LootEffect", "ExecuteLooting failed: RuntimeManager property is not filled.")
 		Return
@@ -231,21 +219,7 @@ Function ExecuteLooting()
 	RefreshRuntimeSettings()
 	theLooterRef = ResolveLooterRef()
 
-	fPerfBeforeScan = Utility.GetCurrentRealTime()
-	iProcessed = LootScanner.Scan(Self)
-	fPerfAfterScan = Utility.GetCurrentRealTime()
-
-	If iProcessed <= 0
-		Return
-	EndIf
-
-	fPerfEnd = Utility.GetCurrentRealTime()
-	LogInfo("LootEffectPerf", "PERF_EFFECT_RUN effect=" + GetEffectDebugLabel() \
-		+ " mode=" + GetEffectModeLabel() \
-		+ " total=" + ((fPerfEnd - fPerfStart) as String) \
-		+ " scannerProcess=" + ((fPerfAfterScan - fPerfBeforeScan) as String) \
-		+ " processed=" + (iProcessed as String) \
-		+ " radius=" + (GetRadius() as String))
+	LootScanner.Scan(Self)
 EndFunction
 
 ; ==============================================================

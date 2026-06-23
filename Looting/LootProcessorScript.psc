@@ -152,7 +152,7 @@ Bool Function RouteContainer(ObjectReference akContainer, PWAL:Looting:LootEffec
 		Return false
 	EndIf
 
-	ContainerProcessor.ProcessContainer(akContainer, akEffectContext)
+	ContainerProcessor.ProcessValidatedContainer(akContainer, akEffectContext)
 	Return true
 EndFunction
 
