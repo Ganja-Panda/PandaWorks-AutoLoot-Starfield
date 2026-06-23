@@ -188,6 +188,14 @@ EndEvent
 ; ==============================================================
 
 Function ExecuteLooting()
+	Float fPerfStart
+	Float fPerfBeforeScan
+	Float fPerfAfterScan
+	Float fPerfEnd
+	Int iProcessed
+
+	fPerfStart = Utility.GetCurrentRealTime()
+
 	If RuntimeManager == None
 		LogError("LootEffect", "ExecuteLooting failed: RuntimeManager property is not filled.")
 		Return
@@ -219,11 +227,21 @@ Function ExecuteLooting()
 	RefreshRuntimeSettings()
 	theLooterRef = ResolveLooterRef()
 
-	Int iProcessed = LootScanner.Scan(Self)
+	fPerfBeforeScan = Utility.GetCurrentRealTime()
+	iProcessed = LootScanner.Scan(Self)
+	fPerfAfterScan = Utility.GetCurrentRealTime()
 
 	If iProcessed <= 0
 		Return
 	EndIf
+
+	fPerfEnd = Utility.GetCurrentRealTime()
+	LogInfo("LootEffectPerf", "PERF_EFFECT_RUN effect=" + GetEffectDebugLabel() \
+		+ " mode=" + GetEffectModeLabel() \
+		+ " total=" + ((fPerfEnd - fPerfStart) as String) \
+		+ " scannerProcess=" + ((fPerfAfterScan - fPerfBeforeScan) as String) \
+		+ " processed=" + (iProcessed as String) \
+		+ " radius=" + (GetRadius() as String))
 EndFunction
 
 ; ==============================================================
@@ -390,6 +408,50 @@ EndFunction
 
 Bool Function IsSpellActivationMode()
 	Return bIsActivatedBySpell
+EndFunction
+
+String Function GetEffectDebugLabel()
+	If ActiveLootSpell != None
+		Return ActiveLootSpell.GetName()
+	EndIf
+
+	If ActivePerk != None
+		Return ActivePerk.GetName()
+	EndIf
+
+	If ActiveLootList != None
+		Return "ActiveLootList"
+	EndIf
+
+	Return "LootEffect"
+EndFunction
+
+String Function GetEffectModeLabel()
+	If IsCorpseMode()
+		Return "Corpse"
+	EndIf
+
+	If IsContainerMode()
+		Return "Container"
+	EndIf
+
+	If IsShipInteriorMode()
+		Return "ShipInterior"
+	EndIf
+
+	If IsNonLethalHarvestMode()
+		Return "NonLethalHarvest"
+	EndIf
+
+	If IsActivatorMode()
+		Return "Activator"
+	EndIf
+
+	If IsSpellActivationMode()
+		Return "SpellActivation"
+	EndIf
+
+	Return "LooseOrUnknown"
 EndFunction
 
 Bool Function IsShipContainerMode()
