@@ -191,7 +191,7 @@ Bool Function RouteCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScrip
 		Return false
 	EndIf
 
-	CorpseProcessor.ProcessCorpse(akCorpse, akEffectContext)
+	CorpseProcessor.ProcessValidatedCorpse(akCorpse, akCorpseActor, akEffectContext)
 	Return true
 EndFunction
 

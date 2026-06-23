@@ -36,9 +36,6 @@ EndGroup
 
 Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript akEffectContext)
 	Actor akCorpseActor
-	ObjectReference akDestinationRef
-	Bool bIsHumanCorpse
-	Bool bTransferSucceeded = false
 
 	If akCorpse == None
 		LogWarn("CorpseProcessor", "ProcessCorpse aborted: akCorpse is None.")
@@ -60,6 +57,26 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 	EndIf
 
 	If IsCorpseAlreadyLooted(akCorpse, akEffectContext)
+		Return
+	EndIf
+
+	ProcessValidatedCorpse(akCorpse, akCorpseActor, akEffectContext)
+EndFunction
+
+Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, PWAL:Looting:LootEffectScript akEffectContext)
+	ObjectReference akDestinationRef
+	Bool bIsHumanCorpse
+	Bool bTransferSucceeded = false
+
+	If akCorpse == None
+		Return
+	EndIf
+
+	If akCorpseActor == None
+		Return
+	EndIf
+
+	If akEffectContext == None
 		Return
 	EndIf
 
