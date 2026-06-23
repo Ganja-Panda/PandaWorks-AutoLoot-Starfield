@@ -95,18 +95,10 @@ Function ProcessFilteredContainerItems(ObjectReference akContainer, ObjectRefere
 	akBase = akContainer.GetBaseObject()
 	akBaseContainer = akBase as Container
 
-	If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
-		LogWarn("ContainerProcessor", "TEMP_SHIPLOCKER_DIAG processing ship container ref=" + akContainer + " base=" + akBase + " baseIsContainer=" + ((akBaseContainer != None) as String))
-	EndIf
-
 	If akBaseContainer == None
 		If !IsNormalizedShipInventorySource(akContainer, akEffectContext)
 			LogWarn("ContainerProcessor", "ProcessFilteredContainerItems rejected non-container base: ref=" + akContainer + " base=" + akBase)
 			Return
-		EndIf
-
-		If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
-			LogWarn("ContainerProcessor", "TEMP_SHIPLOCKER_DIAG allowed normalized ship inventory source ref=" + akContainer + " base=" + akBase)
 		EndIf
 	EndIf
 

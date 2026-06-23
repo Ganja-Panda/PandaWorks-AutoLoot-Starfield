@@ -107,10 +107,6 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 		Return false
 	EndIf
 
-	If akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
-		LogWarn("LootProcessor", "TEMP_SHIPLOCKER_DIAG candidate raw=" + akLoot + " rawBase=" + akLoot.GetBaseObject() + " resolved=" + akResolvedLoot + " resolvedBase=" + akResolvedLoot.GetBaseObject())
-	EndIf
-
 	If akEffectContext.IsNonLethalHarvestMode()
 		Return RouteNonLethalHarvest(akResolvedLoot, akEffectContext)
 	EndIf
@@ -373,7 +369,6 @@ ObjectReference Function NormalizeCandidateRef(ObjectReference akLoot, PWAL:Loot
 		If akLoot.HasKeyword(akEffectContext.SpaceshipInventoryContainer)
 			akShipRef = akLoot.GetCurrentShipRef() as ObjectReference
 			If akShipRef != None
-				LogWarn("LootProcessor", "TEMP_SHIPLOCKER_DIAG normalized ship inventory candidate from " + akLoot + " base=" + akLoot.GetBaseObject() + " to ship=" + akShipRef)
 				Return akShipRef
 			EndIf
 		EndIf
