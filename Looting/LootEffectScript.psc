@@ -231,10 +231,6 @@ Function ExecuteLooting()
 	iProcessed = LootScanner.Scan(Self)
 	fPerfAfterScan = Utility.GetCurrentRealTime()
 
-	If iProcessed <= 0
-		Return
-	EndIf
-
 	fPerfEnd = Utility.GetCurrentRealTime()
 	LogInfo("LootEffectPerf", "PERF_EFFECT_RUN effect=" + GetEffectDebugLabel() \
 		+ " mode=" + GetEffectModeLabel() \
@@ -411,19 +407,7 @@ Bool Function IsSpellActivationMode()
 EndFunction
 
 String Function GetEffectDebugLabel()
-	If ActiveLootSpell != None
-		Return ActiveLootSpell.GetName()
-	EndIf
-
-	If ActivePerk != None
-		Return ActivePerk.GetName()
-	EndIf
-
-	If ActiveLootList != None
-		Return "ActiveLootList"
-	EndIf
-
-	Return "LootEffect"
+	Return GetEffectModeLabel() + "_Group" + (iLootGroupCode as String)
 EndFunction
 
 String Function GetEffectModeLabel()
