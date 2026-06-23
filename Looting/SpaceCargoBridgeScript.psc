@@ -27,8 +27,8 @@ ScriptName PWAL:Looting:SpaceCargoBridgeScript Extends ObjectReference
 ;   - No direct ship cargo routing
 ; ==============================================================
 
+Int Property SPACE_CARGO_INBOX_TIMER_ID = 102 Auto Const
 RefCollectionAlias Property PWAL_RCAL_SpaceCargoCandidateInbox Auto Const
-Int Property SPACE_CARGO_INBOX_TIMER_ID = 101 Auto Const
 
 Int iSubmitAttempt = 0
 
@@ -51,7 +51,6 @@ Event OnUnload()
 
 	If PWAL_RCAL_SpaceCargoCandidateInbox != None
 		PWAL_RCAL_SpaceCargoCandidateInbox.RemoveRef(Self)
-		Debug.Trace("[PWAL][DEBUG][SpaceCargoBridge] Removed space cargo candidate from inbox: " + Self)
 	EndIf
 EndEvent
 
@@ -86,7 +85,6 @@ Function ProcessReadinessAttempt()
 	EndIf
 
 	bAlreadyInInbox = PWAL_RCAL_SpaceCargoCandidateInbox.Find(Self) >= 0
-	Debug.Trace("[PWAL][DEBUG][SpaceCargoBridge] Readiness attempt=" + (iSubmitAttempt as String) + " ref=" + Self + " base=" + akBase + " itemCount=" + (iItemCount as String) + " alreadyInInbox=" + (bAlreadyInInbox as String))
 
 	If bAlreadyInInbox
 		Return
@@ -94,7 +92,6 @@ Function ProcessReadinessAttempt()
 
 	If iItemCount > 0 || iSubmitAttempt >= 5
 		PWAL_RCAL_SpaceCargoCandidateInbox.AddRef(Self)
-		Debug.Trace("[PWAL][DEBUG][SpaceCargoBridge] Submitted space cargo candidate on attempt=" + (iSubmitAttempt as String) + ": " + Self)
 		Return
 	EndIf
 
