@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:DestinationResolverScript extends Quest
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks AutoLoot
 ; Author: Ganja Panda
-; Version: 1.0.1
+; Version: 1.0.2
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: DestinationResolverScript

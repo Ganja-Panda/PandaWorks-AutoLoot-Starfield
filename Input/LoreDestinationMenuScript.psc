@@ -3,7 +3,7 @@ ScriptName PWAL:Input:LoreDestinationMenuScript Extends TerminalMenu Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.00
+; Version: 1.0.1
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: LoreDestinationMenuScript
@@ -114,7 +114,7 @@ Function CycleLoreDestination()
 
 	PWAL_GLOB_Settings_Dest_BOOK_Dataslates.SetValueInt(iNewValue)
 
-	LogInfo("LoreDestinationMenu", "DataSlates destination changed from " + iCurrentValue + " to " + iNewValue)
+	LogInfo("LoreDestinationMenu", "DataSlates destination changed from " + (iCurrentValue as String) + " to " + (iNewValue as String))
 EndFunction
 
 ; ==============================================================

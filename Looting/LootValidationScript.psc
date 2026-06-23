@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:LootValidationScript Extends Quest Hidden
 ; ==============================================================
 ; Pandworks Studios - PandaWork Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.1
+; Version: 1.0.2
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: LootValidationScript

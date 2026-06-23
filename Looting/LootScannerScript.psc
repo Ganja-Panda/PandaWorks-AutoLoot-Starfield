@@ -3,7 +3,7 @@ ScriptName PWAL:Looting:LootScannerScript Extends Quest Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.00
+; Version: 1.0.1
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: LootScannerScript
@@ -119,12 +119,18 @@ EndFunction
 
 Int Function LocateLootByKeywordList(FormList akLootList, PWAL:Looting:LootEffectScript akEffectContext)
 	ObjectReference[] akLootArray
+	ObjectReference akPlayerRef
 	Keyword akKeyword
 	Int iIndex
 	Int iProcessedTotal
 	Float fRadius
 
 	If akLootList == None || akEffectContext == None
+		Return 0
+	EndIf
+
+	akPlayerRef = GetPlayerRefSafe()
+	If akPlayerRef == None
 		Return 0
 	EndIf
 
@@ -136,15 +142,15 @@ Int Function LocateLootByKeywordList(FormList akLootList, PWAL:Looting:LootEffec
 		akKeyword = akLootList.GetAt(iIndex) as Keyword
 
 		If akKeyword != None
-			akLootArray = GetPlayerRefSafe().FindAllReferencesWithKeyword(akKeyword, fRadius)
+			akLootArray = akPlayerRef.FindAllReferencesWithKeyword(akKeyword, fRadius)
 
 			If akLootArray != None && akLootArray.Length > 0
-				If !(akLootArray.Length == 1 && akLootArray[0] == GetPlayerRefSafe())
+				If !(akLootArray.Length == 1 && akLootArray[0] == akPlayerRef)
 					iProcessedTotal += ProcessLocatedArray(akLootArray, akEffectContext)
 				EndIf
 			EndIf
 		Else
-			LogWarn("LootScanner", "LocateLootByKeywordList skipped invalid keyword at index " + iIndex)
+			LogWarn("LootScanner", "LocateLootByKeywordList skipped invalid keyword at index " + (iIndex as String))
 		EndIf
 
 		iIndex += 1

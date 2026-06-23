@@ -3,7 +3,7 @@ ScriptName PWAL:Input:DestinationMenuScript Extends TerminalMenu Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.00
+; Version: 1.0.1
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: DestinationMenuScript
@@ -116,7 +116,9 @@ Function RunSendAll(GlobalVariable akSendAllGlobal)
 		GlobalVariable akChildGlobal = GetDestinationGlobal(iIndex)
 
 		If akChildGlobal != None
-			akChildGlobal.SetValueInt(iNewValue)
+			If akChildGlobal.GetValueInt() != iNewValue
+				akChildGlobal.SetValueInt(iNewValue)
+			EndIf
 		EndIf
 
 		iIndex += 1
