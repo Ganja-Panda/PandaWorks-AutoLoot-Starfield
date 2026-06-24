@@ -217,6 +217,10 @@ Bool Function RouteActivator(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
+	If !akLoot.IsBoundGameObjectAvailable()
+		Return false
+	EndIf
+
 	akPlayerRef = akEffectContext.GetPlayerRef()
 	If akPlayerRef == None
 		akPlayerRef = Game.GetPlayer()
@@ -272,6 +276,10 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
+	If !akLoot.IsBoundGameObjectAvailable()
+		Return false
+	EndIf
+
 	If akEffectContext == None
 		LogWarn("LootProcessor", "RouteLooseLoot failed: akEffectContext is None.")
 		Return false
@@ -321,6 +329,10 @@ Bool Function CanRouteAsLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffec
 		Return false
 	EndIf
 
+	If !akLoot.IsBoundGameObjectAvailable()
+		Return false
+	EndIf
+
 	; Actors/corpses must never fall into loose-loot routing.
 	Actor akActor = akLoot as Actor
 	If akActor != None
@@ -362,6 +374,10 @@ ObjectReference Function NormalizeCandidateRef(ObjectReference akLoot, PWAL:Loot
 	ObjectReference akShipRef
 
 	If akLoot == None
+		Return None
+	EndIf
+
+	If !akLoot.IsBoundGameObjectAvailable()
 		Return None
 	EndIf
 

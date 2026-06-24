@@ -60,6 +60,10 @@ Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 	If akEffectContext == None
 		Return false
 	EndIf
+
+	If !akLoot.IsBoundGameObjectAvailable()
+		Return false
+	EndIf
 	
 	If IsBlockedPlayerInventoryRef(akLoot, akEffectContext)
 		Return false
@@ -123,6 +127,10 @@ Bool Function IsBlockedPlayerInventoryRef(ObjectReference akLoot, PWAL:Looting:L
 		Return false
 	EndIf
 
+	If !akLoot.IsBoundGameObjectAvailable()
+		Return false
+	EndIf
+
 	akPlayerRef = akEffectContext.GetPlayerRef()
 	If akPlayerRef == None
 		akPlayerRef = Game.GetPlayer()
@@ -133,8 +141,12 @@ Bool Function IsBlockedPlayerInventoryRef(ObjectReference akLoot, PWAL:Looting:L
 			Return true
 		EndIf
 
-		If akLoot.GetContainer() == akPlayerRef
-			Return true
+		If akLoot.IsBoundGameObjectAvailable()
+			If akLoot.GetContainer() == akPlayerRef
+				Return true
+			EndIf
+		Else
+			Return false
 		EndIf
 	EndIf
 
@@ -144,8 +156,12 @@ Bool Function IsBlockedPlayerInventoryRef(ObjectReference akLoot, PWAL:Looting:L
 			Return true
 		EndIf
 
-		If akLoot.GetContainer() == akPWALInventoryRef
-			Return true
+		If akLoot.IsBoundGameObjectAvailable()
+			If akLoot.GetContainer() == akPWALInventoryRef
+				Return true
+			EndIf
+		Else
+			Return false
 		EndIf
 	EndIf
 
@@ -159,6 +175,10 @@ Bool Function IsPlayerShipProtectedSource(ObjectReference akLoot, PWAL:Looting:L
 	ObjectReference akCurrentShipRef
 
 	If akLoot == None || akEffectContext == None
+		Return false
+	EndIf
+
+	If !akLoot.IsBoundGameObjectAvailable()
 		Return false
 	EndIf
 
@@ -264,6 +284,10 @@ Bool Function IsQuestLoot(ObjectReference akLoot)
 		Return false
 	EndIf
 
+	If !akLoot.IsBoundGameObjectAvailable()
+		Return false
+	EndIf
+
 	Return akLoot.IsQuestItem()
 EndFunction
 
@@ -292,6 +316,10 @@ Bool Function IsAlreadyLooted(ObjectReference akLoot, PWAL:Looting:LootEffectScr
 	Keyword akLootedKeyword
 
 	If akLoot == None || akEffectContext == None
+		Return false
+	EndIf
+
+	If !akLoot.IsBoundGameObjectAvailable()
 		Return false
 	EndIf
 
@@ -374,6 +402,10 @@ Bool Function IsOwned(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEf
 		Return false
 	EndIf
 
+	If !akLoot.IsBoundGameObjectAvailable()
+		Return false
+	EndIf
+
 	akPlayerActor = akEffectContext.GetPlayerActor()
 	If akPlayerActor == None
 		Return false
@@ -386,6 +418,10 @@ Bool Function IsPlayerStealing(ObjectReference akLoot, PWAL:Looting:LootEffectSc
 	Faction akCurrentOwner
 
 	If akLoot == None || akEffectContext == None
+		Return false
+	EndIf
+
+	If !akLoot.IsBoundGameObjectAvailable()
 		Return false
 	EndIf
 
@@ -415,7 +451,7 @@ Bool Function IsLootLoaded(ObjectReference akLoot)
 		Return false
 	EndIf
 
-	Return akLoot.Is3DLoaded() && !akLoot.IsDisabled() && !akLoot.IsDeleted()
+	Return akLoot.Is3DLoaded()
 EndFunction
 
 Bool Function IsCorpse(ObjectReference akLoot)
