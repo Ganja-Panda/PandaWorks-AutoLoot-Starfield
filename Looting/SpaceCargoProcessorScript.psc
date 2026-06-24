@@ -40,31 +40,44 @@ EndGroup
 Bool Function ProcessSpaceCargo(ObjectReference akCargo, ObjectReference akPlayerShipCargoTarget)
 	Int iItemCountBefore
 	Int iItemCountAfter
+	Bool bResult
+
+	Debug.Trace("[PWAL_SPACE_CARGO] SpaceCargoProcessor ProcessSpaceCargo entered")
+	Debug.Trace("[PWAL_SPACE_CARGO] SpaceCargoProcessor source ref: source=" + akCargo)
+	Debug.Trace("[PWAL_SPACE_CARGO] SpaceCargoProcessor player ship cargo target: target=" + akPlayerShipCargoTarget)
 
 	If akCargo == None
 		LogWarn("SpaceCargoProcessor", "ProcessSpaceCargo failed: akCargo is None.")
+		Debug.Trace("[PWAL_SPACE_CARGO] SpaceCargoProcessor return false reason: source ref is None")
 		Return false
 	EndIf
 
 	If akPlayerShipCargoTarget == None
 		LogWarn("SpaceCargoProcessor", "ProcessSpaceCargo failed: akPlayerShipCargoTarget is None.")
+		Debug.Trace("[PWAL_SPACE_CARGO] SpaceCargoProcessor return false reason: player ship cargo target is None")
 		Return false
 	EndIf
 
 	iItemCountBefore = akCargo.GetItemCount()
+	Debug.Trace("[PWAL_SPACE_CARGO] SpaceCargoProcessor source item count before transfer: source=" + akCargo + " itemCount=" + (iItemCountBefore as String))
 	If iItemCountBefore <= 0
 		LogDebug("SpaceCargoProcessor", "ProcessSpaceCargo deferred: source has no items yet. source=" + akCargo)
+		Debug.Trace("[PWAL_SPACE_CARGO] SpaceCargoProcessor return false reason: source has no items before transfer")
 		Return false
 	EndIf
 
 	LogDebug("SpaceCargoProcessor", "Transfer begin: source=" + akCargo + " destination=" + akPlayerShipCargoTarget + " before=" + (iItemCountBefore as String))
 
+	Debug.Trace("[PWAL_SPACE_CARGO] SpaceCargoProcessor RemoveAllItems call about to run: source=" + akCargo + " target=" + akPlayerShipCargoTarget + " before=" + (iItemCountBefore as String))
 	akCargo.RemoveAllItems(akPlayerShipCargoTarget, false, false)
 
 	iItemCountAfter = akCargo.GetItemCount()
+	Debug.Trace("[PWAL_SPACE_CARGO] SpaceCargoProcessor source item count after transfer: source=" + akCargo + " itemCount=" + (iItemCountAfter as String))
 	LogDebug("SpaceCargoProcessor", "Transfer complete: source=" + akCargo + " destination=" + akPlayerShipCargoTarget + " before=" + (iItemCountBefore as String) + " after=" + (iItemCountAfter as String))
 
-	Return (iItemCountAfter <= 0)
+	bResult = iItemCountAfter <= 0
+	Debug.Trace("[PWAL_SPACE_CARGO] SpaceCargoProcessor return " + (bResult as String) + " reason: sourceAfter=" + (iItemCountAfter as String))
+	Return bResult
 EndFunction
 
 ; ==============================================================

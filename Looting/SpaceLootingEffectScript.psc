@@ -60,24 +60,39 @@ Event OnInit()
 EndEvent
 
 Event OnEffectStart(ObjectReference akTarget, Actor akCaster, MagicEffect akBaseEffect, Float afMagnitude, Float afDuration)
+	Debug.Trace("[PWAL_SPACE] SpaceLootingEffect OnEffectStart entered: target=" + akTarget + " caster=" + akCaster)
+	Debug.Trace("[PWAL_SPACE] SpaceLootingEffect ProcessorType=" + (ProcessorType as String))
+	Debug.Trace("[PWAL_SPACE] SpaceLootingEffect CandidateInbox=" + CandidateInbox)
+	Debug.Trace("[PWAL_SPACE] SpaceLootingEffect PlayerHomeShip alias=" + PlayerHomeShip)
+	If PlayerHomeShip != None
+		Debug.Trace("[PWAL_SPACE] SpaceLootingEffect PlayerHomeShip.GetRef()=" + PlayerHomeShip.GetRef())
+	Else
+		Debug.Trace("[PWAL_SPACE] SpaceLootingEffect PlayerHomeShip.GetRef() skipped: PlayerHomeShip alias is None")
+	EndIf
+
 	bIsProcessing = false
 
 	CancelTimer(SpaceLootTimerID)
+	Debug.Trace("[PWAL_SPACE] SpaceLootingEffect timer started: delay=" + (SpaceLootTimerDelay as String) + " timerID=" + (SpaceLootTimerID as String))
 	StartTimer(SpaceLootTimerDelay, SpaceLootTimerID)
 EndEvent
 
 Event OnEffectFinish(ObjectReference akTarget, Actor akCaster, MagicEffect akBaseEffect, Float afMagnitude, Float afDuration)
+	Debug.Trace("[PWAL_SPACE] SpaceLootingEffect OnEffectFinish entered: target=" + akTarget + " caster=" + akCaster)
 	CancelTimer(SpaceLootTimerID)
+	Debug.Trace("[PWAL_SPACE] SpaceLootingEffect timer cancelled: timerID=" + (SpaceLootTimerID as String))
 
 	bIsProcessing = false
 EndEvent
 
 Event OnTimer(Int aiTimerID)
+	Debug.Trace("[PWAL_SPACE] SpaceLootingEffect OnTimer fired: timerID=" + (aiTimerID as String) + " expectedTimerID=" + (SpaceLootTimerID as String))
 	If aiTimerID != SpaceLootTimerID
 		Return
 	EndIf
 
 	If bIsProcessing
+		Debug.Trace("[PWAL_SPACE] SpaceLootingEffect processing skipped because already processing")
 		CancelTimer(SpaceLootTimerID)
 		StartTimer(SpaceLootTimerDelay, SpaceLootTimerID)
 		Return
@@ -98,9 +113,12 @@ EndEvent
 Function ProcessSpaceLootPass()
 	ObjectReference akPlayerShipCargoTarget
 
+	Debug.Trace("[PWAL_SPACE] SpaceLootingEffect ProcessSpaceLootPass entered")
 	akPlayerShipCargoTarget = GetPlayerShipCargoTarget()
+	Debug.Trace("[PWAL_SPACE] SpaceLootingEffect player ship cargo target from alias: target=" + akPlayerShipCargoTarget)
 	If akPlayerShipCargoTarget == None
 		LogWarn("SpaceLootingEffect", "ProcessSpaceLootPass aborted: player ship cargo target is None.")
+		Debug.Trace("[PWAL_SPACE] SpaceLootingEffect ProcessSpaceLootPass aborted: player ship cargo target is None")
 		Return
 	EndIf
 
@@ -115,28 +133,37 @@ Function DrainCandidateInbox(ObjectReference akPlayerShipCargoTarget)
 
 	If CandidateInbox == None
 		LogWarn("SpaceLootingEffect", "DrainCandidateInbox skipped: CandidateInbox is None.")
+		Debug.Trace("[PWAL_SPACE] SpaceLootingEffect CandidateInbox count skipped: CandidateInbox is None")
 		Return
 	EndIf
 
 	If !HasValidProcessor()
+		Debug.Trace("[PWAL_SPACE] SpaceLootingEffect DrainCandidateInbox skipped: invalid processor for ProcessorType=" + (ProcessorType as String))
 		Return
 	EndIf
 
 	iCount = CandidateInbox.GetCount()
+	Debug.Trace("[PWAL_SPACE] SpaceLootingEffect CandidateInbox count: inbox=" + CandidateInbox + " count=" + (iCount as String) + " processorType=" + (ProcessorType as String))
 
 	While iIndex < iCount
 		akCandidate = CandidateInbox.GetAt(iIndex)
+		Debug.Trace("[PWAL_SPACE] SpaceLootingEffect candidate index/ref: index=" + (iIndex as String) + " ref=" + akCandidate)
 
 		If akCandidate == None
 			LogWarn("SpaceLootingEffect", "DrainCandidateInbox removed stale None candidate at index " + (iIndex as String))
+			Debug.Trace("[PWAL_SPACE] SpaceLootingEffect stale None candidate handling: index=" + (iIndex as String) + " removing and rebuilding inbox")
 			iCount = RemoveStaleCandidateAtIndex(iIndex)
 		Else
+			Debug.Trace("[PWAL_SPACE] SpaceLootingEffect processor dispatch path selected: ProcessorType=" + (ProcessorType as String) + " candidate=" + akCandidate)
 			bProcessed = ProcessCandidate(akCandidate, akPlayerShipCargoTarget)
+			Debug.Trace("[PWAL_SPACE] SpaceLootingEffect processor result: candidate=" + akCandidate + " result=" + (bProcessed as String))
 
 			If bProcessed
 				CandidateInbox.RemoveRef(akCandidate)
+				Debug.Trace("[PWAL_SPACE] SpaceLootingEffect ref removed from CandidateInbox after success: candidate=" + akCandidate + " inbox=" + CandidateInbox)
 				iCount -= 1
 			Else
+				Debug.Trace("[PWAL_SPACE] SpaceLootingEffect ref left queued after false result: candidate=" + akCandidate + " inbox=" + CandidateInbox)
 				iIndex += 1
 			EndIf
 		EndIf
@@ -162,8 +189,10 @@ EndFunction
 
 Bool Function HasValidProcessor()
 	If ProcessorType == 1
+		Debug.Trace("[PWAL_SPACE_AST] SpaceLootingEffect validating asteroid processor path: processor=" + AsteroidDepositProcessor)
 		If AsteroidDepositProcessor == None
 			LogWarn("SpaceLootingEffect", "ProcessorType 1 skipped: AsteroidDepositProcessor is None.")
+			Debug.Trace("[PWAL_SPACE_AST] SpaceLootingEffect processor dispatch path unavailable: AsteroidDepositProcessor is None")
 			Return false
 		EndIf
 
@@ -171,8 +200,10 @@ Bool Function HasValidProcessor()
 	EndIf
 
 	If ProcessorType == 2
+		Debug.Trace("[PWAL_SPACE_CARGO] SpaceLootingEffect validating space cargo processor path: processor=" + SpaceCargoProcessor)
 		If SpaceCargoProcessor == None
 			LogWarn("SpaceLootingEffect", "ProcessorType 2 skipped: SpaceCargoProcessor is None.")
+			Debug.Trace("[PWAL_SPACE_CARGO] SpaceLootingEffect processor dispatch path unavailable: SpaceCargoProcessor is None")
 			Return false
 		EndIf
 
@@ -185,10 +216,12 @@ EndFunction
 
 Bool Function ProcessCandidate(ObjectReference akCandidate, ObjectReference akPlayerShipCargoTarget)
 	If ProcessorType == 1
+		Debug.Trace("[PWAL_SPACE_AST] SpaceLootingEffect dispatching asteroid processor: candidate=" + akCandidate + " target=" + akPlayerShipCargoTarget)
 		Return AsteroidDepositProcessor.ProcessAsteroidDeposit(akCandidate, akPlayerShipCargoTarget)
 	EndIf
 
 	If ProcessorType == 2
+		Debug.Trace("[PWAL_SPACE_CARGO] SpaceLootingEffect dispatching space cargo processor: candidate=" + akCandidate + " target=" + akPlayerShipCargoTarget)
 		Return SpaceCargoProcessor.ProcessSpaceCargo(akCandidate, akPlayerShipCargoTarget)
 	EndIf
 

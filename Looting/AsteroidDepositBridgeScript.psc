@@ -33,15 +33,18 @@ Int Property ASTEROID_INBOX_TIMER_ID = 101 Auto Const
 Int iSubmitAttempt = 0
 
 Event OnInit()
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositBridge OnInit entered: ref=" + Self)
 	StartReadinessRetry()
 EndEvent
 
 Event OnLoad()
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositBridge OnLoad entered: ref=" + Self)
 	StartReadinessRetry()
 EndEvent
 
 Event OnTimer(Int aiTimerID)
 	If aiTimerID == ASTEROID_INBOX_TIMER_ID
+		Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositBridge readiness timer fired: ref=" + Self + " timerID=" + (aiTimerID as String))
 		ProcessReadinessAttempt()
 	EndIf
 EndEvent
@@ -50,6 +53,7 @@ Event OnUnload()
 	CancelTimer(ASTEROID_INBOX_TIMER_ID)
 
 	If PWAL_RCAL_AsteroidCandidateInbox != None
+		Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositBridge OnUnload removing Self from asteroid inbox: ref=" + Self + " inbox=" + PWAL_RCAL_AsteroidCandidateInbox)
 		PWAL_RCAL_AsteroidCandidateInbox.RemoveRef(Self)
 	EndIf
 EndEvent
@@ -57,6 +61,7 @@ EndEvent
 Function StartReadinessRetry()
 	iSubmitAttempt = 0
 	CancelTimer(ASTEROID_INBOX_TIMER_ID)
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositBridge readiness timer started: ref=" + Self + " delay=0.5 timerID=" + (ASTEROID_INBOX_TIMER_ID as String))
 	StartTimer(0.5, ASTEROID_INBOX_TIMER_ID)
 EndFunction
 
@@ -64,6 +69,11 @@ Function ProcessReadinessAttempt()
 	Bool bAlreadyInInbox = False
 	Form akBase = GetBaseObject()
 	Container akBaseContainer = akBase as Container
+	Bool bBaseIsContainer = akBaseContainer != None
+
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositBridge Self reference: ref=" + Self)
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositBridge base object: ref=" + Self + " base=" + akBase)
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositBridge base casts to Container: ref=" + Self + " isContainer=" + (bBaseIsContainer as String))
 
 	If akBaseContainer == None
 		Debug.Trace("[PWAL][WARN][AsteroidBridge] Readiness rejected non-container base: ref=" + Self + " base=" + akBase)
@@ -71,6 +81,7 @@ Function ProcessReadinessAttempt()
 	EndIf
 
 	Int iItemCount = GetItemCount()
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositBridge item count before inbox submit: ref=" + Self + " itemCount=" + (iItemCount as String))
 
 	iSubmitAttempt += 1
 
@@ -87,11 +98,14 @@ Function ProcessReadinessAttempt()
 	bAlreadyInInbox = PWAL_RCAL_AsteroidCandidateInbox.Find(Self) >= 0
 
 	If bAlreadyInInbox
+		Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositBridge already in asteroid inbox: ref=" + Self + " inbox=" + PWAL_RCAL_AsteroidCandidateInbox)
 		Return
 	EndIf
 
 	If iItemCount > 0 || iSubmitAttempt >= 5
+		Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositBridge AddRef to asteroid candidate inbox attempted: ref=" + Self + " inbox=" + PWAL_RCAL_AsteroidCandidateInbox + " attempt=" + (iSubmitAttempt as String) + " itemCount=" + (iItemCount as String))
 		PWAL_RCAL_AsteroidCandidateInbox.AddRef(Self)
+		Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositBridge AddRef completed: ref=" + Self + " inbox=" + PWAL_RCAL_AsteroidCandidateInbox + " inboxCount=" + (PWAL_RCAL_AsteroidCandidateInbox.GetCount() as String))
 		Return
 	EndIf
 

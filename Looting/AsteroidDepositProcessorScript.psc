@@ -40,31 +40,44 @@ EndGroup
 Bool Function ProcessAsteroidDeposit(ObjectReference akDeposit, ObjectReference akPlayerShipCargoTarget)
 	Int iItemCountBefore
 	Int iItemCountAfter
+	Bool bResult
+
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositProcessor ProcessAsteroidDeposit entered")
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositProcessor source ref: source=" + akDeposit)
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositProcessor player ship cargo target: target=" + akPlayerShipCargoTarget)
 
 	If akDeposit == None
 		LogWarn("AsteroidDepositProcessor", "ProcessAsteroidDeposit failed: akDeposit is None.")
+		Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositProcessor return false reason: source ref is None")
 		Return false
 	EndIf
 
 	If akPlayerShipCargoTarget == None
 		LogWarn("AsteroidDepositProcessor", "ProcessAsteroidDeposit failed: akPlayerShipCargoTarget is None.")
+		Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositProcessor return false reason: player ship cargo target is None")
 		Return false
 	EndIf
 
 	iItemCountBefore = akDeposit.GetItemCount()
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositProcessor source item count before transfer: source=" + akDeposit + " itemCount=" + (iItemCountBefore as String))
 	If iItemCountBefore <= 0
 		LogDebug("AsteroidDepositProcessor", "ProcessAsteroidDeposit deferred: source has no items yet. source=" + akDeposit)
+		Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositProcessor return false reason: source has no items before transfer")
 		Return false
 	EndIf
 
 	LogDebug("AsteroidDepositProcessor", "Transfer begin: source=" + akDeposit + " destination=" + akPlayerShipCargoTarget + " before=" + (iItemCountBefore as String))
 
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositProcessor RemoveAllItems call about to run: source=" + akDeposit + " target=" + akPlayerShipCargoTarget + " before=" + (iItemCountBefore as String))
 	akDeposit.RemoveAllItems(akPlayerShipCargoTarget, false, false)
 
 	iItemCountAfter = akDeposit.GetItemCount()
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositProcessor source item count after transfer: source=" + akDeposit + " itemCount=" + (iItemCountAfter as String))
 	LogDebug("AsteroidDepositProcessor", "Transfer complete: source=" + akDeposit + " destination=" + akPlayerShipCargoTarget + " before=" + (iItemCountBefore as String) + " after=" + (iItemCountAfter as String))
 
-	Return (iItemCountAfter <= 0)
+	bResult = iItemCountAfter <= 0
+	Debug.Trace("[PWAL_SPACE_AST] AsteroidDepositProcessor return " + (bResult as String) + " reason: sourceAfter=" + (iItemCountAfter as String))
+	Return bResult
 EndFunction
 
 ; ==============================================================
