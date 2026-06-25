@@ -97,15 +97,21 @@ Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	akPlayerActor = akEffectContext.GetPlayerActor()
-	If akPlayerActor != None
-		If akPlayerActor.WouldBeStealing(akLoot) && !akEffectContext.CanSteal()
-			Return false
+	If !akEffectContext.CanSteal()
+		akPlayerActor = akEffectContext.GetPlayerActor()
+		If akPlayerActor != None
+			If akLoot != None && akLoot.IsBoundGameObjectAvailable()
+				If akPlayerActor.WouldBeStealing(akLoot)
+					Return false
+				EndIf
+			EndIf
 		EndIf
-	EndIf
 
-	If IsPlayerStealing(akLoot, akEffectContext) && !akEffectContext.CanSteal()
-		Return false
+		If akLoot != None && akLoot.IsBoundGameObjectAvailable()
+			If IsPlayerStealing(akLoot, akEffectContext)
+				Return false
+			EndIf
+		EndIf
 	EndIf
 
 	Return true
