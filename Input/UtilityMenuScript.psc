@@ -44,7 +44,6 @@ EndGroup
 
 Group UtilityGlobals_AutoFill
 	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Looting Auto Const Mandatory
-	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto Const Mandatory
 EndGroup
 
 Group DisplayMessages
@@ -81,8 +80,6 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 		Return
 	ElseIf auiMenuItemID == 2
 		RunToggleLooting()
-	ElseIf auiMenuItemID == 3
-		RunToggleLogging()
 	EndIf
 
 	RefreshUtilityTokens(akTerminalRef)
@@ -96,10 +93,6 @@ Function RunToggleLooting()
 	ToggleBoolGlobal(PWAL_GLOB_Utilities_Toggle_Looting, "Looting")
 EndFunction
 
-Function RunToggleLogging()
-	ToggleBoolGlobal(PWAL_GLOB_Utilities_Toggle_Logging, "Logging")
-EndFunction
-
 ; ==============================================================
 ; Token Display
 ; ==============================================================
@@ -111,7 +104,6 @@ Function RefreshUtilityTokens(ObjectReference akTerminalRef)
 	EndIf
 
 	RefreshBoolToken(akTerminalRef, "Looting", PWAL_GLOB_Utilities_Toggle_Looting)
-	RefreshBoolToken(akTerminalRef, "Logging", PWAL_GLOB_Utilities_Toggle_Logging)
 EndFunction
 
 Function RefreshBoolToken(ObjectReference akTerminalRef, String asTokenName, GlobalVariable akSettingGlobal)
