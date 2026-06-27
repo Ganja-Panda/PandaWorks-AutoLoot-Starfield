@@ -33,6 +33,7 @@ ScriptName PWAL:Looting:SpaceLootingEffectScript Extends ActiveMagicEffect
 Group FrameworkServices
 	PWAL:Core:LoggerScript Property Logger Auto Const Mandatory
 	PWAL:Core:RuntimeManagerScript Property RuntimeManager Auto Const
+	PWAL:Looting:DestinationResolverScript Property DestinationResolver Auto Const
 	PWAL:Looting:AsteroidDepositProcessorScript Property AsteroidDepositProcessor Auto Const
 	PWAL:Looting:SpaceCargoProcessorScript Property SpaceCargoProcessor Auto Const
 	PWAL:Looting:ShipDebrisProcessorScript Property ShipDebrisProcessor Auto Const
@@ -59,6 +60,7 @@ Int[] iFailedCandidateCounts
 Bool bLoggedMissingPlayerHomeShipAlias
 Bool bLoggedMissingPlayerHomeShipRef
 Bool bLoggedMissingPlayerShipCargoTarget
+Bool bLoggedPlayerHomeShipFallback
 Bool bLoggedMissingRuntimeManager
 Bool bLoggedMissingShipDebrisProcessor
 
@@ -387,6 +389,19 @@ EndFunction
 
 ObjectReference Function GetPlayerShipCargoTarget()
 	ObjectReference akPlayerShipRef
+
+	If DestinationResolver != None
+		akPlayerShipRef = DestinationResolver.ResolveDestinationRef(DestinationResolver.DEST_PLAYER_SHIP)
+		If akPlayerShipRef != None
+			bLoggedPlayerHomeShipFallback = false
+			Return akPlayerShipRef
+		EndIf
+	EndIf
+
+	If !bLoggedPlayerHomeShipFallback
+		LogWarn("SpaceLootingEffect", "GetPlayerShipCargoTarget using PlayerHomeShip fallback because DestinationResolver was unavailable or returned None.")
+		bLoggedPlayerHomeShipFallback = true
+	EndIf
 
 	If PlayerHomeShip == None
 		If !bLoggedMissingPlayerHomeShipAlias

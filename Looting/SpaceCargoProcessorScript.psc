@@ -57,7 +57,7 @@ Bool Function ProcessSpaceCargo(ObjectReference akCargo, ObjectReference akPlaye
 		Return false
 	EndIf
 
-	akCargo.RemoveAllItems(akPlayerShipCargoTarget, false, false)
+	akCargo.RemoveAllItems(akPlayerShipCargoTarget, false, true)
 
 	iItemCountAfter = akCargo.GetItemCount()
 

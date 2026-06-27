@@ -57,7 +57,7 @@ Bool Function ProcessAsteroidDeposit(ObjectReference akDeposit, ObjectReference 
 		Return false
 	EndIf
 
-	akDeposit.RemoveAllItems(akPlayerShipCargoTarget, false, false)
+	akDeposit.RemoveAllItems(akPlayerShipCargoTarget, false, true)
 
 	iItemCountAfter = akDeposit.GetItemCount()
 

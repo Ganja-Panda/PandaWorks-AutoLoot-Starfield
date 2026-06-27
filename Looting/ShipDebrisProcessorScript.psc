@@ -65,7 +65,7 @@ Bool Function ProcessShipDebris(SpaceshipReference akShipRef, ObjectReference ak
 		Return false
 	EndIf
 
-	akShipRef.RemoveAllItems(akPlayerShipCargoTarget, false, false)
+	akShipRef.RemoveAllItems(akPlayerShipCargoTarget, false, true)
 
 	iItemCountAfter = akShipRef.GetItemCount()
 
