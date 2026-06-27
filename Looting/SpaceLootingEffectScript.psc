@@ -32,6 +32,7 @@ ScriptName PWAL:Looting:SpaceLootingEffectScript Extends ActiveMagicEffect
 
 Group FrameworkServices
 	PWAL:Core:LoggerScript Property Logger Auto Const Mandatory
+	PWAL:Core:RuntimeManagerScript Property RuntimeManager Auto Const
 	PWAL:Looting:AsteroidDepositProcessorScript Property AsteroidDepositProcessor Auto Const
 	PWAL:Looting:SpaceCargoProcessorScript Property SpaceCargoProcessor Auto Const
 	PWAL:Looting:ShipDebrisProcessorScript Property ShipDebrisProcessor Auto Const
@@ -58,6 +59,7 @@ Int[] iFailedCandidateCounts
 Bool bLoggedMissingPlayerHomeShipAlias
 Bool bLoggedMissingPlayerHomeShipRef
 Bool bLoggedMissingPlayerShipCargoTarget
+Bool bLoggedMissingRuntimeManager
 Bool bLoggedMissingShipDebrisProcessor
 
 ; ==============================================================
@@ -107,6 +109,19 @@ EndEvent
 
 Function ProcessSpaceLootPass()
 	ObjectReference akPlayerShipCargoTarget
+
+	If RuntimeManager == None
+		If !bLoggedMissingRuntimeManager
+			LogWarn("SpaceLootingEffect", "ProcessSpaceLootPass running without RuntimeManager gate.")
+			bLoggedMissingRuntimeManager = true
+		EndIf
+	Else
+		bLoggedMissingRuntimeManager = false
+
+		If !RuntimeManager.CanRunLooting()
+			Return
+		EndIf
+	EndIf
 
 	akPlayerShipCargoTarget = GetPlayerShipCargoTarget()
 	If akPlayerShipCargoTarget == None

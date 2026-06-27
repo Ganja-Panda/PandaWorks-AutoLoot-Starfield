@@ -42,7 +42,7 @@ GlobalVariable Property PWAL_GLOB_Version_Patch Auto
 
 Int Property iExpectedVersionMajor = 1 Auto Const
 Int Property iExpectedVersionMinor = 1 Auto Const
-Int Property iExpectedVersionPatch = 1 Auto Const
+Int Property iExpectedVersionPatch = 2 Auto Const
 
 ; ==============================================================
 ; Version State Constants
@@ -83,8 +83,9 @@ Bool Function HandleVersionState()
 
 		; Future:
 		; - Run migration/update steps here
-		; - PersistExpectedVersion() on successful migration
 
+		PersistExpectedVersion()
+		LogInfo("VersionManager", "Version update completed. Expected version persisted: " + BuildExpectedVersionString())
 		EndMigration()
 		Return true
 	EndIf
