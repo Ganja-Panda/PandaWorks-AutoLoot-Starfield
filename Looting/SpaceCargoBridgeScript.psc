@@ -87,10 +87,12 @@ Function ProcessReadinessAttempt()
 		Return
 	EndIf
 
-	If iItemCount > 0 || iSubmitAttempt >= 5
+	If iItemCount > 0
 		PWAL_RCAL_SpaceCargoCandidateInbox.AddRef(Self)
 		Return
 	EndIf
 
-	StartTimer(0.5, SPACE_CARGO_INBOX_TIMER_ID)
+	If iSubmitAttempt < 5
+		StartTimer(0.5, SPACE_CARGO_INBOX_TIMER_ID)
+	EndIf
 EndFunction

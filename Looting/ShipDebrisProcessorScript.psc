@@ -1,27 +1,27 @@
-ScriptName PWAL:Looting:SpaceCargoProcessorScript Extends Quest
+ScriptName PWAL:Looting:ShipDebrisProcessorScript Extends Quest
 
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
 ; Version: 1.0.0
-; Created: 06-15-2026
+; Created: 06-27-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
-; Script: SpaceCargoProcessorScript
+; Script: ShipDebrisProcessorScript
 ; Type: Looting / Processor Service
 ; Purpose:
-;   Transfers generated space cargo inventory refs.
+;   Transfers destroyed hostile ship inventory refs.
 ;
 ; Responsibilities:
-;   - Accept generated space cargo inventory refs
+;   - Accept destroyed ship refs submitted by the ship debris detector
 ;   - Accept the player ship cargo transfer target
-;   - Transfer the full cargo inventory
+;   - Transfer the full ship inventory
 ;   - Report transfer diagnostics
 ;
 ; Non-Responsibilities:
 ;   - No scanning
 ;   - No validation
-;   - No normal container processing
-;   - No category filtering
+;   - No hostility checks
+;   - No ref cleanup, disabling, deletion, or unregistering
 ;   - No destination resolution
 ; ==============================================================
 
@@ -37,29 +37,37 @@ EndGroup
 ; Public API
 ; ==============================================================
 
-Bool Function ProcessSpaceCargo(ObjectReference akCargo, ObjectReference akPlayerShipCargoTarget)
+Bool Function ProcessShipDebris(SpaceshipReference akShipRef, ObjectReference akPlayerShipCargoTarget)
 	Int iItemCountBefore
 	Int iItemCountAfter
 	Bool bResult
 
-	If akCargo == None
-		LogWarn("SpaceCargoProcessor", "ProcessSpaceCargo failed: akCargo is None.")
+	If akShipRef == None
+		LogWarn("ShipDebrisProcessor", "ProcessShipDebris failed: akShipRef is None.")
 		Return false
 	EndIf
 
 	If akPlayerShipCargoTarget == None
-		LogWarn("SpaceCargoProcessor", "ProcessSpaceCargo failed: akPlayerShipCargoTarget is None.")
+		LogWarn("ShipDebrisProcessor", "ProcessShipDebris failed: akPlayerShipCargoTarget is None.")
 		Return false
 	EndIf
 
-	iItemCountBefore = akCargo.GetItemCount()
+	If !akShipRef.IsBoundGameObjectAvailable()
+		Return false
+	EndIf
+
+	If !akShipRef.IsDead()
+		Return false
+	EndIf
+
+	iItemCountBefore = akShipRef.GetItemCount()
 	If iItemCountBefore <= 0
 		Return false
 	EndIf
 
-	akCargo.RemoveAllItems(akPlayerShipCargoTarget, false, false)
+	akShipRef.RemoveAllItems(akPlayerShipCargoTarget, false, false)
 
-	iItemCountAfter = akCargo.GetItemCount()
+	iItemCountAfter = akShipRef.GetItemCount()
 
 	bResult = iItemCountAfter <= 0
 	Return bResult

@@ -24,7 +24,6 @@ ScriptName PWAL:Looting:SpaceLootingEffectScript Extends ActiveMagicEffect
 ;   - No normal ground looting
 ;   - No scanner, validation, or unlock handling
 ;   - No destination routing
-;   - No ShipDebris processing
 ; ==============================================================
 
 ; ==============================================================
@@ -35,6 +34,7 @@ Group FrameworkServices
 	PWAL:Core:LoggerScript Property Logger Auto Const Mandatory
 	PWAL:Looting:AsteroidDepositProcessorScript Property AsteroidDepositProcessor Auto Const
 	PWAL:Looting:SpaceCargoProcessorScript Property SpaceCargoProcessor Auto Const
+	PWAL:Looting:ShipDebrisProcessorScript Property ShipDebrisProcessor Auto Const
 EndGroup
 
 Group SpaceSalvage_Config
@@ -49,8 +49,16 @@ EndGroup
 Group RuntimeState
 	Int Property SpaceLootTimerID = 201 Auto
 	Float Property SpaceLootTimerDelay = 0.5 Auto
+	Int Property FailedCandidateRetryLimit = 5 Auto
 	Bool Property bIsProcessing = false Auto Hidden
 EndGroup
+
+ObjectReference[] akFailedCandidates
+Int[] iFailedCandidateCounts
+Bool bLoggedMissingPlayerHomeShipAlias
+Bool bLoggedMissingPlayerHomeShipRef
+Bool bLoggedMissingPlayerShipCargoTarget
+Bool bLoggedMissingShipDebrisProcessor
 
 ; ==============================================================
 ; Events
@@ -61,6 +69,7 @@ EndEvent
 
 Event OnEffectStart(ObjectReference akTarget, Actor akCaster, MagicEffect akBaseEffect, Float afMagnitude, Float afDuration)
 	bIsProcessing = false
+	ClearFailedCandidateRetries()
 
 	CancelTimer(SpaceLootTimerID)
 	StartTimer(SpaceLootTimerDelay, SpaceLootTimerID)
@@ -70,6 +79,7 @@ Event OnEffectFinish(ObjectReference akTarget, Actor akCaster, MagicEffect akBas
 	CancelTimer(SpaceLootTimerID)
 
 	bIsProcessing = false
+	ClearFailedCandidateRetries()
 EndEvent
 
 Event OnTimer(Int aiTimerID)
@@ -100,10 +110,15 @@ Function ProcessSpaceLootPass()
 
 	akPlayerShipCargoTarget = GetPlayerShipCargoTarget()
 	If akPlayerShipCargoTarget == None
-		LogWarn("SpaceLootingEffect", "ProcessSpaceLootPass aborted: player ship cargo target is None.")
+		If !bLoggedMissingPlayerShipCargoTarget
+			LogWarn("SpaceLootingEffect", "ProcessSpaceLootPass aborted: player ship cargo target is None.")
+			bLoggedMissingPlayerShipCargoTarget = true
+		EndIf
+
 		Return
 	EndIf
 
+	bLoggedMissingPlayerShipCargoTarget = false
 	DrainCandidateInbox(akPlayerShipCargoTarget)
 EndFunction
 
@@ -134,13 +149,148 @@ Function DrainCandidateInbox(ObjectReference akPlayerShipCargoTarget)
 			bProcessed = ProcessCandidate(akCandidate, akPlayerShipCargoTarget)
 
 			If bProcessed
+				ClearFailedCandidateRetry(akCandidate)
 				CandidateInbox.RemoveRef(akCandidate)
 				iCount -= 1
 			Else
-				iIndex += 1
+				If ShouldDropFailedCandidate(akCandidate)
+					LogWarn("SpaceLootingEffect", "DrainCandidateInbox removed failed candidate after retry cap: processorType=" + (ProcessorType as String) + " candidate=" + akCandidate)
+					ClearFailedCandidateRetry(akCandidate)
+					CandidateInbox.RemoveRef(akCandidate)
+					iCount -= 1
+				Else
+					iIndex += 1
+				EndIf
 			EndIf
 		EndIf
 	EndWhile
+EndFunction
+
+Bool Function ShouldDropFailedCandidate(ObjectReference akCandidate)
+	Int iRetryCount = IncrementFailedCandidateRetry(akCandidate)
+
+	If FailedCandidateRetryLimit <= 0
+		Return false
+	EndIf
+
+	Return iRetryCount >= FailedCandidateRetryLimit
+EndFunction
+
+Int Function IncrementFailedCandidateRetry(ObjectReference akCandidate)
+	Int iIndex = FindFailedCandidateRetryIndex(akCandidate)
+	Int iRetryCount
+
+	If akCandidate == None
+		Return 0
+	EndIf
+
+	If iIndex >= 0
+		iRetryCount = iFailedCandidateCounts[iIndex] + 1
+		iFailedCandidateCounts[iIndex] = iRetryCount
+		Return iRetryCount
+	EndIf
+
+	AddFailedCandidateRetry(akCandidate)
+	Return 1
+EndFunction
+
+Int Function FindFailedCandidateRetryIndex(ObjectReference akCandidate)
+	Int iIndex = 0
+
+	If akFailedCandidates == None
+		Return -1
+	EndIf
+
+	While iIndex < akFailedCandidates.Length
+		If akFailedCandidates[iIndex] == akCandidate
+			Return iIndex
+		EndIf
+
+		iIndex += 1
+	EndWhile
+
+	Return -1
+EndFunction
+
+Function AddFailedCandidateRetry(ObjectReference akCandidate)
+	Int iOldLength = 0
+	Int iIndex = 0
+	ObjectReference[] akNewFailedCandidates
+	Int[] iNewFailedCandidateCounts
+
+	If akCandidate == None
+		Return
+	EndIf
+
+	If akFailedCandidates != None
+		iOldLength = akFailedCandidates.Length
+	EndIf
+
+	akNewFailedCandidates = new ObjectReference[iOldLength + 1]
+	iNewFailedCandidateCounts = new Int[iOldLength + 1]
+
+	While iIndex < iOldLength
+		akNewFailedCandidates[iIndex] = akFailedCandidates[iIndex]
+		iNewFailedCandidateCounts[iIndex] = iFailedCandidateCounts[iIndex]
+		iIndex += 1
+	EndWhile
+
+	akNewFailedCandidates[iOldLength] = akCandidate
+	iNewFailedCandidateCounts[iOldLength] = 1
+
+	akFailedCandidates = akNewFailedCandidates
+	iFailedCandidateCounts = iNewFailedCandidateCounts
+EndFunction
+
+Function ClearFailedCandidateRetry(ObjectReference akCandidate)
+	Int iOldLength
+	Int iNewLength
+	Int iIndex = 0
+	Int iNewIndex = 0
+	ObjectReference[] akNewFailedCandidates
+	Int[] iNewFailedCandidateCounts
+
+	If akCandidate == None
+		Return
+	EndIf
+
+	If akFailedCandidates == None
+		Return
+	EndIf
+
+	iOldLength = akFailedCandidates.Length
+
+	If FindFailedCandidateRetryIndex(akCandidate) < 0
+		Return
+	EndIf
+
+	iNewLength = iOldLength - 1
+
+	If iNewLength <= 0
+		ClearFailedCandidateRetries()
+		Return
+	EndIf
+
+	akNewFailedCandidates = new ObjectReference[iNewLength]
+	iNewFailedCandidateCounts = new Int[iNewLength]
+
+	While iIndex < iOldLength
+		If akFailedCandidates[iIndex] != akCandidate
+			akNewFailedCandidates[iNewIndex] = akFailedCandidates[iIndex]
+			iNewFailedCandidateCounts[iNewIndex] = iFailedCandidateCounts[iIndex]
+			iNewIndex += 1
+		EndIf
+
+		iIndex += 1
+	EndWhile
+
+	akFailedCandidates = akNewFailedCandidates
+	iFailedCandidateCounts = iNewFailedCandidateCounts
+EndFunction
+
+Function ClearFailedCandidateRetries()
+	akFailedCandidates = new ObjectReference[0]
+	iFailedCandidateCounts = new Int[0]
 EndFunction
 
 Int Function RemoveStaleCandidateAtIndex(Int aiStaleIndex)
@@ -179,11 +329,27 @@ Bool Function HasValidProcessor()
 		Return true
 	EndIf
 
+	If ProcessorType == 3
+		If ShipDebrisProcessor == None
+			If !bLoggedMissingShipDebrisProcessor
+				LogWarn("SpaceLootingEffect", "ProcessorType 3 skipped: ShipDebrisProcessor is None.")
+				bLoggedMissingShipDebrisProcessor = true
+			EndIf
+
+			Return false
+		EndIf
+
+		bLoggedMissingShipDebrisProcessor = false
+		Return true
+	EndIf
+
 	LogWarn("SpaceLootingEffect", "Invalid ProcessorType: " + (ProcessorType as String))
 	Return false
 EndFunction
 
 Bool Function ProcessCandidate(ObjectReference akCandidate, ObjectReference akPlayerShipCargoTarget)
+	SpaceshipReference akCandidateShip
+
 	If ProcessorType == 1
 		Return AsteroidDepositProcessor.ProcessAsteroidDeposit(akCandidate, akPlayerShipCargoTarget)
 	EndIf
@@ -192,15 +358,44 @@ Bool Function ProcessCandidate(ObjectReference akCandidate, ObjectReference akPl
 		Return SpaceCargoProcessor.ProcessSpaceCargo(akCandidate, akPlayerShipCargoTarget)
 	EndIf
 
+	If ProcessorType == 3
+		akCandidateShip = akCandidate as SpaceshipReference
+		If akCandidateShip == None
+			LogWarn("SpaceLootingEffect", "ProcessorType 3 skipped: candidate is not a SpaceshipReference.")
+			Return false
+		EndIf
+
+		Return ShipDebrisProcessor.ProcessShipDebris(akCandidateShip, akPlayerShipCargoTarget)
+	EndIf
+
 	Return false
 EndFunction
 
 ObjectReference Function GetPlayerShipCargoTarget()
+	ObjectReference akPlayerShipRef
+
 	If PlayerHomeShip == None
+		If !bLoggedMissingPlayerHomeShipAlias
+			LogWarn("SpaceLootingEffect", "GetPlayerShipCargoTarget failed: PlayerHomeShip alias is None.")
+			bLoggedMissingPlayerHomeShipAlias = true
+		EndIf
+
 		Return None
 	EndIf
 
-	Return PlayerHomeShip.GetRef()
+	bLoggedMissingPlayerHomeShipAlias = false
+
+	akPlayerShipRef = PlayerHomeShip.GetRef()
+	If akPlayerShipRef == None
+		If !bLoggedMissingPlayerHomeShipRef
+			LogWarn("SpaceLootingEffect", "GetPlayerShipCargoTarget failed: PlayerHomeShip alias returned None.")
+			bLoggedMissingPlayerHomeShipRef = true
+		EndIf
+	Else
+		bLoggedMissingPlayerHomeShipRef = false
+	EndIf
+
+	Return akPlayerShipRef
 EndFunction
 
 ; ==============================================================

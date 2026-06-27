@@ -54,16 +54,12 @@ Bool Function ProcessAsteroidDeposit(ObjectReference akDeposit, ObjectReference 
 
 	iItemCountBefore = akDeposit.GetItemCount()
 	If iItemCountBefore <= 0
-		LogDebug("AsteroidDepositProcessor", "ProcessAsteroidDeposit deferred: source has no items yet. source=" + akDeposit)
 		Return false
 	EndIf
-
-	LogDebug("AsteroidDepositProcessor", "Transfer begin: source=" + akDeposit + " destination=" + akPlayerShipCargoTarget + " before=" + (iItemCountBefore as String))
 
 	akDeposit.RemoveAllItems(akPlayerShipCargoTarget, false, false)
 
 	iItemCountAfter = akDeposit.GetItemCount()
-	LogDebug("AsteroidDepositProcessor", "Transfer complete: source=" + akDeposit + " destination=" + akPlayerShipCargoTarget + " before=" + (iItemCountBefore as String) + " after=" + (iItemCountAfter as String))
 
 	bResult = iItemCountAfter <= 0
 	Return bResult
