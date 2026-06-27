@@ -21,7 +21,6 @@ ScriptName PWAL:Looting:ShipDebrisDetectorScript Extends Quest
 
 Group Diagnostics
 	PWAL:Core:LoggerScript Property Logger Auto Const
-	Bool Property ShowDebugNotifications = True Auto Const
 EndGroup
 
 Group ShipDebrisDetection
@@ -67,7 +66,6 @@ Function StartDetector()
 	bDetectorRunning = True
 	CancelTimer(DetectionTimerID)
 	LogInfo("detector started interval=" + (DetectionTimerInterval as String))
-	NotifyDebug("detector started")
 	RunDetectionPass()
 	StartTimer(DetectionTimerInterval, DetectionTimerID)
 EndFunction
@@ -83,7 +81,6 @@ Function RunDetectionPass()
 	SpaceshipReference akPlayerShipRef = ResolvePlayerShipRef()
 
 	If akPlayerShipRef == None
-		LogDebug("scan skipped: player ship is None")
 		Return
 	EndIf
 
@@ -95,8 +92,6 @@ Function RunDetectionPass()
 	SpaceshipReference[] akCombatTargets = akPlayerShipRef.GetAllCombatTargets()
 	Int iIndex = 0
 
-	LogDebug("scan begin playerShip=" + akPlayerShipRef + " targetCount=" + (akCombatTargets.Length as String))
-
 	While iIndex < akCombatTargets.Length
 		TryWatchCombatTarget(akCombatTargets[iIndex], akPlayerShipRef)
 		iIndex += 1
@@ -105,34 +100,28 @@ EndFunction
 
 Function TryWatchCombatTarget(SpaceshipReference akCandidate, SpaceshipReference akPlayerShipRef)
 	If akCandidate == None
-		LogDebug("reject None combat target")
 		Return
 	EndIf
 
 	If akPlayerShipRef == None
-		LogDebug("reject " + akCandidate + ": player ship is None")
 		Return
 	EndIf
 
 	If IsProtectedPlayerShip(akCandidate, akPlayerShipRef)
-		LogDebug("reject " + akCandidate + ": player or owned ship")
 		Return
 	EndIf
 
 	If SQ_ShipDebrisProhibited != None
 		If akCandidate.HasKeyword(SQ_ShipDebrisProhibited)
-			LogDebug("reject " + akCandidate + ": SQ_ShipDebrisProhibited")
 			Return
 		EndIf
 	EndIf
 
 	If akCandidate.IsDead()
-		LogDebug("reject " + akCandidate + ": already dead before watch")
 		Return
 	EndIf
 
 	If PWAL_RCAL_WatchedHostileShips.Find(akCandidate) >= 0
-		LogDebug("reject " + akCandidate + ": already watched")
 		Return
 	EndIf
 
@@ -141,7 +130,6 @@ Function TryWatchCombatTarget(SpaceshipReference akCandidate, SpaceshipReference
 
 	If !bHostileToPlayerShip
 		If !bTargetingPlayerShip
-			LogDebug("reject " + akCandidate + ": combat target but not hostile/targeting player ship")
 			Return
 		EndIf
 	EndIf
@@ -150,24 +138,20 @@ Function TryWatchCombatTarget(SpaceshipReference akCandidate, SpaceshipReference
 	RegisterForRemoteEvent(akCandidate, "OnDying")
 	RegisterForRemoteEvent(akCandidate, "OnDeath")
 	LogInfo("watching hostile ship=" + akCandidate + " hostile=" + (bHostileToPlayerShip as String) + " targetingPlayer=" + (bTargetingPlayerShip as String))
-	NotifyDebug("watching hostile ship")
 EndFunction
 
 Function HandleWatchedShipDeath(SpaceshipReference akSender, ObjectReference akKiller, String asEventName)
 	SpaceshipReference akPlayerShipRef = ResolvePlayerShipRef()
 
 	If akSender == None
-		LogDebug(asEventName + " skipped: sender is None")
 		Return
 	EndIf
 
 	If PWAL_RCAL_WatchedHostileShips == None
-		LogDebug(asEventName + " skipped: sender not watched " + akSender)
 		Return
 	EndIf
 
 	If PWAL_RCAL_WatchedHostileShips.Find(akSender) < 0
-		LogDebug(asEventName + " skipped: sender not watched " + akSender)
 		Return
 	EndIf
 
@@ -176,7 +160,6 @@ Function HandleWatchedShipDeath(SpaceshipReference akSender, ObjectReference akK
 		Return
 	EndIf
 
-	NotifyDebug("ship death event")
 	SubmitDeadShipCandidate(akSender, akKiller, asEventName)
 EndFunction
 
@@ -187,13 +170,11 @@ Function SubmitDeadShipCandidate(SpaceshipReference akShipRef, ObjectReference a
 	EndIf
 
 	If PWAL_RCAL_ShipDebrisCandidateInbox.Find(akShipRef) >= 0
-		LogDebug(asEventName + " submit skipped: already in inbox ship=" + akShipRef)
 		Return
 	EndIf
 
 	PWAL_RCAL_ShipDebrisCandidateInbox.AddRef(akShipRef)
 	LogInfo(asEventName + " submitted ship=" + akShipRef + " killer=" + akKiller + " isDead=" + (akShipRef.IsDead() as String) + " itemCount=" + (akShipRef.GetItemCount() as String))
-	NotifyDebug("ship submitted to inbox")
 EndFunction
 
 SpaceshipReference Function ResolvePlayerShipRef()
@@ -277,12 +258,6 @@ Function UnregisterWatchedShips()
 
 		iIndex += 1
 	EndWhile
-EndFunction
-
-Function NotifyDebug(String asMessage)
-	If ShowDebugNotifications
-		Debug.Notification("[PWAL Ship] " + asMessage)
-	EndIf
 EndFunction
 
 Function LogInfo(String asMessage)

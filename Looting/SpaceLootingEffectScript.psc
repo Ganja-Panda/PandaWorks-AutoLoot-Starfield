@@ -361,7 +361,6 @@ Bool Function ProcessCandidate(ObjectReference akCandidate, ObjectReference akPl
 	If ProcessorType == 3
 		akCandidateShip = akCandidate as SpaceshipReference
 		If akCandidateShip == None
-			LogWarn("SpaceLootingEffect", "ProcessorType 3 skipped: candidate is not a SpaceshipReference.")
 			Return false
 		EndIf
 
