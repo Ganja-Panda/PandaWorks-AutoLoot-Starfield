@@ -315,7 +315,37 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
+	LaunderLooseLootOwnership(akLoot, akEffectContext)
+
 	akDestinationRef.AddItem(akLoot as Form, 1, true)
+
+	Return true
+EndFunction
+
+Bool Function LaunderLooseLootOwnership(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
+	If akLoot == None
+		Return false
+	EndIf
+
+	If akEffectContext == None
+		Return false
+	EndIf
+
+	If !akEffectContext.CanSteal()
+		Return false
+	EndIf
+
+	If akEffectContext.IsStealingHostile()
+		Return false
+	EndIf
+
+	If akEffectContext.PlayerFaction == None
+		Return false
+	EndIf
+
+	akLoot.SetActorOwner(None, true)
+	akLoot.SetActorRefOwner(None, true)
+	akLoot.SetFactionOwner(akEffectContext.PlayerFaction, true)
 
 	Return true
 EndFunction
