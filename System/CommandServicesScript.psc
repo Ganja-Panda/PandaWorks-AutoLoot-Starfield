@@ -68,7 +68,7 @@ Group CommandMessages
 	Message Property PWAL_MSG_Utilities_MoveItemsToLodge Auto Const
 	Message Property PWAL_MSG_Utilities_MoveItemsToPandaWorks Auto Const
 	Message Property PWAL_MSG_ResourcesToShip Auto Const
-	Message Property PWAL_MSG_ValablesToPlayer Auto Const
+	Message Property PWAL_MSG_ValuablesToPlayer Auto Const
 	Message Property PWAL_MSG_Utilities_NoItems Auto Const
 	Message Property PWAL_MSG_Utilities_Unavailable Auto Const
 EndGroup
@@ -404,7 +404,7 @@ Bool Function TransferValuablesToPlayer()
 	EndIf
 
 	If bMovedAnything
-		ShowCommandMessage(PWAL_MSG_ValablesToPlayer, "TransferValuablesToPlayer completed.")
+		ShowCommandMessage(PWAL_MSG_ValuablesToPlayer, "TransferValuablesToPlayer completed.")
 	Else
 		ShowCommandMessage(PWAL_MSG_Utilities_Unavailable, "TransferValuablesToPlayer unavailable.")
 	EndIf
