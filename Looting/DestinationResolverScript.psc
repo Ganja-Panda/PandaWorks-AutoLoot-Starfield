@@ -83,6 +83,7 @@ GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_CraftingItems Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Currency Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_JunkItems Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Keycards Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_DEST_MISC_Schematics Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_UpgradeModules Auto Const
 
 ; RES / X-Tech 
@@ -166,6 +167,7 @@ Int Property LG_MISC_CURRENCY = 404 Auto Const
 Int Property LG_MISC_JUNKITEMS = 405 Auto Const
 Int Property LG_MISC_KEYCARDS = 406 Auto Const
 Int Property LG_MISC_MISCITEMS = 407 Auto Const
+Int Property LG_MISC_SCHEMATICS = 409 Auto Const
 Int Property LG_MISC_UPGRADEMODULES = 408 Auto Const
 
 ; RES / Inorganic
@@ -389,10 +391,6 @@ Bool Function IsForcedPlayerLootGroup(Int aiLootGroupCode)
 		Return true
 	EndIf
 
-	If aiLootGroupCode == LG_COLL_PLUSHIES
-		Return true
-	EndIf
-
 	If aiLootGroupCode == LG_COLL_SNOWGLOBES
 		Return true
 	EndIf
@@ -402,6 +400,10 @@ Bool Function IsForcedPlayerLootGroup(Int aiLootGroupCode)
 	EndIf
 
 	If aiLootGroupCode == LG_MISC_KEYCARDS
+		Return true
+	EndIf
+
+	If aiLootGroupCode == LG_MISC_SCHEMATICS
 		Return true
 	EndIf
 
