@@ -119,10 +119,9 @@ Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, P
 
 	MarkCorpseAsLooted(akCorpse, akEffectContext)
 
-	; Corpse removal is only safe after TakeAll corpse processing.
-	; Filtered corpse looting can intentionally leave items behind,
-	; so disabling the body after filtered mode can hide or delete loot.
-	If akEffectContext.RemoveCorpsesEnabled() && akEffectContext.TakeAllCorpses()
+	; Remove the corpse only after configured corpse loot has been processed.
+	; Items excluded by the player's loot settings are discarded with the corpse.
+	If akEffectContext.RemoveCorpsesEnabled()
 		HandleCorpseCleanup(akCorpse, akEffectContext)
 	EndIf
 EndFunction
