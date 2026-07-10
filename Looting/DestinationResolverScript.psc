@@ -83,7 +83,8 @@ GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_CraftingItems Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Currency Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_JunkItems Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Keycards Auto Const
-GlobalVariable Property PWAL_GLOB_Settings_DEST_MISC_Schematics Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Schematics Auto Const
+GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_SSCraftingItems Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_UpgradeModules Auto Const
 
 ; RES / X-Tech 
@@ -167,8 +168,9 @@ Int Property LG_MISC_CURRENCY = 404 Auto Const
 Int Property LG_MISC_JUNKITEMS = 405 Auto Const
 Int Property LG_MISC_KEYCARDS = 406 Auto Const
 Int Property LG_MISC_MISCITEMS = 407 Auto Const
-Int Property LG_MISC_SCHEMATICS = 409 Auto Const
 Int Property LG_MISC_UPGRADEMODULES = 408 Auto Const
+Int Property LG_MISC_SCHEMATICS = 409 Auto Const
+Int Property LG_MISC_SSCRAFTINGITEMS = 410 Auto Const
 
 ; RES / Inorganic
 Int Property LG_RES_INORGANIC_COMMON = 501 Auto Const
@@ -522,6 +524,10 @@ GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 
 	If aiLootGroupCode == LG_MISC_MISCITEMS
 		Return PWAL_GLOB_Settings_Dest_MISC_JunkItems
+	EndIf
+
+	If aiLootGroupCode == LG_MISC_SSCRAFTINGITEMS
+		Return PWAL_GLOB_Settings_Dest_MISC_CraftingItems
 	EndIf
 
 	; X-Tech
