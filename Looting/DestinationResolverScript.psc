@@ -170,7 +170,6 @@ Int Property LG_MISC_KEYCARDS = 406 Auto Const
 Int Property LG_MISC_MISCITEMS = 407 Auto Const
 Int Property LG_MISC_UPGRADEMODULES = 408 Auto Const
 Int Property LG_MISC_SCHEMATICS = 409 Auto Const
-Int Property LG_MISC_SSCRAFTINGITEMS = 410 Auto Const
 
 ; RES / Inorganic
 Int Property LG_RES_INORGANIC_COMMON = 501 Auto Const
@@ -524,10 +523,6 @@ GlobalVariable Function GetLootGroupDestinationGlobal(Int aiLootGroupCode)
 
 	If aiLootGroupCode == LG_MISC_MISCITEMS
 		Return PWAL_GLOB_Settings_Dest_MISC_JunkItems
-	EndIf
-
-	If aiLootGroupCode == LG_MISC_SSCRAFTINGITEMS
-		Return PWAL_GLOB_Settings_Dest_MISC_CraftingItems
 	EndIf
 
 	; X-Tech
