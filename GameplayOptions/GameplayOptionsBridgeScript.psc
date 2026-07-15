@@ -58,8 +58,8 @@ Group UtilityGlobals
 EndGroup
 
 Group InterfaceDevices
-	ObjectReference Property PWAL_WEAP_Terminal_Ref Auto Const Mandatory
-	ObjectReference Property PWAL_UtilitiesDevice_Ref Auto Const Mandatory
+	Weapon Property PWAL_WEAP_Terminal Auto Const Mandatory
+	Potion Property PWAL_POTION_Utilities_Device Auto Const Mandatory
 EndGroup
 
 Group GameplayOptionMessages
@@ -73,6 +73,8 @@ Group RuntimeConfig
 
 	Int Property DEST_PLAYER = 1 Auto Const
 	Int Property DEST_PANDAWORKS = 2 Auto Const
+	Int Property DEST_PLAYER_SHIP = 3 Auto Const
+	Int Property DEST_LODGE_SAFE = 4 Auto Const
 EndGroup
 
 ; ==============================================================
@@ -137,11 +139,28 @@ Function ApplyAlwaysLootState()
 EndFunction
 
 Function ApplyDestinationState()
-	Int iOptionState = GetGameplayOptionBool(PWAL_GPOF_SendLootTo)
-	Int iDestination = DEST_PLAYER
+	If PWAL_GPOF_SendLootTo == None
+		LogError("GameplayOptionsBridge", "ApplyDestinationState failed: PWAL_GPOF_SendLootTo property is not filled.")
+		Return
+	EndIf
 
-	If iOptionState == VALUE_ENABLED
+	Int iOptionValue = PWAL_GPOF_SendLootTo.GetValue() as Int
+	Int iDestination
+
+	If iOptionValue == 0
+		LogInfo("GameplayOptionsBridge", "Quick Start destination set to Default. Existing destination globals were preserved.")
+		Return
+	ElseIf iOptionValue == 1
+		iDestination = DEST_PLAYER
+	ElseIf iOptionValue == 2
 		iDestination = DEST_PANDAWORKS
+	ElseIf iOptionValue == 3
+		iDestination = DEST_PLAYER_SHIP
+	ElseIf iOptionValue == 4
+		iDestination = DEST_LODGE_SAFE
+	Else
+		LogWarn("GameplayOptionsBridge", "ApplyDestinationState received unsupported option value=" + (iOptionValue as String))
+		Return
 	EndIf
 
 	LogInfo("GameplayOptionsBridge", "Applying Quick Start destination=" + (iDestination as String))
@@ -152,14 +171,14 @@ Function ApplyTerminalState()
 	Int iEnabledState = GetGameplayOptionBool(PWAL_GPOF_HandheldTerminal)
 
 	LogInfo("GameplayOptionsBridge", "Applying handheld terminal state=" + (iEnabledState as String))
-	SetInterfaceDeviceState(PWAL_WEAP_Terminal_Ref, iEnabledState, "HandheldTerminal")
+	SetInterfaceDeviceState(PWAL_WEAP_Terminal as Form, iEnabledState, "HandheldTerminal")
 EndFunction
 
 Function ApplyUtilityDeviceState()
 	Int iEnabledState = GetGameplayOptionBool(PWAL_GPOF_UtilityDevice)
 
 	LogInfo("GameplayOptionsBridge", "Applying utility device state=" + (iEnabledState as String))
-	SetInterfaceDeviceState(PWAL_UtilitiesDevice_Ref, iEnabledState, "UtilityDevice")
+	SetInterfaceDeviceState(PWAL_POTION_Utilities_Device as Form, iEnabledState, "UtilityDevice")
 EndFunction
 
 Function ApplyLootingState()
@@ -228,9 +247,11 @@ EndFunction
 ; Interface Device Helpers
 ; ==============================================================
 
-Function SetInterfaceDeviceState(ObjectReference akDeviceRef, Int aiEnabledState, String asDeviceName)
-	If akDeviceRef == None
-		LogError("GameplayOptionsBridge", "SetInterfaceDeviceState failed: " + asDeviceName + " reference property is not filled.")
+Function SetInterfaceDeviceState(Form akDeviceForm, Int aiEnabledState, String asDeviceName)
+	LogInfo("GameplayOptionsBridge", asDeviceName + " requested state=" + (aiEnabledState as String))
+
+	If akDeviceForm == None
+		LogError("GameplayOptionsBridge", "SetInterfaceDeviceState failed: " + asDeviceName + " base form property is not filled.")
 		Return
 	EndIf
 
@@ -241,28 +262,22 @@ Function SetInterfaceDeviceState(ObjectReference akDeviceRef, Int aiEnabledState
 		Return
 	EndIf
 
-	Form akDeviceForm = akDeviceRef as Form
-
-	If akDeviceForm == None
-		LogError("GameplayOptionsBridge", "SetInterfaceDeviceState failed: " + asDeviceName + " reference could not be treated as a Form.")
-		Return
-	EndIf
-
 	Int iItemCount = akPlayerActor.GetItemCount(akDeviceForm)
+	LogInfo("GameplayOptionsBridge", asDeviceName + " current player inventory count=" + (iItemCount as String))
 
 	If aiEnabledState == VALUE_ENABLED
 		If iItemCount <= 0
 			akPlayerActor.AddItem(akDeviceForm, 1, false)
-			LogInfo("GameplayOptionsBridge", asDeviceName + " installed.")
+			LogInfo("GameplayOptionsBridge", asDeviceName + " added. Count=1")
 		Else
-			LogDebug("GameplayOptionsBridge", asDeviceName + " is already installed.")
+			LogDebug("GameplayOptionsBridge", asDeviceName + " already present. Count=" + (iItemCount as String))
 		EndIf
 	Else
 		If iItemCount > 0
 			akPlayerActor.RemoveItem(akDeviceForm, iItemCount, false)
 			LogInfo("GameplayOptionsBridge", asDeviceName + " removed. Count=" + (iItemCount as String))
 		Else
-			LogDebug("GameplayOptionsBridge", asDeviceName + " is already removed.")
+			LogDebug("GameplayOptionsBridge", asDeviceName + " already absent. Count=0")
 		EndIf
 	EndIf
 EndFunction

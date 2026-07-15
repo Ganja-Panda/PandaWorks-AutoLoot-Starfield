@@ -234,24 +234,24 @@ Int Function NormalizeDestinationValue(Int aiValue)
 		Return DEST_VOID
 	EndIf
 
-	Return DEST_LODGE_SAFE
+	Return DEST_PLAYER
 EndFunction
 
 Int Function GetNextDestinationValue(Int aiCurrentValue)
-	; Alphabetical player-facing order:
-	; Lodge Safe -> PandaWorks -> Player -> Player Ship -> Void
+	; Player-facing order:
+	; Player -> PandaWorks -> Player Ship -> Lodge Safe -> Void
 
-	If aiCurrentValue == DEST_LODGE_SAFE
+	If aiCurrentValue == DEST_PLAYER
 		Return DEST_PANDAWORKS
 	ElseIf aiCurrentValue == DEST_PANDAWORKS
-		Return DEST_PLAYER
-	ElseIf aiCurrentValue == DEST_PLAYER
 		Return DEST_PLAYER_SHIP
 	ElseIf aiCurrentValue == DEST_PLAYER_SHIP
+		Return DEST_LODGE_SAFE
+	ElseIf aiCurrentValue == DEST_LODGE_SAFE
 		Return DEST_VOID
 	EndIf
 
-	Return DEST_LODGE_SAFE
+	Return DEST_PLAYER
 EndFunction
 
 ; ==============================================================
