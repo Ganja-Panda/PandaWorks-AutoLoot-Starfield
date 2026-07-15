@@ -75,7 +75,10 @@ Bool Function HandleInstallState()
 			Return false
 		EndIf
 
-		VersionManager.PersistExpectedVersion()
+		If !VersionManager.PersistExpectedVersion()
+			LogError("InstallManager", "First-time setup failed while persisting the expected version.")
+			Return false
+		EndIf
 
 		bLastInstallCheckPassed = true
 		bLastInstallPerformed = true

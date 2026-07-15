@@ -93,12 +93,21 @@ EndEvent
 ; ==============================================================
 
 Function OnFrameworkStart()
+	RunFrameworkStart(false)
+EndFunction
+
+Function RequestMaintenanceStart()
+	LogInfo("RuntimeManager", "Load-game maintenance requested.")
+	RunFrameworkStart(true)
+EndFunction
+
+Function RunFrameworkStart(Bool abMaintenanceRequest)
 	If bStartupInProgress
-		LogWarn("RuntimeManager", "OnFrameworkStart blocked because startup is already in progress.")
+		LogWarn("RuntimeManager", "Framework start blocked because startup is already in progress.")
 		Return
 	EndIf
 
-	If bFrameworkReady && bRuntimeInitialized
+	If bFrameworkReady && bRuntimeInitialized && !abMaintenanceRequest
 		LogInfo("RuntimeManager", "OnFrameworkStart skipped because framework is already ready.")
 		Return
 	EndIf
@@ -107,12 +116,25 @@ Function OnFrameworkStart()
 	bFrameworkReady = false
 	iCurrentFrameworkState = STATE_STARTING
 
-	LogInfo("RuntimeManager", "Framework startup beginning.")
+	If abMaintenanceRequest
+		LogInfo("RuntimeManager", "Framework maintenance beginning.")
+	Else
+		LogInfo("RuntimeManager", "Framework startup beginning.")
+	EndIf
+
 	LogRuntimeSnapshot("StartupBegin")
-	NotifyUser("PandaWorks AutoLoot initializing...")
+
+	If !abMaintenanceRequest
+		NotifyUser("PandaWorks AutoLoot initializing...")
+	EndIf
 
 	If !RunStartupFlow()
-		FailStartup("RunStartupFlow returned false.")
+		If abMaintenanceRequest
+			FailStartup("Load-game maintenance RunStartupFlow returned false.")
+		Else
+			FailStartup("RunStartupFlow returned false.")
+		EndIf
+
 		Return
 	EndIf
 
@@ -121,9 +143,17 @@ Function OnFrameworkStart()
 	bStartupInProgress = false
 	iCurrentFrameworkState = STATE_READY
 
-	LogInfo("RuntimeManager", "Framework startup complete. Runtime is ready.")
+	If abMaintenanceRequest
+		LogInfo("RuntimeManager", "Framework maintenance complete. Runtime is ready.")
+	Else
+		LogInfo("RuntimeManager", "Framework startup complete. Runtime is ready.")
+	EndIf
+
 	LogRuntimeSnapshot("StartupComplete")
-	NotifyUser("PandaWorks AutoLoot initialized successfully.")
+
+	If !abMaintenanceRequest
+		NotifyUser("PandaWorks AutoLoot initialized successfully.")
+	EndIf
 EndFunction
 
 Function ShutdownFramework()

@@ -79,12 +79,29 @@ Bool Function HandleVersionState()
 
 	If iLastVersionState == VERSION_STATE_UPDATE_REQUIRED
 		LogInfo("VersionManager", "Version state resolved as UPDATE_REQUIRED.")
-		BeginMigration()
 
-		; Future:
-		; - Run migration/update steps here
+		If !BeginMigration()
+			LogError("VersionManager", "Update reconciliation failed to enter migration runtime state. Installed version was not advanced.")
+			Return false
+		EndIf
 
-		PersistExpectedVersion()
+		LogInfo("VersionManager", "Generic framework reconciliation beginning.")
+
+		If !RunUpdateReconciliation()
+			LogError("VersionManager", "Generic framework reconciliation failed. Installed version was not advanced.")
+			EndMigration()
+			Return false
+		EndIf
+
+		LogInfo("VersionManager", "Generic framework reconciliation completed successfully.")
+
+		If !PersistExpectedVersion()
+			LogError("VersionManager", "Version update failed while persisting expected version. Installed version may not have advanced completely.")
+			EndMigration()
+			Return false
+		EndIf
+
+		Debug.Notification("PandaWorks AutoLoot updated to v" + BuildExpectedVersionString())
 		LogInfo("VersionManager", "Version update completed. Expected version persisted: " + BuildExpectedVersionString())
 		EndMigration()
 		Return true
@@ -99,6 +116,36 @@ Bool Function HandleVersionState()
 	Return false
 EndFunction
 
+Bool Function RunUpdateReconciliation()
+	If !ValidateVersionGlobals()
+		LogError("VersionManager", "Update reconciliation failed: required version globals are not filled.")
+		Return false
+	EndIf
+
+	If RuntimeManager == None
+		LogError("VersionManager", "Update reconciliation failed: RuntimeManager property is not filled.")
+		Return false
+	EndIf
+
+	If !RuntimeManager.IsStartupInProgress()
+		LogError("VersionManager", "Update reconciliation failed: framework startup/maintenance is not active.")
+		Return false
+	EndIf
+
+	If RuntimeManager.IsFrameworkReady()
+		LogError("VersionManager", "Update reconciliation failed: framework remained ready during update maintenance.")
+		Return false
+	EndIf
+
+	If !RuntimeManager.IsMigrationRunning()
+		LogError("VersionManager", "Update reconciliation failed: migration runtime gate is not active.")
+		Return false
+	EndIf
+
+	LogInfo("VersionManager", "Version globals, framework services, maintenance state, readiness block, and migration gate validated.")
+	Return true
+EndFunction
+
 Bool Function CheckVersionState()
 	ResetVersionCheckState()
 
@@ -110,8 +157,8 @@ Bool Function CheckVersionState()
 	EndIf
 
 	LogInfo("VersionManager", "Version state check beginning.")
-	LogDebug("VersionManager", "Installed version: " + BuildInstalledVersionString())
-	LogDebug("VersionManager", "Expected version: " + BuildExpectedVersionString())
+	LogInfo("VersionManager", "Installed version: " + BuildInstalledVersionString())
+	LogInfo("VersionManager", "Expected version: " + BuildExpectedVersionString())
 
 	If IsFirstInstall()
 		iLastVersionState = VERSION_STATE_FIRST_INSTALL
@@ -142,10 +189,10 @@ Bool Function CheckVersionState()
 	Return false
 EndFunction
 
-Function PersistExpectedVersion()
+Bool Function PersistExpectedVersion()
 	If !ValidateVersionGlobals()
 		LogError("VersionManager", "PersistExpectedVersion failed: required version globals are not filled.")
-		Return
+		Return false
 	EndIf
 
 	PWAL_GLOB_Version_Major.SetValueInt(iExpectedVersionMajor)
@@ -153,20 +200,28 @@ Function PersistExpectedVersion()
 	PWAL_GLOB_Version_Patch.SetValueInt(iExpectedVersionPatch)
 
 	LogInfo("VersionManager", "Persisted expected version to installed globals: " + BuildExpectedVersionString())
+	Return true
 EndFunction
 
-Function BeginMigration()
-	If RuntimeManager
-		RuntimeManager.SetMigrationRunning(true)
+Bool Function BeginMigration()
+	If RuntimeManager == None
+		LogError("VersionManager", "BeginMigration failed: RuntimeManager property is not filled.")
+		Return false
 	EndIf
 
+	RuntimeManager.SetMigrationRunning(true)
+
 	LogInfo("VersionManager", "Migration runtime state entered.")
+	Return true
 EndFunction
 
 Function EndMigration()
-	If RuntimeManager
-		RuntimeManager.SetMigrationRunning(false)
+	If RuntimeManager == None
+		LogError("VersionManager", "EndMigration could not clear migration state: RuntimeManager property is not filled.")
+		Return
 	EndIf
+
+	RuntimeManager.SetMigrationRunning(false)
 
 	LogInfo("VersionManager", "Migration runtime state cleared.")
 EndFunction

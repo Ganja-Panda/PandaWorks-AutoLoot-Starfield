@@ -33,6 +33,7 @@ ScriptName PWAL:System:PlayerBootstrapAliasScript Extends ReferenceAlias Hidden
 
 Group FrameworkServices
 	PWAL:Core:LoggerScript Property Logger Auto Const
+	PWAL:Core:RuntimeManagerScript Property RuntimeManager Auto Const Mandatory
 EndGroup
 
 Group Player
@@ -55,6 +56,7 @@ EndEvent
 Event OnPlayerLoadGame()
 	LogInfo("PlayerBootstrap", "OnPlayerLoadGame triggered.")
 	EnsurePlayerPerks("OnPlayerLoadGame")
+	RequestFrameworkMaintenance()
 EndEvent
 
 ; ==============================================================
@@ -103,6 +105,17 @@ Function EnsurePlayerPerks(String asReason)
 	EndWhile
 
 	LogInfo("PlayerBootstrap", "Player perk bootstrap complete.")
+EndFunction
+
+Function RequestFrameworkMaintenance()
+	LogInfo("PlayerBootstrap", "Requesting framework maintenance after player load.")
+
+	If RuntimeManager == None
+		LogError("PlayerBootstrap", "Framework maintenance request failed: RuntimeManager property is not filled.")
+		Return
+	EndIf
+
+	RuntimeManager.RequestMaintenanceStart()
 EndFunction
 
 ; ==============================================================
