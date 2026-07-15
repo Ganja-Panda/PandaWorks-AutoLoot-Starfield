@@ -3,7 +3,7 @@ ScriptName PWAL:Input:ToggleMenuScript Extends TerminalMenu Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.1
+; Version: 1.0.2
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: ToggleMenuScript
@@ -54,6 +54,7 @@ Group RuntimeConfig
 	Int Property VALUE_OFF = 0 Auto Const
 	Int Property VALUE_ON = 1 Auto Const
 	Bool Property bHasToggleAll = true Auto Const
+	Bool Property bBulkRowOnly = false Auto Const
 EndGroup
 
 ; ==============================================================
@@ -71,6 +72,10 @@ EndEvent
 
 Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, ObjectReference akTerminalRef)
 	If akTerminalBase != CurrentTerminalMenu
+		Return
+	EndIf
+
+	If bBulkRowOnly && auiMenuItemID != 0
 		Return
 	EndIf
 
@@ -207,6 +212,11 @@ Function RefreshAllTokens(ObjectReference akTerminalRef)
 	EndIf
 
 	If !HasValidMenuGlobals()
+		Return
+	EndIf
+
+	If bBulkRowOnly
+		RefreshToken(0, akTerminalRef)
 		Return
 	EndIf
 

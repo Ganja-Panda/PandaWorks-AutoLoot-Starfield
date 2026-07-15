@@ -3,7 +3,7 @@ ScriptName PWAL:Input:DestinationMenuScript Extends TerminalMenu Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.2
+; Version: 1.0.3
 ; Created: 04-10-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: DestinationMenuScript
@@ -59,6 +59,7 @@ Group RuntimeConfig
 	Int Property DEST_PLAYER_SHIP = 3 Auto Const
 	Int Property DEST_LODGE_SAFE = 4 Auto Const
 	Int Property DEST_VOID = 5 Auto Const
+	Bool Property bBulkRowOnly = false Auto Const
 EndGroup
 
 ; ==============================================================
@@ -75,6 +76,10 @@ EndEvent
 
 Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, ObjectReference akTerminalRef)
 	If akTerminalBase != CurrentTerminalMenu
+		Return
+	EndIf
+
+	If bBulkRowOnly && auiMenuItemID != 0
 		Return
 	EndIf
 
@@ -153,6 +158,11 @@ Function RefreshAllTokens(ObjectReference akTerminalRef)
 	EndIf
 
 	If !HasValidDestinationGlobals()
+		Return
+	EndIf
+
+	If bBulkRowOnly
+		RefreshToken(0, akTerminalRef)
 		Return
 	EndIf
 
