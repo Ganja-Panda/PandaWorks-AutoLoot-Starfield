@@ -18,7 +18,7 @@ ScriptName PWAL:GameplayOptions:GameplayOptionsBridgeScript Extends Quest Hidden
 ;   - Route configurable loot categories to Player or PandaWorks
 ;   - Install or remove the handheld terminal
 ;   - Install or remove the utility device
-;   - Install, protect, configure, equip, or disable the Gravitic Stowage Matrix effects
+;   - Install, configure, equip, or disable the Gravitic Stowage Matrix
 ;   - Enable or disable the PWAL looting runtime
 ;   - Respect FormList additions made by optional PWAL plugins
 ;   - Keep terminal controller globals synchronized
@@ -51,7 +51,6 @@ EndGroup
 
 Group GraviticStowageMatrix
 	Armor Property PWAL_ARMO_GraviticStowageChronomark Auto Const Mandatory
-	ReferenceAlias Property PWAL_GSM_ChronomarkAlias Auto Const Mandatory
 
 	ObjectMod Property PWAL_OMOD_GSM_Ammo_25 Auto Const Mandatory
 	ObjectMod Property PWAL_OMOD_GSM_Ammo_50 Auto Const Mandatory
@@ -196,28 +195,31 @@ Function HandleGSMOption(Float afValue)
 EndFunction
 
 Function DisableGSM()
-	If PWAL_GSM_ChronomarkAlias == None
-		LogError("GameplayOptionsBridge", "DisableGSM failed: PWAL_GSM_ChronomarkAlias is not filled.")
+	If PWAL_ARMO_GraviticStowageChronomark == None
+		LogError("GameplayOptionsBridge", "DisableGSM failed: PWAL_ARMO_GraviticStowageChronomark property is not filled.")
 		Return
 	EndIf
 
-	ObjectReference watchRef = PWAL_GSM_ChronomarkAlias.GetRef()
-
-	If watchRef == None
-		LogDebug("GameplayOptionsBridge", "GSM is already disabled and no protected Chronomark exists.")
+	Actor akPlayerActor = Game.GetPlayer()
+	If akPlayerActor == None
+		LogError("GameplayOptionsBridge", "DisableGSM failed: Game.GetPlayer() returned None.")
 		Return
 	EndIf
 
-	If watchRef.GetBaseObject() != PWAL_ARMO_GraviticStowageChronomark
-		LogError("GameplayOptionsBridge", "DisableGSM failed: alias contains the wrong base form.")
-		Return
-	ElseIf !watchRef.IsQuestItem()
-		LogError("GameplayOptionsBridge", "DisableGSM failed: aliased Chronomark is not a Quest Object.")
+	Form akChronomarkForm = PWAL_ARMO_GraviticStowageChronomark as Form
+	Int iItemCount = akPlayerActor.GetItemCount(akChronomarkForm)
+
+	If iItemCount <= 0
+		LogDebug("GameplayOptionsBridge", "GSM is already disabled.")
 		Return
 	EndIf
 
-	RemoveKnownGSMMods(watchRef)
-	LogInfo("GameplayOptionsBridge", "GSM disabled. Protected PWAL Gravitic Chronomark preserved.")
+	akPlayerActor.UnequipItem(akChronomarkForm, false, true)
+	RemoveKnownGSMMods(akPlayerActor, akChronomarkForm)
+
+	Int iRemovedCount = akPlayerActor.RemoveItem(akChronomarkForm, iItemCount, true)
+
+	LogInfo("GameplayOptionsBridge", "GSM disabled and PWAL Gravitic Chronomark removed. Count=" + (iRemovedCount as String))
 EndFunction
 
 Function ApplyGSMProfile(Int aiProfile)
@@ -231,23 +233,45 @@ Function ApplyGSMProfile(Int aiProfile)
 		Return
 	EndIf
 
-	ObjectReference watchRef = EnsureProtectedChronomark(akPlayerActor)
-	If watchRef == None
-		LogError("GameplayOptionsBridge", "ApplyGSMProfile failed: protected PWAL Gravitic Chronomark is unavailable.")
+	Form akChronomarkForm = PWAL_ARMO_GraviticStowageChronomark as Form
+	Int iItemCount = akPlayerActor.GetItemCount(akChronomarkForm)
+	If iItemCount <= 0
+		akPlayerActor.AddItem(akChronomarkForm, 1, true)
+	Else
+		akPlayerActor.UnequipItem(akChronomarkForm, false, true)
+		If iItemCount > 1
+			Int iDuplicateCount = iItemCount - 1
+			Int iRemovedCount = akPlayerActor.RemoveItem(akChronomarkForm, iDuplicateCount, true)
+			LogInfo("GameplayOptionsBridge", "Duplicate PWAL Gravitic Chronomark removed. Count=" + (iRemovedCount as String))
+		EndIf
+	EndIf
+
+	Int iVerifiedItemCount = akPlayerActor.GetItemCount(akChronomarkForm)
+	If iVerifiedItemCount <= 0
+		LogError("GameplayOptionsBridge", "PWAL Gravitic Chronomark could not be installed.")
+		Return
+	ElseIf iVerifiedItemCount > 1
+		LogError("GameplayOptionsBridge", "Duplicate PWAL Gravitic Chronomark cleanup failed. Count=" + (iVerifiedItemCount as String))
 		Return
 	EndIf
 
-	RemoveKnownGSMMods(watchRef)
+	If iItemCount <= 0
+		LogInfo("GameplayOptionsBridge", "PWAL Gravitic Chronomark added.")
+	Else
+		LogInfo("GameplayOptionsBridge", "Existing PWAL Gravitic Chronomark reused.")
+	EndIf
 
-	Bool bProfileApplied = ApplyGSMProfileMods(watchRef, aiProfile)
+	RemoveKnownGSMMods(akPlayerActor, akChronomarkForm)
+
+	Bool bProfileApplied = ApplyGSMProfileMods(akPlayerActor, akChronomarkForm, aiProfile)
 	If !bProfileApplied
-		RemoveKnownGSMMods(watchRef)
+		RemoveKnownGSMMods(akPlayerActor, akChronomarkForm)
 		LogError("GameplayOptionsBridge", "OMOD application failed. GSM profile was not equipped.")
 		LogWarn("GameplayOptionsBridge", "Incomplete GSM profile was rolled back.")
 		Return
 	EndIf
 
-	akPlayerActor.EquipItem(PWAL_ARMO_GraviticStowageChronomark, false, true)
+	akPlayerActor.EquipItem(akChronomarkForm, false, true)
 	If aiProfile == GSM_PROFILE_25
 		LogInfo("GameplayOptionsBridge", "25% profile applied.")
 	ElseIf aiProfile == GSM_PROFILE_50
@@ -259,112 +283,48 @@ Function ApplyGSMProfile(Int aiProfile)
 	EndIf
 EndFunction
 
-ObjectReference Function EnsureProtectedChronomark(Actor akPlayer)
-	If akPlayer == None
-		LogError("GameplayOptionsBridge", "EnsureProtectedChronomark failed: player is None.")
-		Return None
-	ElseIf PWAL_ARMO_GraviticStowageChronomark == None
-		LogError("GameplayOptionsBridge", "EnsureProtectedChronomark failed: PWAL_ARMO_GraviticStowageChronomark is not filled.")
-		Return None
-	ElseIf PWAL_GSM_ChronomarkAlias == None
-		LogError("GameplayOptionsBridge", "EnsureProtectedChronomark failed: PWAL_GSM_ChronomarkAlias is not filled.")
-		Return None
-	EndIf
-
-	ObjectReference watchRef = PWAL_GSM_ChronomarkAlias.GetRef()
-	If watchRef != None
-		If watchRef.GetBaseObject() != PWAL_ARMO_GraviticStowageChronomark
-			LogError("GameplayOptionsBridge", "EnsureProtectedChronomark failed: alias contains the wrong base form.")
-			Return None
-		ElseIf !watchRef.IsQuestItem()
-			LogError("GameplayOptionsBridge", "EnsureProtectedChronomark failed: aliased Chronomark is not a Quest Object.")
-			Return None
-		EndIf
-
-		LogDebug("GameplayOptionsBridge", "Existing protected PWAL Gravitic Chronomark reused.")
-		Return watchRef
-	EndIf
-
-	Form akChronomarkForm = PWAL_ARMO_GraviticStowageChronomark as Form
-	Int iItemCount = akPlayer.GetItemCount(akChronomarkForm)
-	If iItemCount <= 0
-		akPlayer.AddItem(akChronomarkForm, 1, true)
-		LogInfo("GameplayOptionsBridge", "PWAL Gravitic Chronomark added.")
-	ElseIf iItemCount > 1
-		Int iDuplicateCount = iItemCount - 1
-		Int iRemovedCount = akPlayer.RemoveItem(akChronomarkForm, iDuplicateCount, true)
-		LogInfo("GameplayOptionsBridge", "Duplicate PWAL Gravitic Chronomark removed before alias conversion. Count=" + (iRemovedCount as String))
-	Else
-		LogInfo("GameplayOptionsBridge", "Existing PWAL Gravitic Chronomark reused before alias conversion.")
-	EndIf
-
-	Int iVerifiedItemCount = akPlayer.GetItemCount(akChronomarkForm)
-	If iVerifiedItemCount != 1
-		LogError("GameplayOptionsBridge", "EnsureProtectedChronomark failed: expected one Chronomark before alias conversion. Count=" + (iVerifiedItemCount as String))
-		Return None
-	EndIf
-
-	watchRef = akPlayer.MakeAliasedRefFromInventory(akChronomarkForm, PWAL_GSM_ChronomarkAlias)
-	If watchRef == None
-		LogError("GameplayOptionsBridge", "EnsureProtectedChronomark failed: MakeAliasedRefFromInventory returned None.")
-		Return None
-	ElseIf PWAL_GSM_ChronomarkAlias.GetRef() != watchRef
-		LogError("GameplayOptionsBridge", "EnsureProtectedChronomark failed: alias does not contain the converted Chronomark reference.")
-		Return None
-	ElseIf watchRef.GetBaseObject() != PWAL_ARMO_GraviticStowageChronomark
-		LogError("GameplayOptionsBridge", "EnsureProtectedChronomark failed: converted reference has the wrong base form.")
-		Return None
-	ElseIf !watchRef.IsQuestItem()
-		LogError("GameplayOptionsBridge", "EnsureProtectedChronomark failed: converted Chronomark is not a Quest Object.")
-		Return None
-	EndIf
-
-	LogInfo("GameplayOptionsBridge", "PWAL Gravitic Chronomark permanently protected as a Quest Object.")
-	Return watchRef
-EndFunction
-
-Bool Function ApplyGSMProfileMods(ObjectReference watchRef, Int aiProfile)
+Bool Function ApplyGSMProfileMods(Actor akPlayerActor, Form akChronomarkForm, Int aiProfile)
 	Bool bSuccess = true
 
 	If aiProfile == GSM_PROFILE_25
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Ammo_25, "PWAL_OMOD_GSM_Ammo_25") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_ArmorApparel_25, "PWAL_OMOD_GSM_ArmorApparel_25") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_BooksDataslates_25, "PWAL_OMOD_GSM_BooksDataslates_25") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Consumables_25, "PWAL_OMOD_GSM_Consumables_25") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_JunkMisc_25, "PWAL_OMOD_GSM_JunkMisc_25") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Resources_25, "PWAL_OMOD_GSM_Resources_25") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Weapons_25, "PWAL_OMOD_GSM_Weapons_25") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Ammo_25, "PWAL_OMOD_GSM_Ammo_25") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_25, "PWAL_OMOD_GSM_ArmorApparel_25") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_25, "PWAL_OMOD_GSM_BooksDataslates_25") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Consumables_25, "PWAL_OMOD_GSM_Consumables_25") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_25, "PWAL_OMOD_GSM_JunkMisc_25") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Resources_25, "PWAL_OMOD_GSM_Resources_25") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Weapons_25, "PWAL_OMOD_GSM_Weapons_25") && bSuccess
 	ElseIf aiProfile == GSM_PROFILE_50
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Ammo_50, "PWAL_OMOD_GSM_Ammo_50") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_ArmorApparel_50, "PWAL_OMOD_GSM_ArmorApparel_50") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_BooksDataslates_50, "PWAL_OMOD_GSM_BooksDataslates_50") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Consumables_50, "PWAL_OMOD_GSM_Consumables_50") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_JunkMisc_50, "PWAL_OMOD_GSM_JunkMisc_50") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Resources_50, "PWAL_OMOD_GSM_Resources_50") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Weapons_50, "PWAL_OMOD_GSM_Weapons_50") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Ammo_50, "PWAL_OMOD_GSM_Ammo_50") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_50, "PWAL_OMOD_GSM_ArmorApparel_50") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_50, "PWAL_OMOD_GSM_BooksDataslates_50") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Consumables_50, "PWAL_OMOD_GSM_Consumables_50") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_50, "PWAL_OMOD_GSM_JunkMisc_50") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Resources_50, "PWAL_OMOD_GSM_Resources_50") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Weapons_50, "PWAL_OMOD_GSM_Weapons_50") && bSuccess
 	ElseIf aiProfile == GSM_PROFILE_75
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Ammo_75, "PWAL_OMOD_GSM_Ammo_75") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_ArmorApparel_75, "PWAL_OMOD_GSM_ArmorApparel_75") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_BooksDataslates_75, "PWAL_OMOD_GSM_BooksDataslates_75") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Consumables_75, "PWAL_OMOD_GSM_Consumables_75") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_JunkMisc_75, "PWAL_OMOD_GSM_JunkMisc_75") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Resources_75, "PWAL_OMOD_GSM_Resources_75") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Weapons_75, "PWAL_OMOD_GSM_Weapons_75") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Ammo_75, "PWAL_OMOD_GSM_Ammo_75") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_75, "PWAL_OMOD_GSM_ArmorApparel_75") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_75, "PWAL_OMOD_GSM_BooksDataslates_75") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Consumables_75, "PWAL_OMOD_GSM_Consumables_75") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_75, "PWAL_OMOD_GSM_JunkMisc_75") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Resources_75, "PWAL_OMOD_GSM_Resources_75") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Weapons_75, "PWAL_OMOD_GSM_Weapons_75") && bSuccess
 	Else
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Ammo_Weightless, "PWAL_OMOD_GSM_Ammo_Weightless") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_ArmorApparel_Weightless, "PWAL_OMOD_GSM_ArmorApparel_Weightless") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_BooksDataslates_Weightless, "PWAL_OMOD_GSM_BooksDataslates_Weightless") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Consumables_Weightless, "PWAL_OMOD_GSM_Consumables_Weightless") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_JunkMisc_Weightless, "PWAL_OMOD_GSM_JunkMisc_Weightless") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Resources_Weightless, "PWAL_OMOD_GSM_Resources_Weightless") && bSuccess
-		bSuccess = AttachGSMMod(watchRef, PWAL_OMOD_GSM_Weapons_Weightless, "PWAL_OMOD_GSM_Weapons_Weightless") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Ammo_Weightless, "PWAL_OMOD_GSM_Ammo_Weightless") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_Weightless, "PWAL_OMOD_GSM_ArmorApparel_Weightless") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_Weightless, "PWAL_OMOD_GSM_BooksDataslates_Weightless") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Consumables_Weightless, "PWAL_OMOD_GSM_Consumables_Weightless") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_Weightless, "PWAL_OMOD_GSM_JunkMisc_Weightless") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Resources_Weightless, "PWAL_OMOD_GSM_Resources_Weightless") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Weapons_Weightless, "PWAL_OMOD_GSM_Weapons_Weightless") && bSuccess
 	EndIf
 
 	Return bSuccess
 EndFunction
 
-Bool Function AttachGSMMod(ObjectReference watchRef, ObjectMod akMod, String asModName)
-	If !watchRef.AttachMod(akMod)
+Bool Function AttachGSMMod(Actor akPlayerActor, Form akChronomarkForm, ObjectMod akMod, String asModName)
+	If !akPlayerActor.AttachModToInventoryItem(akChronomarkForm, akMod)
 		LogError("GameplayOptionsBridge", "OMOD application failed: " + asModName)
 		Return false
 	EndIf
@@ -372,43 +332,40 @@ Bool Function AttachGSMMod(ObjectReference watchRef, ObjectMod akMod, String asM
 	Return true
 EndFunction
 
-Function RemoveKnownGSMMods(ObjectReference watchRef)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Ammo_25)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Ammo_50)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Ammo_75)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Ammo_Weightless)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_ArmorApparel_25)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_ArmorApparel_50)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_ArmorApparel_75)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_ArmorApparel_Weightless)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_BooksDataslates_25)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_BooksDataslates_50)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_BooksDataslates_75)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_BooksDataslates_Weightless)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Consumables_25)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Consumables_50)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Consumables_75)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Consumables_Weightless)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_JunkMisc_25)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_JunkMisc_50)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_JunkMisc_75)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_JunkMisc_Weightless)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Resources_25)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Resources_50)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Resources_75)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Resources_Weightless)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Weapons_25)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Weapons_50)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Weapons_75)
-	watchRef.RemoveMod(PWAL_OMOD_GSM_Weapons_Weightless)
+Function RemoveKnownGSMMods(Actor akPlayerActor, Form akChronomarkForm)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Ammo_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Ammo_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Ammo_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Ammo_Weightless)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_Weightless)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_Weightless)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Consumables_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Consumables_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Consumables_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Consumables_Weightless)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_Weightless)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Resources_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Resources_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Resources_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Resources_Weightless)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Weapons_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Weapons_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Weapons_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Weapons_Weightless)
 EndFunction
 
 Bool Function ValidateGSMProperties()
 	If PWAL_ARMO_GraviticStowageChronomark == None
 		LogError("GameplayOptionsBridge", "ApplyGSMProfile failed: PWAL_ARMO_GraviticStowageChronomark property is not filled.")
-		Return false
-	ElseIf PWAL_GSM_ChronomarkAlias == None
-		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_GSM_ChronomarkAlias is not filled.")
 		Return false
 	EndIf
 
