@@ -3,7 +3,7 @@ ScriptName PWAL:GameplayOptions:GameplayOptionsBridgeScript Extends Quest Hidden
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.0.0
+; Version: 1.0.1
 ; Created: 07-15-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: GameplayOptionsBridgeScript
@@ -18,6 +18,7 @@ ScriptName PWAL:GameplayOptions:GameplayOptionsBridgeScript Extends Quest Hidden
 ;   - Route configurable loot categories to Player or PandaWorks
 ;   - Install or remove the handheld terminal
 ;   - Install or remove the utility device
+;   - Install, configure, equip, or remove the Gravitic Stowage Matrix
 ;   - Enable or disable the PWAL looting runtime
 ;   - Respect FormList additions made by optional PWAL plugins
 ;   - Keep terminal controller globals synchronized
@@ -45,6 +46,46 @@ Group GameplayOptions
 	GameplayOption Property PWAL_GPOF_HandheldTerminal Auto Const Mandatory
 	GameplayOption Property PWAL_GPOF_UtilityDevice Auto Const Mandatory
 	GameplayOption Property PWAL_GPOF_EnableLooting Auto Const Mandatory
+	GameplayOption Property PWAL_GPOF_GSM Auto Const Mandatory
+EndGroup
+
+Group GraviticStowageMatrix
+	Armor Property PWAL_ARMO_GraviticStowageChronomark Auto Const Mandatory
+
+	ObjectMod Property PWAL_OMOD_GSM_Ammo_25 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_Ammo_50 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_Ammo_75 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_Ammo_Weightless Auto Const Mandatory
+
+	ObjectMod Property PWAL_OMOD_GSM_ArmorApparel_25 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_ArmorApparel_50 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_ArmorApparel_75 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_ArmorApparel_Weightless Auto Const Mandatory
+
+	ObjectMod Property PWAL_OMOD_GSM_BooksDataslates_25 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_BooksDataslates_50 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_BooksDataslates_75 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_BooksDataslates_Weightless Auto Const Mandatory
+
+	ObjectMod Property PWAL_OMOD_GSM_Consumables_25 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_Consumables_50 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_Consumables_75 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_Consumables_Weightless Auto Const Mandatory
+
+	ObjectMod Property PWAL_OMOD_GSM_JunkMisc_25 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_JunkMisc_50 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_JunkMisc_75 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_JunkMisc_Weightless Auto Const Mandatory
+
+	ObjectMod Property PWAL_OMOD_GSM_Resources_25 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_Resources_50 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_Resources_75 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_Resources_Weightless Auto Const Mandatory
+
+	ObjectMod Property PWAL_OMOD_GSM_Weapons_25 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_Weapons_50 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_Weapons_75 Auto Const Mandatory
+	ObjectMod Property PWAL_OMOD_GSM_Weapons_Weightless Auto Const Mandatory
 EndGroup
 
 Group GameplayOptionLists
@@ -70,6 +111,10 @@ EndGroup
 Group RuntimeConfig
 	Int Property VALUE_DISABLED = 0 Auto Const
 	Int Property VALUE_ENABLED = 1 Auto Const
+	Int Property GSM_PROFILE_25 = 1 Auto Const
+	Int Property GSM_PROFILE_50 = 2 Auto Const
+	Int Property GSM_PROFILE_75 = 3 Auto Const
+	Int Property GSM_PROFILE_WEIGHTLESS = 4 Auto Const
 
 	Int Property DEST_PLAYER = 1 Auto Const
 	Int Property DEST_PANDAWORKS = 2 Auto Const
@@ -109,6 +154,8 @@ Event OnGameplayOptionChanged(GameplayOption[] akChangedOptions)
 				ApplyUtilityDeviceState()
 			ElseIf akChangedOption == PWAL_GPOF_EnableLooting
 				ApplyLootingState()
+			ElseIf akChangedOption == PWAL_GPOF_GSM
+				HandleGSMOption(PWAL_GPOF_GSM.GetValue())
 			Else
 				LogDebug("GameplayOptionsBridge", "Ignoring unrelated gameplay option at index " + (iIndex as String) + ".")
 			EndIf
@@ -129,6 +176,282 @@ Function ApplyCategoryState()
 
 	LogInfo("GameplayOptionsBridge", "Applying category state=" + (iEnabledState as String))
 	SetGlobalListValue(PWAL_FLST_GPO_QuickStart_CategoryGlobals, iEnabledState, "CategoryGlobals")
+EndFunction
+
+Function HandleGSMOption(Float afValue)
+	Int iProfile = afValue as Int
+	LogInfo("GameplayOptionsBridge", "GSM Gameplay Option changed. Value=" + (iProfile as String))
+
+	If afValue != (iProfile as Float) || iProfile < VALUE_DISABLED || iProfile > GSM_PROFILE_WEIGHTLESS
+		LogWarn("GameplayOptionsBridge", "Invalid GSM Gameplay Option value received: " + (afValue as String))
+		Return
+	EndIf
+
+	If iProfile == VALUE_DISABLED
+		DisableGSM()
+	Else
+		ApplyGSMProfile(iProfile)
+	EndIf
+EndFunction
+
+Function DisableGSM()
+	If PWAL_ARMO_GraviticStowageChronomark == None
+		LogError("GameplayOptionsBridge", "DisableGSM failed: PWAL_ARMO_GraviticStowageChronomark property is not filled.")
+		Return
+	EndIf
+
+	Actor akPlayerActor = Game.GetPlayer()
+	If akPlayerActor == None
+		LogError("GameplayOptionsBridge", "DisableGSM failed: Game.GetPlayer() returned None.")
+		Return
+	EndIf
+
+	Int iItemCount = akPlayerActor.GetItemCount(PWAL_ARMO_GraviticStowageChronomark as Form)
+	If iItemCount > 0
+		akPlayerActor.UnequipItem(PWAL_ARMO_GraviticStowageChronomark as Form, false, true)
+		Int iRemovedCount = akPlayerActor.RemoveItem(PWAL_ARMO_GraviticStowageChronomark as Form, iItemCount, true)
+		If iRemovedCount > 1
+			LogInfo("GameplayOptionsBridge", "Duplicate PWAL Gravitic Chronomark removed. Count=" + ((iRemovedCount - 1) as String))
+		EndIf
+	EndIf
+
+	LogInfo("GameplayOptionsBridge", "GSM disabled.")
+EndFunction
+
+Function ApplyGSMProfile(Int aiProfile)
+	If !ValidateGSMProperties()
+		Return
+	EndIf
+
+	Actor akPlayerActor = Game.GetPlayer()
+	If akPlayerActor == None
+		LogError("GameplayOptionsBridge", "ApplyGSMProfile failed: Game.GetPlayer() returned None.")
+		Return
+	EndIf
+
+	Form akChronomarkForm = PWAL_ARMO_GraviticStowageChronomark as Form
+	Int iItemCount = akPlayerActor.GetItemCount(akChronomarkForm)
+	If iItemCount <= 0
+		akPlayerActor.AddItem(akChronomarkForm, 1, true)
+	Else
+		akPlayerActor.UnequipItem(akChronomarkForm, false, true)
+		If iItemCount > 1
+			Int iDuplicateCount = iItemCount - 1
+			Int iRemovedCount = akPlayerActor.RemoveItem(akChronomarkForm, iDuplicateCount, true)
+			LogInfo("GameplayOptionsBridge", "Duplicate PWAL Gravitic Chronomark removed. Count=" + (iRemovedCount as String))
+		EndIf
+	EndIf
+
+	Int iVerifiedItemCount = akPlayerActor.GetItemCount(akChronomarkForm)
+	If iVerifiedItemCount <= 0
+		LogError("GameplayOptionsBridge", "PWAL Gravitic Chronomark could not be installed.")
+		Return
+	ElseIf iVerifiedItemCount > 1
+		LogError("GameplayOptionsBridge", "Duplicate PWAL Gravitic Chronomark cleanup failed. Count=" + (iVerifiedItemCount as String))
+		Return
+	EndIf
+
+	If iItemCount <= 0
+		LogInfo("GameplayOptionsBridge", "PWAL Gravitic Chronomark added.")
+	Else
+		LogInfo("GameplayOptionsBridge", "Existing PWAL Gravitic Chronomark reused.")
+	EndIf
+
+	RemoveKnownGSMMods(akPlayerActor, akChronomarkForm)
+
+	Bool bProfileApplied = ApplyGSMProfileMods(akPlayerActor, akChronomarkForm, aiProfile)
+	If !bProfileApplied
+		RemoveKnownGSMMods(akPlayerActor, akChronomarkForm)
+		LogError("GameplayOptionsBridge", "OMOD application failed. GSM profile was not equipped.")
+		LogWarn("GameplayOptionsBridge", "Incomplete GSM profile was rolled back.")
+		Return
+	EndIf
+
+	akPlayerActor.EquipItem(akChronomarkForm, false, true)
+	If aiProfile == GSM_PROFILE_25
+		LogInfo("GameplayOptionsBridge", "25% profile applied.")
+	ElseIf aiProfile == GSM_PROFILE_50
+		LogInfo("GameplayOptionsBridge", "50% profile applied.")
+	ElseIf aiProfile == GSM_PROFILE_75
+		LogInfo("GameplayOptionsBridge", "75% profile applied.")
+	Else
+		LogInfo("GameplayOptionsBridge", "Weightless profile applied.")
+	EndIf
+EndFunction
+
+Bool Function ApplyGSMProfileMods(Actor akPlayerActor, Form akChronomarkForm, Int aiProfile)
+	Bool bSuccess = true
+
+	If aiProfile == GSM_PROFILE_25
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Ammo_25, "PWAL_OMOD_GSM_Ammo_25") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_25, "PWAL_OMOD_GSM_ArmorApparel_25") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_25, "PWAL_OMOD_GSM_BooksDataslates_25") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Consumables_25, "PWAL_OMOD_GSM_Consumables_25") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_25, "PWAL_OMOD_GSM_JunkMisc_25") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Resources_25, "PWAL_OMOD_GSM_Resources_25") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Weapons_25, "PWAL_OMOD_GSM_Weapons_25") && bSuccess
+	ElseIf aiProfile == GSM_PROFILE_50
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Ammo_50, "PWAL_OMOD_GSM_Ammo_50") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_50, "PWAL_OMOD_GSM_ArmorApparel_50") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_50, "PWAL_OMOD_GSM_BooksDataslates_50") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Consumables_50, "PWAL_OMOD_GSM_Consumables_50") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_50, "PWAL_OMOD_GSM_JunkMisc_50") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Resources_50, "PWAL_OMOD_GSM_Resources_50") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Weapons_50, "PWAL_OMOD_GSM_Weapons_50") && bSuccess
+	ElseIf aiProfile == GSM_PROFILE_75
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Ammo_75, "PWAL_OMOD_GSM_Ammo_75") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_75, "PWAL_OMOD_GSM_ArmorApparel_75") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_75, "PWAL_OMOD_GSM_BooksDataslates_75") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Consumables_75, "PWAL_OMOD_GSM_Consumables_75") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_75, "PWAL_OMOD_GSM_JunkMisc_75") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Resources_75, "PWAL_OMOD_GSM_Resources_75") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Weapons_75, "PWAL_OMOD_GSM_Weapons_75") && bSuccess
+	Else
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Ammo_Weightless, "PWAL_OMOD_GSM_Ammo_Weightless") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_Weightless, "PWAL_OMOD_GSM_ArmorApparel_Weightless") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_Weightless, "PWAL_OMOD_GSM_BooksDataslates_Weightless") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Consumables_Weightless, "PWAL_OMOD_GSM_Consumables_Weightless") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_Weightless, "PWAL_OMOD_GSM_JunkMisc_Weightless") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Resources_Weightless, "PWAL_OMOD_GSM_Resources_Weightless") && bSuccess
+		bSuccess = AttachGSMMod(akPlayerActor, akChronomarkForm, PWAL_OMOD_GSM_Weapons_Weightless, "PWAL_OMOD_GSM_Weapons_Weightless") && bSuccess
+	EndIf
+
+	Return bSuccess
+EndFunction
+
+Bool Function AttachGSMMod(Actor akPlayerActor, Form akChronomarkForm, ObjectMod akMod, String asModName)
+	If !akPlayerActor.AttachModToInventoryItem(akChronomarkForm, akMod)
+		LogError("GameplayOptionsBridge", "OMOD application failed: " + asModName)
+		Return false
+	EndIf
+
+	Return true
+EndFunction
+
+Function RemoveKnownGSMMods(Actor akPlayerActor, Form akChronomarkForm)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Ammo_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Ammo_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Ammo_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Ammo_Weightless)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_ArmorApparel_Weightless)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_BooksDataslates_Weightless)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Consumables_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Consumables_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Consumables_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Consumables_Weightless)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_JunkMisc_Weightless)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Resources_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Resources_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Resources_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Resources_Weightless)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Weapons_25)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Weapons_50)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Weapons_75)
+	akPlayerActor.RemoveModFromInventoryItem(akChronomarkForm, PWAL_OMOD_GSM_Weapons_Weightless)
+EndFunction
+
+Bool Function ValidateGSMProperties()
+	If PWAL_ARMO_GraviticStowageChronomark == None
+		LogError("GameplayOptionsBridge", "ApplyGSMProfile failed: PWAL_ARMO_GraviticStowageChronomark property is not filled.")
+		Return false
+	EndIf
+
+	If PWAL_OMOD_GSM_Ammo_25 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Ammo_25 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Ammo_50 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Ammo_50 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Ammo_75 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Ammo_75 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Ammo_Weightless == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Ammo_Weightless is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_ArmorApparel_25 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_ArmorApparel_25 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_ArmorApparel_50 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_ArmorApparel_50 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_ArmorApparel_75 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_ArmorApparel_75 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_ArmorApparel_Weightless == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_ArmorApparel_Weightless is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_BooksDataslates_25 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_BooksDataslates_25 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_BooksDataslates_50 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_BooksDataslates_50 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_BooksDataslates_75 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_BooksDataslates_75 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_BooksDataslates_Weightless == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_BooksDataslates_Weightless is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Consumables_25 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Consumables_25 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Consumables_50 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Consumables_50 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Consumables_75 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Consumables_75 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Consumables_Weightless == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Consumables_Weightless is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_JunkMisc_25 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_JunkMisc_25 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_JunkMisc_50 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_JunkMisc_50 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_JunkMisc_75 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_JunkMisc_75 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_JunkMisc_Weightless == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_JunkMisc_Weightless is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Resources_25 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Resources_25 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Resources_50 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Resources_50 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Resources_75 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Resources_75 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Resources_Weightless == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Resources_Weightless is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Weapons_25 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Weapons_25 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Weapons_50 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Weapons_50 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Weapons_75 == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Weapons_75 is not filled.")
+		Return false
+	ElseIf PWAL_OMOD_GSM_Weapons_Weightless == None
+		LogError("GameplayOptionsBridge", "ValidateGSMProperties failed: PWAL_OMOD_GSM_Weapons_Weightless is not filled.")
+		Return false
+	EndIf
+
+	Return true
 EndFunction
 
 Function ApplyAlwaysLootState()
