@@ -38,7 +38,6 @@ PWAL:Core:RuntimeManagerScript Property RuntimeManager Auto
 PWAL:System:VersionManagerScript Property VersionManager Auto
 
 GlobalVariable Property PWAL_GLOB_System_Installed Auto
-GlobalVariable Property PWAL_GLOB_Settings_Corpses_TakeAll Auto
 GlobalVariable Property PWAL_GLOB_Settings_Dest Auto
 
 ; ==============================================================
@@ -167,18 +166,10 @@ EndFunction
 Bool Function ApplyInstallDefaults()
 	LogInfo("InstallManager", "Applying baseline install defaults.")
 
-	If PWAL_GLOB_Settings_Corpses_TakeAll == None
-		LogError("InstallManager", "ApplyInstallDefaults failed: PWAL_GLOB_Settings_Corpses_TakeAll property is not filled.")
-		Return false
-	EndIf
-
 	If PWAL_GLOB_Settings_Dest == None
 		LogError("InstallManager", "ApplyInstallDefaults failed: PWAL_GLOB_Settings_Dest property is not filled.")
 		Return false
 	EndIf
-
-	PWAL_GLOB_Settings_Corpses_TakeAll.SetValueInt(1)
-	LogDebug("InstallManager", "Default applied: Corpses TakeAll = 1")
 
 	PWAL_GLOB_Settings_Dest.SetValueInt(1)
 	LogDebug("InstallManager", "Default applied: Destination = 1 (Player)")
@@ -208,11 +199,6 @@ Bool Function RunPostInstallValidation()
 		Return false
 	EndIf
 
-	If PWAL_GLOB_Settings_Corpses_TakeAll == None
-		LogError("InstallManager", "RunPostInstallValidation failed: Corpses TakeAll global not filled.")
-		Return false
-	EndIf
-
 	If PWAL_GLOB_Settings_Dest == None
 		LogError("InstallManager", "RunPostInstallValidation failed: Destination global not filled.")
 		Return false
@@ -220,11 +206,6 @@ Bool Function RunPostInstallValidation()
 
 	If PWAL_GLOB_System_Installed.GetValueInt() != 1
 		LogError("InstallManager", "Post-install validation failed: Installed marker not set correctly.")
-		Return false
-	EndIf
-
-	If PWAL_GLOB_Settings_Corpses_TakeAll.GetValueInt() != 1
-		LogError("InstallManager", "Post-install validation failed: Corpses TakeAll not set correctly.")
 		Return false
 	EndIf
 

@@ -36,7 +36,6 @@ PWAL:Core:RuntimeManagerScript Property RuntimeManager Auto
 
 GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto
 GlobalVariable Property PWAL_GLOB_System_Installed Auto
-GlobalVariable Property PWAL_GLOB_Settings_Corpses_TakeAll Auto
 GlobalVariable Property PWAL_GLOB_Settings_Dest Auto
 
 ; ==============================================================
@@ -94,7 +93,6 @@ EndFunction
 Function ValidateRequiredGlobals()
 	ValidateLoggingGlobal()
 	ValidateInstalledGlobal()
-	ValidateCorpsesTakeAllGlobal()
 	ValidateDestinationGlobal()
 EndFunction
 
@@ -140,15 +138,6 @@ Function ValidateInstalledGlobal()
 	EndIf
 
 	LogDebug("StartupValidator", "Installed global validation passed.")
-EndFunction
-
-Function ValidateCorpsesTakeAllGlobal()
-	If PWAL_GLOB_Settings_Corpses_TakeAll == None
-		AddError("PWAL_GLOB_Settings_Corpses_TakeAll property is not filled.")
-		Return
-	EndIf
-
-	LogDebug("StartupValidator", "Corpses TakeAll global validation passed.")
 EndFunction
 
 Function ValidateDestinationGlobal()

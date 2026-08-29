@@ -77,7 +77,6 @@ Group Settings_Looting_AutoFill
 	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_Outposts Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_PlayerHomes Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_Ships Auto Const
-	GlobalVariable Property PWAL_GLOB_Settings_Corpses_TakeAll Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_Corpses_Remove Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_Radius_City Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_Radius_Internal Auto Const
@@ -131,7 +130,6 @@ Group RuntimeState
 	Bool Property bIsLooting = false Auto Hidden
 	Bool Property bAllowStealing = false Auto
 	Bool Property bStealingIsHostile = false Auto
-	Bool Property bTakeAllCorpse = false Auto
 	FormList[] Property CachedLootingLists Auto Hidden
 	Int[] Property CachedLootGroupCodes Auto Hidden
 	Int Property CachedLootingListCount = 0 Auto Hidden
@@ -229,7 +227,6 @@ EndFunction
 Function RefreshRuntimeSettings()
 	bAllowStealing = GetGlobalBool(PWAL_GLOB_Settings_Stealing_Allowed)
 	bStealingIsHostile = GetGlobalBool(PWAL_GLOB_Settings_Stealing_IsHostile)
-	bTakeAllCorpse = GetGlobalBool(PWAL_GLOB_Settings_Corpses_TakeAll)
 
 	RefreshLootingListCache()
 EndFunction
@@ -438,10 +435,6 @@ EndFunction
 
 Bool Function IsStealingHostile()
 	Return bStealingIsHostile
-EndFunction
-
-Bool Function TakeAllCorpses()
-	Return bTakeAllCorpse
 EndFunction
 
 Bool Function CanAutoUnlock()

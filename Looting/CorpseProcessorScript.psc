@@ -14,7 +14,6 @@ ScriptName PWAL:Looting:CorpseProcessorScript Extends Quest Hidden
 ; Responsibilities:
 ;   - Skip already-looted corpses
 ;   - Transfer corpse inventory
-;   - Support take-all corpse mode
 ;   - Mark successfully processed corpses as looted
 ;   - Remove/disable corpse when configured
 ;
@@ -64,9 +63,10 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 EndFunction
 
 Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, PWAL:Looting:LootEffectScript akEffectContext)
-	ObjectReference akDestinationRef
 	Bool bIsHumanCorpse
 	Bool bTransferSucceeded = false
+	Bool bRemoveCorpsesEnabled = false
+	Bool bCanSafelyRemoveCorpse = false
 
 	If akCorpse == None
 		Return
@@ -93,23 +93,17 @@ Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, P
 		Utility.Wait(0.05) ; Small delay to ensure inventory is updated before transfer.
 	EndIf
 
-	If akEffectContext.TakeAllCorpses()
-		Int iDestinationCode
-		iDestinationCode = DestinationResolver.ResolveDestinationCode(DestinationResolver.LG_CORPSES)
-
-		akDestinationRef = DestinationResolver.ResolveDestinationRef(iDestinationCode)
-		If akDestinationRef == None
-			LogWarn("CorpseProcessor", "ProcessCorpse aborted: corpse destination ref resolved to None.")
-			Return
-		EndIf
-
-		bTransferSucceeded = ProcessTakeAllCorpse(akCorpse, akDestinationRef, akEffectContext)
-	Else
-		bTransferSucceeded = ProcessFilteredCorpseItems(akCorpse, None, akEffectContext)
-	EndIf
+	bTransferSucceeded = ProcessFilteredCorpseItems(akCorpse, None, akEffectContext)
 
 	If !bTransferSucceeded
 		Return
+	EndIf
+
+	; Capture removal eligibility after unequipping and all configured transfers,
+	; but before the replacement skin can affect the corpse inventory count.
+	bRemoveCorpsesEnabled = akEffectContext.RemoveCorpsesEnabled()
+	If bRemoveCorpsesEnabled
+		bCanSafelyRemoveCorpse = CanSafelyRemoveProcessedCorpse(akCorpse)
 	EndIf
 
 	; Apply corpse skin AFTER transfer so RemoveAllItems/RemoveItem cannot steal it.
@@ -119,9 +113,8 @@ Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, P
 
 	MarkCorpseAsLooted(akCorpse, akEffectContext)
 
-	; Remove the corpse only after configured corpse loot has been processed.
-	; Items excluded by the player's loot settings are discarded with the corpse.
-	If akEffectContext.RemoveCorpsesEnabled()
+	; Remove only corpses proven safe before the replacement skin was applied.
+	If bRemoveCorpsesEnabled && bCanSafelyRemoveCorpse
 		HandleCorpseCleanup(akCorpse, akEffectContext)
 	EndIf
 EndFunction
@@ -186,21 +179,6 @@ EndFunction
 ; ==============================================================
 ; Processing Paths
 ; ==============================================================
-
-Bool Function ProcessTakeAllCorpse(ObjectReference akCorpse, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
-	Bool bKeepOwnership
-
-	If akCorpse == None || akDestinationRef == None || akEffectContext == None
-		Return false
-	EndIf
-
-	bKeepOwnership = akEffectContext.IsStealingHostile()
-
-	; abKeepOwnership = bKeepOwnership, abRemoveQuestItems = false
-	akCorpse.RemoveAllItems(akDestinationRef, bKeepOwnership, false)
-
-	Return true
-EndFunction
 
 Bool Function ProcessFilteredCorpseItems(ObjectReference akCorpse, ObjectReference akDestinationRef, PWAL:Looting:LootEffectScript akEffectContext)
 	FormList akCurrentList
@@ -294,6 +272,29 @@ EndFunction
 ; ==============================================================
 ; Cleanup
 ; ==============================================================
+
+Bool Function CanSafelyRemoveProcessedCorpse(ObjectReference akCorpse)
+	If akCorpse == None
+		Return false
+	EndIf
+
+	If !akCorpse.IsBoundGameObjectAvailable()
+		Return false
+	EndIf
+
+	; This checks the corpse reference itself. It does not inspect whether
+	; individual items remaining in the corpse inventory are Quest Objects.
+	If akCorpse.IsQuestItem()
+		Return false
+	EndIf
+
+	; Any remaining inventory is conservatively preserved.
+	If akCorpse.GetItemCount() > 0
+		Return false
+	EndIf
+
+	Return true
+EndFunction
 
 Function HandleCorpseCleanup(ObjectReference akCorpse, PWAL:Looting:LootEffectScript akEffectContext)
 	Actor akCorpseActor
