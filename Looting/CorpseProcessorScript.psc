@@ -64,6 +64,7 @@ EndFunction
 
 Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, PWAL:Looting:LootEffectScript akEffectContext)
 	Bool bIsHumanCorpse
+	Bool bBodySwapEnabled = false
 	Bool bTransferSucceeded = false
 	Bool bRemoveCorpsesEnabled = false
 	Bool bCanSafelyRemoveCorpse = false
@@ -85,10 +86,14 @@ Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, P
 		Return
 	EndIf
 
-	; Expose equipped inventory BEFORE transfer, but do not apply replacement skin yet.
 	bIsHumanCorpse = akEffectContext.IsHumanRace(akCorpseActor)
 
 	If bIsHumanCorpse
+		bBodySwapEnabled = akEffectContext.BodySwapEnabled()
+	EndIf
+
+	; Body swapping exposes equipped inventory before transfer, then restores a visible body afterward.
+	If bIsHumanCorpse && bBodySwapEnabled
 		akCorpseActor.UnequipAll()
 		Utility.Wait(0.05) ; Small delay to ensure inventory is updated before transfer.
 	EndIf
@@ -106,8 +111,8 @@ Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, P
 		bCanSafelyRemoveCorpse = CanSafelyRemoveProcessedCorpse(akCorpse)
 	EndIf
 
-	; Apply corpse skin AFTER transfer so RemoveAllItems/RemoveItem cannot steal it.
-	If bIsHumanCorpse
+	; Apply corpse skin AFTER transfer so RemoveItem cannot steal it.
+	If bIsHumanCorpse && bBodySwapEnabled
 		ApplyHumanCorpseSkin(akCorpseActor, akEffectContext)
 	EndIf
 

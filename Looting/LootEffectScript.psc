@@ -77,6 +77,7 @@ Group Settings_Looting_AutoFill
 	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_Outposts Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_PlayerHomes Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_Ships Auto Const
+	GlobalVariable Property PWAL_GLOB_Settings_BodySwap Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_Corpses_Remove Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_Radius_City Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_Radius_Internal Auto Const
@@ -447,6 +448,10 @@ EndFunction
 
 Bool Function RemoveCorpsesEnabled()
 	Return GetGlobalBool(PWAL_GLOB_Settings_Corpses_Remove)
+EndFunction
+
+Bool Function BodySwapEnabled()
+	Return GetGlobalBool(PWAL_GLOB_Settings_BodySwap)
 EndFunction
 
 Float Function GetRadius()

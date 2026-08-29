@@ -63,6 +63,7 @@ Group Settings_AllowLooting_AutoFill
 	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_Outposts Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_PlayerHomes Auto Const
 	GlobalVariable Property PWAL_GLOB_Settings_AllowLooting_Ships Auto Const
+	GlobalVariable Property PWAL_GLOB_Settings_BodySwap Auto Const
 EndGroup
 
 Group Settings_ContainersCorpses_AutoFill
@@ -146,6 +147,8 @@ Function RunGeneralMenuItem(Int aiMenuItemID)
 		ToggleBoolGlobal(PWAL_GLOB_Settings_AllowLooting_PlayerHomes, "PlayerHomes")
 	ElseIf aiMenuItemID == 6
 		ToggleBoolGlobal(PWAL_GLOB_Settings_AllowLooting_Ships, "Ships")
+	ElseIf aiMenuItemID == 7
+		ToggleBoolGlobal(PWAL_GLOB_Settings_BodySwap, "BodySwap")
 	EndIf
 EndFunction
 
@@ -295,6 +298,7 @@ Function RefreshGeneralTokens(ObjectReference akTerminalRef)
 	RefreshBoolToken(akTerminalRef, "Outpost", PWAL_GLOB_Settings_AllowLooting_Outposts)
 	RefreshBoolToken(akTerminalRef, "PlayerHomes", PWAL_GLOB_Settings_AllowLooting_PlayerHomes)
 	RefreshBoolToken(akTerminalRef, "Ships", PWAL_GLOB_Settings_AllowLooting_Ships)
+	RefreshBoolToken(akTerminalRef, "BodySwap", PWAL_GLOB_Settings_BodySwap)
 EndFunction
 
 Function RefreshContainersCorpsesTokens(ObjectReference akTerminalRef)
