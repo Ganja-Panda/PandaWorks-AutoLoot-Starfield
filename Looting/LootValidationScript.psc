@@ -93,7 +93,7 @@ Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	If (akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()) && !CanLootShipSpaceContent(akEffectContext)
+	If IsPlayerShipInteriorLootingBlocked(akEffectContext)
 		Return false
 	EndIf
 
@@ -273,16 +273,88 @@ Bool Function IsActorOutsideCorpseOrHarvestMode(ObjectReference akLoot, PWAL:Loo
 	Return true
 EndFunction
 
-Bool Function CanLootShipSpaceContent(PWAL:Looting:LootEffectScript akEffectContext)
+Bool Function IsPlayerShipInteriorLootingBlocked(PWAL:Looting:LootEffectScript akEffectContext)
+	If akEffectContext == None
+		Return true
+	EndIf
+
+	If !IsPlayerInsidePlayerShip(akEffectContext)
+		Return false
+	EndIf
+
+	; This setting grants normal looting permission only while the player is
+	; inside their current/home ship. It never gates non-player ship interiors.
+	If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Ships == None
+		Return true
+	EndIf
+
+	Return akEffectContext.PWAL_GLOB_Settings_AllowLooting_Ships.GetValueInt() == 0
+EndFunction
+
+Bool Function IsPlayerInsidePlayerShip(PWAL:Looting:LootEffectScript akEffectContext)
+	ObjectReference akPlayerRef
+	Location akPlayerShipInteriorLocation
+	Location akHomeShipInteriorLocation
+	ObjectReference akCurrentShipRef
+	ObjectReference akPlayerShipRef
+	ObjectReference akHomeShipRef
+
 	If akEffectContext == None
 		Return false
 	EndIf
 
-	If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Ships == None
+	akPlayerRef = akEffectContext.GetPlayerRef()
+
+	If akPlayerRef == None
 		Return false
 	EndIf
 
-	Return akEffectContext.PWAL_GLOB_Settings_AllowLooting_Ships.GetValueInt() != 0
+	If PlayerShipInterior != None
+		akPlayerShipInteriorLocation = PlayerShipInterior.GetLocation()
+
+		If akPlayerShipInteriorLocation != None
+			If akPlayerRef.IsInLocation(akPlayerShipInteriorLocation)
+				Return true
+			EndIf
+		EndIf
+	EndIf
+
+	If HomeShipInteriorLocation != None
+		akHomeShipInteriorLocation = HomeShipInteriorLocation.GetLocation()
+
+		If akHomeShipInteriorLocation != None
+			If akPlayerRef.IsInLocation(akHomeShipInteriorLocation)
+				Return true
+			EndIf
+		EndIf
+	EndIf
+
+	; Alias locations can be temporarily empty while SQ_PlayerShip refills.
+	; Fall back to comparing the ship containing the player with the existing
+	; current/home ship reference aliases.
+	akCurrentShipRef = akPlayerRef.GetCurrentShipRef() as ObjectReference
+
+	If akCurrentShipRef == None
+		Return false
+	EndIf
+
+	If PlayerShip != None
+		akPlayerShipRef = PlayerShip.GetReference()
+
+		If akPlayerShipRef != None && akCurrentShipRef == akPlayerShipRef
+			Return true
+		EndIf
+	EndIf
+
+	If HomeShip != None
+		akHomeShipRef = HomeShip.GetReference()
+
+		If akHomeShipRef != None && akCurrentShipRef == akHomeShipRef
+			Return true
+		EndIf
+	EndIf
+
+	Return false
 EndFunction
 
 Bool Function IsQuestLoot(ObjectReference akLoot)
