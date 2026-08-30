@@ -84,7 +84,6 @@ GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Currency Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_JunkItems Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Keycards Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_Schematics Auto Const
-GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_SSCraftingItems Auto Const
 GlobalVariable Property PWAL_GLOB_Settings_Dest_MISC_UpgradeModules Auto Const
 
 ; RES / X-Tech 
