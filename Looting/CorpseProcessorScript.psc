@@ -63,7 +63,6 @@ Function ProcessCorpse(ObjectReference akCorpse, PWAL:Looting:LootEffectScript a
 EndFunction
 
 Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, PWAL:Looting:LootEffectScript akEffectContext)
-	Armor akAppliedCorpseSkin = None
 	Bool bIsHumanCorpse
 	Bool bTransferSucceeded = false
 	Bool bRemoveCorpsesEnabled = false
@@ -86,13 +85,13 @@ Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, P
 		Return
 	EndIf
 
-	; Expose equipped inventory before applying the replacement skin and transferring filtered loot.
+	; Expose equipped inventory before the filtered transfers.
+	; The replacement body is deliberately applied only after every transfer finishes.
 	bIsHumanCorpse = akEffectContext.IsHumanRace(akCorpseActor)
 
 	If bIsHumanCorpse
 		akCorpseActor.UnequipAll()
-		Utility.Wait(0.05) ; Small delay to ensure inventory is updated before transfer.
-		akAppliedCorpseSkin = ApplyHumanCorpseSkin(akCorpseActor, akEffectContext)
+		Utility.Wait(0.01)
 	EndIf
 
 	bTransferSucceeded = ProcessFilteredCorpseItems(akCorpse, None, akEffectContext)
@@ -101,16 +100,20 @@ Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, P
 		Return
 	EndIf
 
-	; Capture removal eligibility after all configured transfers, ignoring only
-	; the exact replacement skin applied to this corpse when it is present once.
+	; Capture removal eligibility after unequipping and filtered transfers,
+	; but before the synthetic replacement body affects inventory count.
 	bRemoveCorpsesEnabled = akEffectContext.RemoveCorpsesEnabled()
 	If bRemoveCorpsesEnabled
-		bCanSafelyRemoveCorpse = CanSafelyRemoveProcessedCorpse(akCorpse, akAppliedCorpseSkin)
+		bCanSafelyRemoveCorpse = CanSafelyRemoveProcessedCorpse(akCorpse)
+	EndIf
+
+	; Apply the replacement only after all RemoveItem category transfers finish.
+	If bIsHumanCorpse
+		ApplyHumanCorpseSkin(akCorpseActor, akEffectContext)
 	EndIf
 
 	MarkCorpseAsLooted(akCorpse, akEffectContext)
 
-	; Remove only corpses proven safe after filtered transfers.
 	If bRemoveCorpsesEnabled && bCanSafelyRemoveCorpse
 		HandleCorpseCleanup(akCorpse, akEffectContext)
 	EndIf
@@ -120,23 +123,21 @@ EndFunction
 ; Skin Swap
 ; ==============================================================
 
-Armor Function ApplyHumanCorpseSkin(Actor akCorpseActor, PWAL:Looting:LootEffectScript akEffectContext)
+Function ApplyHumanCorpseSkin(Actor akCorpseActor, PWAL:Looting:LootEffectScript akEffectContext)
 	Armor akCorpseSkin
 
 	If akCorpseActor == None || akEffectContext == None
-		Return None
+		Return
 	EndIf
 
 	akCorpseSkin = ResolveHumanCorpseSkin(akCorpseActor, akEffectContext)
 
 	If akCorpseSkin == None
 		LogWarn("CorpseProcessor", "ApplyHumanCorpseSkin skipped: no corpse skin resolved.")
-		Return None
+		Return
 	EndIf
 
 	akCorpseActor.EquipItem(akCorpseSkin as Form, false, false)
-	Utility.Wait(0.05) ; Small delay to ensure the skin is applied before any further processing.
-	Return akCorpseSkin
 EndFunction
 
 
@@ -271,10 +272,7 @@ EndFunction
 ; Cleanup
 ; ==============================================================
 
-Bool Function CanSafelyRemoveProcessedCorpse(ObjectReference akCorpse, Armor akAppliedCorpseSkin)
-	Int iReplacementItemCount
-	Int iTotalItemCount
-
+Bool Function CanSafelyRemoveProcessedCorpse(ObjectReference akCorpse)
 	If akCorpse == None
 		Return false
 	EndIf
@@ -289,26 +287,12 @@ Bool Function CanSafelyRemoveProcessedCorpse(ObjectReference akCorpse, Armor akA
 		Return false
 	EndIf
 
-	iTotalItemCount = akCorpse.GetItemCount()
-	If iTotalItemCount < 0
+	; Any remaining inventory is conservatively preserved.
+	If akCorpse.GetItemCount() > 0
 		Return false
 	EndIf
 
-	If akAppliedCorpseSkin != None
-		iReplacementItemCount = akCorpse.GetItemCount(akAppliedCorpseSkin as Form)
-
-		; Preserve inconsistent counts and duplicate copies of the replacement.
-		If iReplacementItemCount < 0 || iReplacementItemCount > 1 || iReplacementItemCount > iTotalItemCount
-			Return false
-		EndIf
-
-		If iReplacementItemCount == 1
-			Return iTotalItemCount == 1
-		EndIf
-	EndIf
-
-	; Without one counted replacement skin, the inventory must be completely empty.
-	Return iTotalItemCount == 0
+	Return true
 EndFunction
 
 Function HandleCorpseCleanup(ObjectReference akCorpse, PWAL:Looting:LootEffectScript akEffectContext)
