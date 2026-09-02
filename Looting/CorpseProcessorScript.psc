@@ -134,7 +134,7 @@ Armor Function ApplyHumanCorpseSkin(Actor akCorpseActor, PWAL:Looting:LootEffect
 		Return None
 	EndIf
 
-	akCorpseActor.EquipItem(akCorpseSkin as Form, false, false)
+	akCorpseActor.EquipItem(akCorpseSkin as Form, true, false)
 	Return akCorpseSkin
 EndFunction
 
