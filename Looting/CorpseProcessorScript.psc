@@ -90,7 +90,7 @@ Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, P
 
 	If bIsHumanCorpse
 		akCorpseActor.UnequipAll()
-		Utility.Wait(0.05) ; Small delay to ensure inventory is updated before transfer.
+		Utility.Wait(0.01) ; Small delay to ensure inventory is updated before transfer.
 	EndIf
 
 	bTransferSucceeded = ProcessFilteredCorpseItems(akCorpse, None, akEffectContext)
@@ -138,7 +138,7 @@ Function ApplyHumanCorpseSkin(Actor akCorpseActor, PWAL:Looting:LootEffectScript
 	EndIf
 
 	akCorpseActor.EquipItem(akCorpseSkin as Form, false, false)
-	Utility.Wait(0.05) ; Small delay to ensure the skin is applied before any further processing.
+	;Utility.Wait(0.01) ; Small delay to ensure the skin is applied before any further processing.
 EndFunction
 
 
