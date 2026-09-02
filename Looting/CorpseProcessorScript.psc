@@ -85,13 +85,12 @@ Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, P
 		Return
 	EndIf
 
-	; Expose equipped inventory before the filtered transfers.
-	; The replacement body is deliberately applied only after every transfer finishes.
+	; Expose equipped inventory BEFORE transfer, but do not apply replacement skin yet.
 	bIsHumanCorpse = akEffectContext.IsHumanRace(akCorpseActor)
 
 	If bIsHumanCorpse
 		akCorpseActor.UnequipAll()
-		Utility.Wait(0.01)
+		Utility.Wait(0.05) ; Small delay to ensure inventory is updated before transfer.
 	EndIf
 
 	bTransferSucceeded = ProcessFilteredCorpseItems(akCorpse, None, akEffectContext)
@@ -100,20 +99,21 @@ Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, P
 		Return
 	EndIf
 
-	; Capture removal eligibility after unequipping and filtered transfers,
-	; but before the synthetic replacement body affects inventory count.
+	; Capture removal eligibility after unequipping and all configured transfers,
+	; but before the replacement skin can affect the corpse inventory count.
 	bRemoveCorpsesEnabled = akEffectContext.RemoveCorpsesEnabled()
 	If bRemoveCorpsesEnabled
 		bCanSafelyRemoveCorpse = CanSafelyRemoveProcessedCorpse(akCorpse)
 	EndIf
 
-	; Apply the replacement only after all RemoveItem category transfers finish.
+	; Apply corpse skin AFTER transfer so RemoveItem cannot steal it.
 	If bIsHumanCorpse
 		ApplyHumanCorpseSkin(akCorpseActor, akEffectContext)
 	EndIf
 
 	MarkCorpseAsLooted(akCorpse, akEffectContext)
 
+	; Remove only corpses proven safe before the replacement skin was applied.
 	If bRemoveCorpsesEnabled && bCanSafelyRemoveCorpse
 		HandleCorpseCleanup(akCorpse, akEffectContext)
 	EndIf
@@ -138,6 +138,7 @@ Function ApplyHumanCorpseSkin(Actor akCorpseActor, PWAL:Looting:LootEffectScript
 	EndIf
 
 	akCorpseActor.EquipItem(akCorpseSkin as Form, false, false)
+	Utility.Wait(0.05) ; Small delay to ensure the skin is applied before any further processing.
 EndFunction
 
 
