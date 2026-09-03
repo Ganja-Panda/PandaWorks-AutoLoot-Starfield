@@ -376,8 +376,6 @@ Bool Function IsValidDestinationCode(Int aiDestinationCode)
 EndFunction
 
 Bool Function IsForcedPlayerLootGroup(Int aiLootGroupCode)
-	; These are progression / acquisition groups.
-	; They should not be routeable through normal destination logic.
 
 	If aiLootGroupCode == LG_BOOK_LANDMARKS
 		Return true

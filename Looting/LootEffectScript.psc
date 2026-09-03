@@ -314,8 +314,6 @@ Function RefreshLootingListCache()
 
 	CachedLootingListCount = iWriteIndex
 	bLootingListCacheReady = true
-
-	; LogDebug("LootEffect", "RefreshLootingListCache complete. EnabledGroups=" + (CachedLootingListCount as String))
 EndFunction
 
 
@@ -514,7 +512,6 @@ Bool Function IsCityLocation(Location akLocation)
 EndFunction
 
 ObjectReference Function ResolveLooterRef()
-	; Ship looting is still unresolved, so keep this conservative for now.
 	Return GetPlayerRef()
 EndFunction
 

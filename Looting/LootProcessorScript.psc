@@ -290,7 +290,6 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	; Loose loot must be an actual placed/world ref, not an inventory pseudo-ref.
 	akContainingRef = akLoot.GetContainer()
 	akBaseObject = akLoot.GetBaseObject()
 
@@ -302,7 +301,6 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	; Quest items must never be auto-looted.
 	If akLoot.IsQuestItem()
 		Return false
 	EndIf
@@ -363,13 +361,11 @@ Bool Function CanRouteAsLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffec
 		Return false
 	EndIf
 
-	; Actors/corpses must never fall into loose-loot routing.
 	Actor akActor = akLoot as Actor
 	If akActor != None
 		Return false
 	EndIf
 
-	; Container and corpse effect profiles should route through their processors.
 	If akEffectContext.IsContainerMode() || akEffectContext.IsShipInteriorMode() || akEffectContext.IsShipContainerMode()
 		Return false
 	EndIf
@@ -378,13 +374,11 @@ Bool Function CanRouteAsLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffec
 		Return false
 	EndIf
 
-	; Loose loot must be an actual placed/world ref, not an inventory pseudo-ref.
 	ObjectReference akContainingRef = akLoot.GetContainer()
 	If akContainingRef != None
 		Return false
 	EndIf
 
-	; Hard safety guards for framework/player refs.
 	If akLoot == akEffectContext.GetPlayerRef()
 		Return false
 	EndIf

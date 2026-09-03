@@ -79,7 +79,6 @@ Event OnTerminalMenuItemRun(Int auiMenuItemID, TerminalMenu akTerminalBase, Obje
 		Return
 	EndIf
 
-	; ID 0 is the Loose Loot submenu. Ignore it.
 	If auiMenuItemID != 1
 		Return
 	EndIf

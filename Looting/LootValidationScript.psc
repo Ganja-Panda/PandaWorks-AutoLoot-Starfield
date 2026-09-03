@@ -52,6 +52,8 @@ LocationAlias Property HomeShipInteriorLocation Auto Const
 
 Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
 	Actor akPlayerActor
+	Actor akLootActor
+	Bool bIsDeadActor = false
 
 	If akLoot == None
 		Return false
@@ -97,7 +99,12 @@ Bool Function CanProcessLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	If !akEffectContext.CanSteal()
+	akLootActor = akLoot as Actor
+	If akLootActor != None
+		bIsDeadActor = akLootActor.IsDead()
+	EndIf
+
+	If !akEffectContext.CanSteal() && !bIsDeadActor
 		akPlayerActor = akEffectContext.GetPlayerActor()
 		If akPlayerActor != None
 			If akLoot != None && akLoot.IsBoundGameObjectAvailable()
@@ -188,8 +195,6 @@ Bool Function IsPlayerShipProtectedSource(ObjectReference akLoot, PWAL:Looting:L
 		Return false
 	EndIf
 
-	; This protection is only for the ship/space container scan path.
-	; Do not let it block normal corpses, loose loot, or regular containers.
 	If !akEffectContext.IsShipInteriorMode() && !akEffectContext.IsShipContainerMode()
 		Return false
 	EndIf
@@ -206,14 +211,12 @@ Bool Function IsPlayerShipProtectedSource(ObjectReference akLoot, PWAL:Looting:L
 		akShipInventoryRef = PlayerShipSpaceshipInventory.GetReference()
 	EndIf
 
-	; Direct cargo/inventory alias protection.
 	If akShipInventoryRef != None
 		If akLoot == akShipInventoryRef
 			Return true
 		EndIf
 	EndIf
 
-	; Cargo hold path may normalize directly to the player/home ship ref.
 	If akPlayerShipRef != None
 		If akLoot == akPlayerShipRef
 			Return true
@@ -226,7 +229,6 @@ Bool Function IsPlayerShipProtectedSource(ObjectReference akLoot, PWAL:Looting:L
 		EndIf
 	EndIf
 
-	; Ship-interior containers like Captain's Locker may resolve to their owning/current ship.
 	akCurrentShipRef = akLoot.GetCurrentShipRef() as ObjectReference
 
 	If akCurrentShipRef != None
@@ -282,8 +284,6 @@ Bool Function IsPlayerShipInteriorLootingBlocked(PWAL:Looting:LootEffectScript a
 		Return false
 	EndIf
 
-	; This setting grants normal looting permission only while the player is
-	; inside their current/home ship. It never gates non-player ship interiors.
 	If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Ships == None
 		Return true
 	EndIf
@@ -329,9 +329,6 @@ Bool Function IsPlayerInsidePlayerShip(PWAL:Looting:LootEffectScript akEffectCon
 		EndIf
 	EndIf
 
-	; Alias locations can be temporarily empty while SQ_PlayerShip refills.
-	; Fall back to comparing the ship containing the player with the existing
-	; current/home ship reference aliases.
 	akCurrentShipRef = akPlayerRef.GetCurrentShipRef() as ObjectReference
 
 	If akCurrentShipRef == None
@@ -431,7 +428,6 @@ Bool Function IsInBlockedOwnedArea(PWAL:Looting:LootEffectScript akEffectContext
 		Return false
 	EndIf
 
-	; Player homes
 	If LocTypePlayerHouse != None
 		If akPlayerLocation.HasKeyword(LocTypePlayerHouse)
 			If akEffectContext.PWAL_GLOB_Settings_AllowLooting_PlayerHomes == None
@@ -444,7 +440,6 @@ Bool Function IsInBlockedOwnedArea(PWAL:Looting:LootEffectScript akEffectContext
 		EndIf
 	EndIf
 
-	; Lodge
 	If CityNewAtlantisLodgeLocation != None
 		If akPlayerRef.IsInLocation(CityNewAtlantisLodgeLocation)
 			If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Lodge == None
@@ -457,7 +452,6 @@ Bool Function IsInBlockedOwnedArea(PWAL:Looting:LootEffectScript akEffectContext
 		EndIf
 	EndIf
 
-	; Player outposts
 	If LocTypeOutpost != None
 		If akPlayerLocation.HasKeyword(LocTypeOutpost)
 			If akEffectContext.PWAL_GLOB_Settings_AllowLooting_Outposts == None

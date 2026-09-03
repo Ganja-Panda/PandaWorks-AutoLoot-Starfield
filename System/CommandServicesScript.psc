@@ -478,7 +478,6 @@ Bool Function TransferAllItems(ObjectReference akSourceRef, ObjectReference akDe
 		Return false
 	EndIf
 
-	; abKeepOwnership = false, abRemoveQuestItems = true
 	akSourceRef.RemoveAllItems(akDestinationRef, false, true)
 
 	iItemCountAfter = akSourceRef.GetItemCount()

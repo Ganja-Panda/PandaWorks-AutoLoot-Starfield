@@ -85,12 +85,11 @@ Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, P
 		Return
 	EndIf
 
-	; Expose equipped inventory before transfer.
 	bIsHumanCorpse = akEffectContext.IsHumanRace(akCorpseActor)
 
 	If bIsHumanCorpse
 		akCorpseActor.UnequipAll()
-		Utility.Wait(0.01) ; Small delay to ensure inventory is updated before transfer.
+		Utility.Wait(0.01)
 	EndIf
 
 	bTransferSucceeded = ProcessFilteredCorpseItems(akCorpse, None, akEffectContext)
@@ -99,21 +98,17 @@ Function ProcessValidatedCorpse(ObjectReference akCorpse, Actor akCorpseActor, P
 		Return
 	EndIf
 
-	; Capture removal eligibility after unequipping and all configured transfers,
-	; but before the synthetic replacement affects the corpse inventory count.
 	bRemoveCorpsesEnabled = akEffectContext.RemoveCorpsesEnabled()
 	If bRemoveCorpsesEnabled
 		bCanSafelyRemoveCorpse = CanSafelyRemoveProcessedCorpse(akCorpse)
 	EndIf
 
-	; Apply the corpse skin after all filtered transfers complete.
 	If bIsHumanCorpse
 		ApplyHumanCorpseSkin(akCorpseActor, akEffectContext)
 	EndIf
 
 	MarkCorpseAsLooted(akCorpse, akEffectContext)
 
-	; Remove only corpses proven safe before the replacement skin was applied.
 	If bRemoveCorpsesEnabled && bCanSafelyRemoveCorpse
 		HandleCorpseCleanup(akCorpse, akEffectContext)
 	EndIf
