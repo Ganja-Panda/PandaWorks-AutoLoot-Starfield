@@ -88,6 +88,11 @@ Function ProcessValidatedContainer(ObjectReference akContainer, PWAL:Looting:Loo
 		Return
 	EndIf
 
+	; Laundering must happen before unlocking or transferring can report a crime.
+	If !PrepareContainerOwnership(akContainer, akEffectContext)
+		Return
+	EndIf
+
 	If !UnlockingService.EnsureContainerAccess(akContainer, akEffectContext)
 		Return
 	EndIf
@@ -151,6 +156,41 @@ EndFunction
 ; ==============================================================
 ; Internal Helpers
 ; ==============================================================
+
+Bool Function PrepareContainerOwnership(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
+	If akContainer == None || akEffectContext == None
+		Return false
+	EndIf
+
+	If !akEffectContext.CanSteal()
+		Return true
+	EndIf
+
+	If akEffectContext.IsStealingHostile()
+		Return true
+	EndIf
+
+	If !LootValidation.IsOwned(akContainer, akEffectContext)
+		Return true
+	EndIf
+
+	; Normalized spaceship references must never have ownership changed merely to access their inventory.
+	If IsNormalizedShipInventorySource(akContainer, akEffectContext)
+		LogWarn("ContainerProcessor", "PrepareContainerOwnership skipped normalized ship inventory source; spaceship ownership was not changed.")
+		Return false
+	EndIf
+
+	; Non-hostile stealing fails closed when ownership cannot be laundered safely.
+	If akEffectContext.PlayerFaction == None
+		LogWarn("ContainerProcessor", "PrepareContainerOwnership failed: PlayerFaction is None.")
+		Return false
+	EndIf
+
+	akContainer.SetActorOwner(None, true)
+	akContainer.SetActorRefOwner(None, true)
+	akContainer.SetFactionOwner(akEffectContext.PlayerFaction, true)
+	Return true
+EndFunction
 
 Bool Function IsNormalizedShipInventorySource(ObjectReference akContainer, PWAL:Looting:LootEffectScript akEffectContext)
 	SpaceshipReference akShipRef
