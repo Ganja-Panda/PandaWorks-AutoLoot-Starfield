@@ -352,13 +352,18 @@ Bool Function PrepareLooseLootOwnership(ObjectReference akLoot, PWAL:Looting:Loo
 		Return false
 	EndIf
 
-	If !LootValidation.IsOwned(akLoot, akEffectContext)
+	If !akPlayerActor.WouldBeStealing(akLoot) && !LootValidation.IsPlayerStealing(akLoot, akEffectContext)
 		Return true
+	EndIf
+
+	If akEffectContext.PlayerFaction == None
+		LogWarn("LootProcessor", "PrepareLooseLootOwnership failed: PlayerFaction property is not filled.")
+		Return false
 	EndIf
 
 	akLoot.SetActorOwner(None, true)
 	akLoot.SetActorRefOwner(None, true)
-	akLoot.SetFactionOwner(None, true)
+	akLoot.SetFactionOwner(akEffectContext.PlayerFaction, true)
 
 	If akPlayerActor.WouldBeStealing(akLoot)
 		LogWarn("LootProcessor", "PrepareLooseLootOwnership failed: loose loot remains owned after laundering.")
