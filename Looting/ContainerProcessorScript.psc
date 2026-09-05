@@ -181,14 +181,13 @@ Bool Function PrepareContainerOwnership(ObjectReference akContainer, PWAL:Lootin
 	EndIf
 
 	; Non-hostile stealing fails closed when ownership cannot be laundered safely.
-	If akEffectContext.PlayerFaction == None
-		LogWarn("ContainerProcessor", "PrepareContainerOwnership failed: PlayerFaction is None.")
+	Actor akPlayerActor = akEffectContext.GetPlayerActor()
+	If akPlayerActor == None
+		LogWarn("ContainerProcessor", "PrepareContainerOwnership failed: player actor is None.")
 		Return false
 	EndIf
 
-	akContainer.SetActorOwner(None, true)
-	akContainer.SetActorRefOwner(None, true)
-	akContainer.SetFactionOwner(akEffectContext.PlayerFaction, true)
+	akContainer.SetActorRefOwner(akPlayerActor, true)
 	Return true
 EndFunction
 
