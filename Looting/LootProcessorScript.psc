@@ -362,8 +362,8 @@ Bool Function PrepareLooseLootOwnership(ObjectReference akLoot, PWAL:Looting:Loo
 	EndIf
 
 	akLoot.SetActorOwner(None, true)
-	akLoot.SetActorRefOwner(None, true)
-	akLoot.SetFactionOwner(akEffectContext.PlayerFaction, true)
+	akLoot.SetFactionOwner(None, true)
+	akLoot.SetActorRefOwner(akPlayerActor, true)
 
 	If akPlayerActor.WouldBeStealing(akLoot)
 		LogWarn("LootProcessor", "PrepareLooseLootOwnership failed: loose loot remains owned after laundering.")
