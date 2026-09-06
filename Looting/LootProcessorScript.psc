@@ -115,6 +115,14 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 		Return RouteCorpse(akResolvedLoot, akEffectContext)
 	EndIf
 
+	If !akEffectContext.IsContainerMode() && !akEffectContext.IsShipInteriorMode() && !akEffectContext.IsShipContainerMode()
+		If !akEffectContext.IsActivatorMode() && !akEffectContext.IsSpellActivationMode()
+			If !CanRouteAsLooseLoot(akResolvedLoot, akEffectContext)
+				Return false
+			EndIf
+		EndIf
+	EndIf
+
 	If !LootValidation.CanProcessLoot(akResolvedLoot, akEffectContext)
 		Return false
 	EndIf
@@ -129,10 +137,6 @@ Bool Function ProcessSingleCandidate(ObjectReference akLoot, PWAL:Looting:LootEf
 
 	If akEffectContext.IsSpellActivationMode()
 		Return RouteSpellActivation(akResolvedLoot, akEffectContext)
-	EndIf
-
-	If !CanRouteAsLooseLoot(akResolvedLoot, akEffectContext)
-		Return false
 	EndIf
 
 	Return RouteLooseLoot(akResolvedLoot, akEffectContext)
@@ -387,8 +391,9 @@ Bool Function CanRouteAsLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffec
 		Return false
 	EndIf
 
-	ObjectReference akContainingRef = akLoot.GetContainer()
-	If akContainingRef != None
+	; Starfield exposes displayed/container inventory items as references.
+	; GetContainer distinguishes them from genuinely loose objects before crime evaluation.
+	If akLoot.GetContainer() != None
 		Return false
 	EndIf
 
