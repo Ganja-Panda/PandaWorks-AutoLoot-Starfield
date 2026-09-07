@@ -317,18 +317,14 @@ Bool Function RouteLooseLoot(ObjectReference akLoot, PWAL:Looting:LootEffectScri
 		Return false
 	EndIf
 
-	If !PrepareLooseLootOwnership(akLoot, akEffectContext)
-		Return false
-	EndIf
+	LaunderLooseLootOwnership(akLoot, akEffectContext)
 
 	akDestinationRef.AddItem(akLoot as Form, 1, true)
 
 	Return true
 EndFunction
 
-Bool Function PrepareLooseLootOwnership(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
-	Actor akPlayerActor
-
+Bool Function LaunderLooseLootOwnership(ObjectReference akLoot, PWAL:Looting:LootEffectScript akEffectContext)
 	If akLoot == None
 		Return false
 	EndIf
@@ -338,29 +334,20 @@ Bool Function PrepareLooseLootOwnership(ObjectReference akLoot, PWAL:Looting:Loo
 	EndIf
 
 	If !akEffectContext.CanSteal()
-		Return true
+		Return false
 	EndIf
 
 	If akEffectContext.IsStealingHostile()
-		Return true
-	EndIf
-
-	If LootValidation == None
-		LogWarn("LootProcessor", "PrepareLooseLootOwnership failed: LootValidation property is not filled.")
 		Return false
 	EndIf
 
-	akPlayerActor = akEffectContext.GetPlayerActor()
-	If akPlayerActor == None
-		LogWarn("LootProcessor", "PrepareLooseLootOwnership failed: player actor is None.")
+	If akEffectContext.PlayerFaction == None
 		Return false
 	EndIf
 
-	If !LootValidation.IsOwned(akLoot, akEffectContext)
-		Return true
-	EndIf
-
-	akLoot.SetActorRefOwner(akPlayerActor, true)
+	akLoot.SetActorOwner(None, true)
+	akLoot.SetActorRefOwner(None, true)
+	akLoot.SetFactionOwner(akEffectContext.PlayerFaction, true)
 
 	Return true
 EndFunction
