@@ -3,7 +3,7 @@ ScriptName PWAL:Daemon Extends ScriptObject
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.00
+; Version: 1.01
 ; Created: 05-17-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: Daemon
@@ -34,8 +34,6 @@ ScriptName PWAL:Daemon Extends ScriptObject
 ;   - No runtime state management
 ; ==============================================================
 
-
-
 ; ==============================================================
 ; Terminal / Toggles
 ; ==============================================================
@@ -52,6 +50,9 @@ Function ToggleLogging() Global
 	PWAL:System:CommandServicesScript.GetScript().ToggleLogging()
 EndFunction
 
+Function ToggleStealing() Global
+	PWAL:System:CommandServicesScript.GetScript().ToggleStealing()
+EndFunction
 
 ; ==============================================================
 ; Inventories
@@ -68,7 +69,6 @@ EndFunction
 Function OpenShipCargo() Global
 	PWAL:System:CommandServicesScript.GetScript().OpenShipCargo()
 EndFunction
-
 
 ; ==============================================================
 ; Transfers
@@ -93,7 +93,6 @@ EndFunction
 Function SendCargoHoldToPandaWorks() Global
 	PWAL:System:CommandServicesScript.GetScript().SendCargoHoldToPandaWorks()
 EndFunction
-
 
 ; ==============================================================
 ; Legacy / Lazy Panda Compatibility Aliases

@@ -52,6 +52,7 @@ EndGroup
 Group UtilityGlobals_AutoFill
 	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Looting Auto Const Mandatory
 	GlobalVariable Property PWAL_GLOB_Utilities_Toggle_Logging Auto Const Mandatory
+	GlobalVariable Property PWAL_GLOB_Settings_Stealing_Allowed Auto Const Mandatory
 EndGroup
 
 Group TransferLists_Optional
@@ -129,6 +130,35 @@ Bool Function ToggleLooting()
 	EndIf
 
 	LogDebug("CommandServices", "Looting toggle is now " + (PWAL_GLOB_Utilities_Toggle_Looting.GetValueInt() as String))
+	Return true
+EndFunction
+
+Bool Function ToggleStealing()
+	LogDebug("CommandServices", "ToggleStealing requested.")
+
+	If !CanRunCommand("ToggleStealing")
+		Return false
+	EndIf
+
+	If PWAL_GLOB_Settings_Stealing_Allowed == None
+		LogError("CommandServices", "ToggleStealing failed: PWAL_GLOB_Settings_Stealing_Allowed property is not filled.")
+		Return false
+	EndIf
+
+	Int iNewValue = 1
+	If PWAL_GLOB_Settings_Stealing_Allowed.GetValueInt() > 0
+		iNewValue = 0
+	EndIf
+
+	PWAL_GLOB_Settings_Stealing_Allowed.SetValueInt(iNewValue)
+
+	Float fWrittenValue = PWAL_GLOB_Settings_Stealing_Allowed.GetValue()
+	If fWrittenValue != (iNewValue as Float)
+		LogError("CommandServices", "ToggleStealing failed: expected " + (iNewValue as String) + " but read back " + (fWrittenValue as String))
+		Return false
+	EndIf
+
+	LogDebug("CommandServices", "Stealing toggle is now " + (fWrittenValue as String))
 	Return true
 EndFunction
 
