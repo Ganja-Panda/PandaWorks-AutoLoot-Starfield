@@ -3,7 +3,7 @@ ScriptName PWAL:Daemon Extends ScriptObject
 ; ==============================================================
 ; PandaWorks Studios - PandaWorks Auto Loot
 ; Author: Ganja Panda
-; Version: 1.01
+; Version: 1.0.1
 ; Created: 05-17-2026
 ; License: Copyright (c) 2026 PandaWorks Studios. All rights reserved.
 ; Script: Daemon
