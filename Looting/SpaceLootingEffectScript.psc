@@ -60,7 +60,6 @@ Int[] iFailedCandidateCounts
 Bool bLoggedMissingPlayerHomeShipAlias
 Bool bLoggedMissingPlayerHomeShipRef
 Bool bLoggedMissingPlayerShipCargoTarget
-Bool bLoggedPlayerHomeShipFallback
 Bool bLoggedMissingRuntimeManager
 Bool bLoggedMissingShipDebrisProcessor
 
@@ -123,6 +122,14 @@ Function ProcessSpaceLootPass()
 		If !RuntimeManager.CanRunLooting()
 			Return
 		EndIf
+	EndIf
+
+	If CandidateInbox == None
+		Return
+	EndIf
+
+	If CandidateInbox.GetCount() <= 0
+		Return
 	EndIf
 
 	akPlayerShipCargoTarget = GetPlayerShipCargoTarget()
@@ -389,19 +396,6 @@ EndFunction
 
 ObjectReference Function GetPlayerShipCargoTarget()
 	ObjectReference akPlayerShipRef
-
-	If DestinationResolver != None
-		akPlayerShipRef = DestinationResolver.ResolveDestinationRef(DestinationResolver.DEST_PLAYER_SHIP)
-		If akPlayerShipRef != None
-			bLoggedPlayerHomeShipFallback = false
-			Return akPlayerShipRef
-		EndIf
-	EndIf
-
-	If !bLoggedPlayerHomeShipFallback
-		LogWarn("SpaceLootingEffect", "GetPlayerShipCargoTarget using PlayerHomeShip fallback because DestinationResolver was unavailable or returned None.")
-		bLoggedPlayerHomeShipFallback = true
-	EndIf
 
 	If PlayerHomeShip == None
 		If !bLoggedMissingPlayerHomeShipAlias
