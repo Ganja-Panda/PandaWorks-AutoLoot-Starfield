@@ -190,7 +190,7 @@ Read the wiki before reporting a bug. The answer may already be there, sitting q
 
 Support, bug reports, testing feedback, and discussion are handled through the PandaWorks Discord:
 
-https://discord.gg/aGJhkYb4
+[PandaWorks Studios Discord](https://discord.gg/u8QMDhhkth)
 
 A useful report includes the PWAL and Starfield versions, platform, installation method, exact source/item, relevant filters and destinations, location/ownership/lock state, repeatable steps, and useful lines from the `PandaWorks AutoLoot` user log.
 
